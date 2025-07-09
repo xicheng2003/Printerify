@@ -32,6 +32,7 @@ body {
 input[type="text"],
 input[type="number"],
 input[type="email"],
+input[type="tel"], /* <--- FIX: Added input[type="tel"] to the selector */
 select {
   width: 100%;
   padding: 0.75rem 1rem;
