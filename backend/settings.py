@@ -157,8 +157,8 @@ if DEBUG:
 
     # 将动态获取的IP地址加入到允许的主机列表中
     # 这样无论是通过localhost还是局域网IP都可以访问Django服务
-    ALLOWED_HOSTS.extend([ip_address, 'localhost', '127.0.0.1'])
-    
+    ALLOWED_HOSTS.extend(['print.morlight.top', 'www.print.morlight.top', ip_address, 'localhost', '127.0.0.1'])
+
     # 动态配置CORS，允许来自前端开发服务器的访问
     # 无论前端服务器的IP是什么，都能被正确识别
     frontend_dev_server_origin = f"http://{ip_address}:5173" # 假设Vite端口是5173
