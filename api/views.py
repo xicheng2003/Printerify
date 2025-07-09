@@ -3,11 +3,11 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .pricing import calculate_pages, calculate_price
 from rest_framework import viewsets, parsers # 导入parsers
 from .models import Order, PrintFile # 确保PrintFile已导入
 from .serializers import OrderSerializer, PrintFileUploadSerializer # 导入新的Serializer
 from django_filters.rest_framework import DjangoFilterBackend # 导入DjangoFilterBackend
+from .pricing import calculate_pages, get_price
 
 
 # OrderViewSet 定义了一套完整的、针对Order模型的增删改查(CRUD)操作
@@ -22,7 +22,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     # --- 添加以下开启过滤 ---
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['order_number', 'phone_number']
+    # --- 修改：在过滤字段中加入 pickup_code ---
+    filterset_fields = ['order_number', 'phone_number', 'pickup_code']
 
 class PrintFileViewSet(viewsets.ModelViewSet):
     """
@@ -35,10 +36,7 @@ class PrintFileViewSet(viewsets.ModelViewSet):
 
 # 创建一个新的视图来处理报价请求
 class PriceQuoteView(APIView):
-    """
-    接收文件和规格，返回预估价格的API视图。
-    """
-    # 确保视图能处理文件上传
+    """实时报价接口"""
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def post(self, request, *args, **kwargs):
@@ -53,11 +51,10 @@ class PriceQuoteView(APIView):
         except json.JSONDecodeError:
             return Response({'error': '规格参数必须是合法的JSON字符串。'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 调用我们的计价逻辑
+        # --- 关键修改：调用唯一的计价中心 ---
         pages = calculate_pages(file_obj)
-        price = calculate_price(specifications, pages)
-
-        # 返回结果
+        price = get_price(specifications, pages)
+        
         return Response({
             'estimated_pages': pages,
             'estimated_price': price

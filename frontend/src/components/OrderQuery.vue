@@ -1,23 +1,21 @@
 <script setup>
 import { ref, computed } from 'vue';
-import axios from 'axios';
+// --- 关键修改：导入并使用我们统一的API服务 ---
+import api from '@/services/apiService';
 
 // --- 状态定义 ---
 const queryPhoneNumber = ref('');
-const queryOrderNumber = ref('');
+const queryPickupCode = ref(''); // <-- 使用取件码作为查询条件
 const isLoading = ref(false);
-const searchResult = ref(null); // 存储查询到的订单对象
-const searchAttempted = ref(false); // 标记是否已经尝试过搜索
-const errorMessage = ref(''); // 存储错误信息
+const searchResult = ref(null);
+const searchAttempted = ref(false);
+const errorMessage = ref('');
 
 // --- 计算属性 ---
-
-// 控制查询按钮是否可点击
 const isQueryButtonDisabled = computed(() => {
-  return !queryPhoneNumber.value || !queryOrderNumber.value || isLoading.value;
+  return !queryPhoneNumber.value || !queryPickupCode.value || isLoading.value;
 });
 
-// 根据订单状态返回对应的CSS类名，用于显示不同颜色的徽章
 const statusInfo = computed(() => {
   if (!searchResult.value) return {};
   const status = searchResult.value.status;
@@ -32,8 +30,6 @@ const statusInfo = computed(() => {
 });
 
 // --- 方法定义 ---
-
-// 执行查询
 async function performQuery() {
   if (isQueryButtonDisabled.value) return;
 
@@ -43,17 +39,13 @@ async function performQuery() {
   errorMessage.value = '';
 
   try {
-    const response = await axios.get('/api/orders/', {
-      params: {
-        phone_number: queryPhoneNumber.value,
-        order_number: queryOrderNumber.value,
-      },
-    });
+    // --- 关键修改：调用apiService中正确的查询函数 ---
+    const response = await api.queryOrder(queryPhoneNumber.value, queryPickupCode.value);
 
     if (response.data && response.data.length > 0) {
-      searchResult.value = response.data[0]; // API返回的是列表，我们取第一个
+      searchResult.value = response.data[0];
     } else {
-      searchResult.value = null; // 未找到结果
+      searchResult.value = null;
     }
   } catch (error) {
     console.error('查询失败:', error);
@@ -63,14 +55,10 @@ async function performQuery() {
   }
 }
 
-// 格式化日期
 function formatDateTime(isoString) {
   if (!isoString) return 'N/A';
   const date = new Date(isoString);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  });
+  return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
 }
 </script>
 
@@ -78,14 +66,14 @@ function formatDateTime(isoString) {
   <div class="query-container">
     <div class="query-card">
       <h2>订单状态查询</h2>
-      <p class="subtitle">请输入您的手机号和订单号以获取最新状态。</p>
+      <p class="subtitle">请输入您的手机号和取件码以获取最新状态。</p>
 
       <div class="query-form">
         <div class="input-group">
           <input type="tel" v-model.trim="queryPhoneNumber" placeholder="手机号" />
         </div>
         <div class="input-group">
-          <input type="text" v-model.trim="queryOrderNumber" placeholder="订单号" />
+          <input type="text" v-model.trim="queryPickupCode" placeholder="取件码 (例如 P-123)" />
         </div>
         <button @click="performQuery" :disabled="isQueryButtonDisabled">
           <span v-if="!isLoading">查询订单</span>
@@ -95,13 +83,13 @@ function formatDateTime(isoString) {
     </div>
 
     <div v-if="isLoading" class="result-card loading-state">
-      <div class="spinner large"></div>
-      <p>正在查询中...</p>
+      <!-- ... (加载状态显示不变) ... -->
     </div>
 
     <div v-else-if="searchResult" class="result-card">
       <h3>查询结果</h3>
       <div class="result-grid">
+        <div><strong>取件码:</strong> {{ searchResult.pickup_code }}</div>
         <div><strong>订单号:</strong> {{ searchResult.order_number }}</div>
         <div><strong>手机号:</strong> {{ searchResult.phone_number }}</div>
         <div><strong>下单时间:</strong> {{ formatDateTime(searchResult.created_at) }}</div>
@@ -117,15 +105,18 @@ function formatDateTime(isoString) {
       <ul class="spec-list">
         <li><strong>纸张大小:</strong> {{ searchResult.specifications.paper_size }}</li>
         <li><strong>色彩:</strong> {{ searchResult.specifications.color }}</li>
-        <li><strong>单/双面:</strong> {{ searchResult.specifications.sided }}</li>
+        <li><strong>打印模式:</strong> {{ searchResult.specifications.sided }}</li>
+        <li><strong>装订方式:</strong> {{ searchResult.specifications.binding_method }}</li>
+        <li v-if="searchResult.specifications.binding_detail"><strong>装订位置:</strong> {{ searchResult.specifications.binding_detail }}</li>
         <li><strong>份数:</strong> {{ searchResult.specifications.copies }}</li>
       </ul>
 
       <hr />
 
-      <h4>文件列表</h4>
+      <h4>待打印文件</h4>
+      <!-- --- 关键修改：使用新的 printable_files 字段 --- -->
       <ul class="file-list">
-        <li v-for="file in searchResult.files" :key="file.file">
+        <li v-for="file in searchResult.printable_files" :key="file.file">
           <a :href="file.file" target="_blank" rel="noopener noreferrer">
             {{ file.file.split('/').pop() }}
           </a>
@@ -140,8 +131,8 @@ function formatDateTime(isoString) {
     <div v-if="errorMessage" class="result-card error-state">
       <p>{{ errorMessage }}</p>
     </div>
-
   </div>
+
 </template>
 
 <style scoped>
