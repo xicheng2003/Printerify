@@ -9,11 +9,25 @@ const apiClient = axios.create({
 // 封装所有与后端交互的函数
 export default {
   /**
-   * 获取价格报价
-   * @param {File} file - 用户上传的文件对象
-   * @param {object} specifications - 打印规格对象
+   * 新增：支持上传进度的文件上传函数
+   * @param {File} file - 纯粹的文件对象
+   * @param {string} purpose - 文件用途, 'PRINT' 或 'PAYMENT'
+   * @param {object} config - Axios的额外配置，主要用于传入onUploadProgress回调
    * @returns {Promise}
    */
+  uploadFileWithProgress(file, purpose = 'PRINT', config = {}) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('purpose', purpose);
+
+    return apiClient.post('/api/files/', formData, {
+      ...config, // 将传入的配置（包含onUploadProgress）合并进来
+      headers: {
+        ...config.headers,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
   getPriceQuote(file, specifications) {
     const formData = new FormData();
     formData.append('file', file);
