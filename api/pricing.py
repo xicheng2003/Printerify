@@ -42,7 +42,7 @@ def get_price(specifications, total_pages):
         price_per_page = 0.15
     
     # 3. 计算基础打印费用
-    printing_cost = price_per_page * total_pages + 0.5 # 每份打印有0.5元的基础服务费用
+    printing_cost = price_per_page * total_pages
 
     # 4. 计算装订费用
     binding_cost = 0.0
@@ -50,6 +50,6 @@ def get_price(specifications, total_pages):
         binding_cost = 0.1  # 每次装订固定收费1元
 
     # 5. 计算最终总价
-    total_price = (printing_cost + binding_cost) * copies
+    total_price = (printing_cost + binding_cost) * copies + 0.5 # 每个打印订单有0.5元的基础服务费用
     
     return round(total_price, 2)
