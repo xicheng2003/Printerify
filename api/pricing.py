@@ -1,65 +1,55 @@
-# api/pricing.py
-
-import io
 from PyPDF2 import PdfReader
 from docx import Document
+import io
 
 def calculate_pages(file_object):
-    """
-    根据文件对象估算页数。
-    支持 PDF 和 DOCX 格式。
-    """
+    """根据文件对象估算页数，支持 PDF 和 DOCX。"""
     try:
-        # 确保文件读取指针在开头
         file_object.seek(0)
         file_name = file_object.name.lower()
 
         if file_name.endswith('.pdf'):
             reader = PdfReader(file_object)
             return len(reader.pages)
-
         elif file_name.endswith('.docx'):
-            # 对于docx，页数是估算的。这里的逻辑是基于段落和图片数量。
-            # 您可以根据需要调整这个估算逻辑。
             document = Document(io.BytesIO(file_object.read()))
+            # 这是一个简化的估算逻辑，您可以根据需要调整
             paragraphs = len(document.paragraphs)
             images = len(document.inline_shapes)
-            # 一个简化的估算：每30个段落或5个图片大约算一页
-            page_estimate = max(1, (paragraphs // 30) + (images // 5))
-            return page_estimate
-
+            return max(1, (paragraphs // 10) + (images // 4))
         else:
-            # 对于不支持的或未知的格式，暂时按1页计算
             return 1
     except Exception as e:
-        print(f"Error calculating pages for {file_object.name}: {e}")
-        return 1 # 如果处理出错，也按1页计算
+        print(f"计价时计算页数出错: {e}")
+        return 1
     finally:
-        # 再次将指针移到开头，以便文件可以被再次读取
         file_object.seek(0)
 
-
-def calculate_price(specifications, pages):
+def get_price(specifications, total_pages):
     """
-    根据打印规格和页数计算总价。
+    唯一的计价中心：根据规格和页数计算总价。
     """
-    # 定义一个简单的价格规则字典
-    price_rules = {
-        'A4_黑白': 0.10,
-        'A4_彩色': 0.50,
-        'A3_黑白': 0.20,
-        'A3_彩色': 1.00,
-    }
-
-    # 从规格中获取参数
+    # 1. 从规格中获取参数
     copies = int(specifications.get('copies', 1))
-    paper_size = specifications.get('paper_size', 'A4')
-    color = specifications.get('color', '黑白')
+    sided_mode = specifications.get('sided', '单面')
+    binding_method = specifications.get('binding_method', '无装订')
+    
+    # 2. 定义价格规则
+    # 基础打印单价 (A4, 黑白, 单面)
+    price_per_page = 0.15
+    # 双面打印附加费
+    if sided_mode in ['双面', '单双']:
+        price_per_page = 0.15
+    
+    # 3. 计算基础打印费用
+    printing_cost = price_per_page * total_pages + 0.5 # 每份打印有0.5元的基础服务费用
 
-    # 构建查询键并获取单价
-    rule_key = f"{paper_size}_{color}"
-    price_per_page = price_rules.get(rule_key, 0.10) # 如果没有匹配的规则，使用默认价
+    # 4. 计算装订费用
+    binding_cost = 0.0
+    if binding_method == '订书钉装订':
+        binding_cost = 0.1  # 每次装订固定收费1元
 
-    # 计算总价并四舍五入到两位小数
-    total_price = float(price_per_page) * pages * copies
+    # 5. 计算最终总价
+    total_price = (printing_cost + binding_cost) * copies
+    
     return round(total_price, 2)

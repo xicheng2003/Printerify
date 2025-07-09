@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from 'vue'; // ref is needed for the uploader component instance
+import { reactive, ref } from 'vue';
 import api from '@/services/apiService';
 
 // 导入所有需要的子组件
@@ -16,13 +16,12 @@ const state = reactive({
   file: null, // 存储文件对象
   fileId: null, // 存储上传成功后返回的文件ID
   options: {
-    // --- 核心修改 ---
     paper_size: 'A4',
     color: '黑白',
     sided: '单面',
     copies: 1,
-    binding_method: '无装订', // 新增：主装订方式
-    binding_detail: '',      // 新增：子装订选项（位置）
+    binding_method: '无装订',
+    binding_detail: '',
   },
   phoneNumber: '',
   priceQuote: null,
@@ -38,8 +37,8 @@ const state = reactive({
  */
 function onFileUploadSuccess(payload) {
   state.file = payload.file;
-  state.fileId = payload.id; // 保存文件ID，供后续使用
-  state.step = 2; // **关键：自动进入下一步**
+  state.fileId = payload.id;
+  state.step = 2;
 }
 
 /**
@@ -54,11 +53,9 @@ function onScreenshotUploaded(uploadedId) {
  * 点击“计算价格”按钮
  */
 async function handlePriceQuote() {
-  // 当选择“订书钉装订”但未选择具体位置时，自动设置一个默认值
   if (state.options.binding_method === '订书钉装订' && !state.options.binding_detail) {
     state.options.binding_detail = '左上角装订';
   }
-  // 如果选择了“无装订”，则清空子选项
   if (state.options.binding_method === '无装订') {
     state.options.binding_detail = '';
   }
@@ -78,7 +75,7 @@ async function handlePriceQuote() {
 }
 
 /**
- * 点击“确认下单”按钮（已优化）
+ * 点击“确认下单”按钮
  */
 async function handleCreateOrder() {
   if (!state.phoneNumber) {
@@ -96,11 +93,15 @@ async function handleCreateOrder() {
     const orderData = {
       phone_number: state.phoneNumber,
       specifications: state.options,
-      file_ids: [state.fileId], // 使用已有的文件ID
+      file_ids: [state.fileId],
       payment_screenshot_id: state.screenshotId,
     };
 
     const response = await api.createOrder(orderData);
+
+    // --- 调试步骤：在控制台打印出后端返回的完整数据 ---
+    console.log("订单创建成功，后端返回的数据:", response.data);
+
     state.finalOrder = response.data;
     state.step = 4;
   } catch (error) {
@@ -124,7 +125,7 @@ function reset() {
     phoneNumber: '',
     screenshotId: null,
     errorMessage: '',
-    options: { // 重置选项
+    options: {
         paper_size: 'A4',
         color: '黑白',
         sided: '单面',
@@ -133,7 +134,6 @@ function reset() {
         binding_detail: '',
     }
   });
-  // 调用子组件的重置方法
   if (fileUploaderRef.value) {
     fileUploaderRef.value.reset();
   }
@@ -150,10 +150,9 @@ function reset() {
         <FileUploader ref="fileUploaderRef" @upload-success="onFileUploadSuccess" />
       </section>
 
-      <!-- 步骤二：打印规格（已修改） -->
+      <!-- 步骤二：打印规格 -->
       <section v-if="state.step >= 2">
         <h2>2. 设置打印选项</h2>
-        <!-- --- 核心修改：更新选项网格 --- -->
         <div class="options-grid">
           <div>
             <label>纸张大小:</label>
@@ -175,7 +174,6 @@ function reset() {
             <label>份数:</label>
             <input type="number" v-model="state.options.copies" min="1" :disabled="state.isLoading"/>
           </div>
-          <!-- --- 新增：装订方式选项 --- -->
           <div>
             <label>装订方式:</label>
             <select v-model="state.options.binding_method" :disabled="state.isLoading">
@@ -183,7 +181,6 @@ function reset() {
               <option>订书钉装订</option>
             </select>
           </div>
-          <!-- --- 新增：条件显示的装订位置子选项 --- -->
           <div v-if="state.options.binding_method === '订书钉装订'">
             <label>装订位置:</label>
             <select v-model="state.options.binding_detail" :disabled="state.isLoading">
@@ -216,11 +213,15 @@ function reset() {
         </BaseButton>
       </section>
 
-      <!-- 步骤四：完成 -->
+      <!-- 步骤四：完成 (已修改) -->
       <section v-if="state.step === 4" class="completion-view">
         <h2>🎉 订单提交成功！</h2>
-        <p>您的订单号为：<strong>{{ state.finalOrder.order_number }}</strong></p>
-        <p>请妥善保管，用于查询订单状态。</p>
+        <p class="pickup-code-label">请牢记您的取件码</p>
+        <div class="pickup-code-display">
+          {{ state.finalOrder.pickup_code }}
+        </div>
+        <p class="sub-info">您可使用“手机号”+“取件码”随时查询订单状态。</p>
+        <p class="order-number-info">完整订单号为：{{ state.finalOrder.order_number }}</p>
         <BaseButton @click="reset">再下一单</BaseButton>
       </section>
 
@@ -239,29 +240,14 @@ section:last-child { border-bottom: none; }
 h2 { margin-top: 0; }
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 调整网格以适应新布局 */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
-.options-grid div {
-    display: flex;
-    flex-direction: column;
-}
-.options-grid label {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #555;
-}
-.options-grid input[type="text"], .options-grid input[type="number"], .options-grid select {
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-}
-.options-grid input[disabled] {
-    background-color: #f8f9fa;
-    cursor: not-allowed;
-}
+.options-grid div { display: flex; flex-direction: column; }
+.options-grid label { margin-bottom: 0.5rem; font-weight: 500; color: #555; }
+.options-grid input[type="text"], .options-grid input[type="number"], .options-grid select { padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+.options-grid input[disabled] { background-color: #f8f9fa; cursor: not-allowed; }
 .price-result { background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
 .price { font-size: 1.5rem; color: #dc3545; }
 .completion-view { text-align: center; }
@@ -270,4 +256,31 @@ h2 { margin-top: 0; }
 .payment-instruction { margin-top: 0; color: #333; }
 .qr-code { max-width: 200px; margin: 1rem auto; display: block; border: 1px solid #ddd; padding: 5px; border-radius: 8px; }
 .form-group { margin-top: 1.5rem; }
+
+/* --- 新增：完成页面的取件码样式 --- */
+.pickup-code-label {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+.pickup-code-display {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: #007bff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+.sub-info {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+.order-number-info {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin-bottom: 2rem;
+}
 </style>

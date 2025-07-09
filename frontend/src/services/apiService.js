@@ -72,11 +72,18 @@ export default {
    * @param {string} orderNumber - 订单号
    * @returns {Promise}
    */
-  queryOrder(phoneNumber, orderNumber) {
+  queryOrder(phoneNumber, pickupCode) {
+    // 使用新的pickup_code字段进行查询
+    if (!phoneNumber && !pickupCode) {
+      throw new Error('至少提供手机号或取件码进行查询');
+    }
+
+    // 发送GET请求到后端的订单查询接口
+    // 注意：如果只提供了手机号，则pickupCode可以为null或undefined
     return apiClient.get('/api/orders/', {
       params: {
         phone_number: phoneNumber,
-        order_number: orderNumber
+        pickup_code: pickupCode // 使用新的pickup_code字段进行查询
       },
     });
   },
