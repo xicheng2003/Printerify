@@ -16,6 +16,10 @@
         :disabled="uploadState === 'loading'"
       />
     </label>
+    <!-- Progress Bar added for better UX -->
+    <div v-if="uploadState === 'loading'" class="progress-bar-container">
+        <div class="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+    </div>
   </div>
 </template>
 
@@ -27,11 +31,12 @@ const emit = defineEmits(['upload-success']);
 
 const uploadState = ref('idle'); // idle, loading, success, error
 const uploadedFileName = ref('');
-let originalFile = null; // Variable to store the original file object
+const uploadProgress = ref(0); // State for tracking upload progress
+let originalFile = null;
 
 const message = computed(() => {
   switch (uploadState.value) {
-    case 'loading': return '正在上传...';
+    case 'loading': return `正在上传: ${uploadProgress.value}%`;
     case 'success': return `文件上传成功: ${uploadedFileName.value}`;
     case 'error': return '上传失败，请点击重试。';
     case 'idle': default: return '点击此处，或拖拽文件到这里';
@@ -42,23 +47,30 @@ async function handleFileChange(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  originalFile = file; // Store the file object for later use
+  originalFile = file;
   uploadState.value = 'loading';
   uploadedFileName.value = file.name;
+  uploadProgress.value = 0; // Reset progress
 
   try {
-    // Assuming your apiService has an `uploadPrintFile` method
-    const response = await api.uploadPrintFile(file, 'PRINT');
+    // *** THE FIX IS HERE ***
+    // Calling the correct function `uploadPrintFile` and passing the progress callback
+    const response = await api.uploadPrintFile(
+      file,
+      'PRINT',
+      (progressEvent) => {
+        uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      }
+    );
 
     uploadState.value = 'success';
 
-    // *** THE FIX IS HERE ***
-    // Create a payload object that includes both the ID and the original file
+    // Create the payload object that HomeView expects
     const payload = {
       id: response.data.id,
       file: originalFile,
     };
-    // Emit the complete payload object
+    // Emit the correct payload
     emit('upload-success', payload);
 
   } catch (error) {
@@ -66,7 +78,7 @@ async function handleFileChange(event) {
     console.error("File upload failed:", error);
   }
 
-  event.target.value = ''; // Clear input to allow re-uploading the same file
+  event.target.value = '';
 }
 
 // The reset method that HomeView can call
@@ -74,16 +86,16 @@ function reset() {
   uploadState.value = 'idle';
   uploadedFileName.value = '';
   originalFile = null;
+  uploadProgress.value = 0;
 }
 
-// Expose the reset method to the parent component
 defineExpose({
   reset
 });
 </script>
 
 <style scoped>
-/* Styles are kept the same as they are well-designed */
+/* Styles are kept the same, with addition of progress bar */
 .file-uploader {
   border: 2px dashed #d9d9d9;
   border-radius: 12px;
@@ -125,4 +137,19 @@ defineExpose({
   animation: spin 1s ease-in-out infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Progress Bar Styles */
+.progress-bar-container {
+    margin-top: 1rem;
+    height: 8px;
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease-in-out;
+}
 </style>
