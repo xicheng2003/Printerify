@@ -27,8 +27,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_number', 'pickup_code', 'phone_number', 'status', 
             'specifications', 'total_price', 'created_at', 'updated_at',
-            'printable_files', # <-- 使用新的字段
-            'file_ids', 'payment_screenshot_id'
+            'printable_files', 'payment_method', 'file_ids', 'payment_screenshot_id'
         ]
         read_only_fields = ['order_number', 'total_price', 'status', 'pickup_code']
 

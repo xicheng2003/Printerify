@@ -47,11 +47,23 @@ class Order(models.Model):
         PICKED_UP = 'PICKED_UP', '已取件'
         CANCELLED = 'CANCELLED', '已取消'
 
+        # --- 新增：支付方式选项 ---
+    class PaymentChoices(models.TextChoices):
+        WECHAT = 'WECHAT', '微信支付'
+        ALIPAY = 'ALIPAY', '支付宝'
+        
     order_number = models.CharField(max_length=20, default=generate_order_number, unique=True, editable=False, verbose_name="订单号")
     phone_number = models.CharField(max_length=15, verbose_name="用户手机号")
     status = models.CharField(max_length=10, choices=StatusChoices.choices, default=StatusChoices.PENDING, verbose_name="订单状态")
     specifications = models.JSONField(verbose_name="打印规格")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="订单总价")
+        # --- 新增字段 ---
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PaymentChoices.choices,
+        default=PaymentChoices.WECHAT, # 默认设为微信支付
+        verbose_name="支付方式"
+    )
     payment_screenshot = models.ImageField(upload_to='screenshots/%Y/%m/%d/', blank=True, null=True, verbose_name="付款截图")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")
