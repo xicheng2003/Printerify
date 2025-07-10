@@ -3,31 +3,31 @@ import axios from 'axios';
 
 // 创建一个axios实例，可以进行统一的配置
 const apiClient = axios.create({
-  baseURL: '/', // 使用Vite代理，根路径即可
+  baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
 });
 
 // 封装所有与后端交互的函数
 export default {
   /**
-   * 上传文件（包括打印文档和付款截图）
-   * 这个函数被 FileUploader 和 PaymentUploader 调用
+   * 上传文件（包括打印文档和付款截图），并支持进度回调
    * @param {File} file - 用户上传的文件对象
    * @param {string} purpose - 文件用途, 'PRINT' 或 'PAYMENT'
+   * @param {function} onUploadProgress - Axios的进度回调函数
    * @returns {Promise}
    */
-  uploadPrintFile(file, purpose) {
+  uploadPrintFile(file, purpose, onUploadProgress) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('purpose', purpose);
 
     return apiClient.post('/api/files/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress, // 将回调函数传递给axios
     });
   },
 
   /**
    * 获取价格估算
-   * 这个函数被 HomeView 的 handlePriceQuote 调用
    * @param {File} file - 原始文件对象
    * @param {object} specifications - 包含打印选项的对象
    * @returns {Promise}
@@ -44,7 +44,6 @@ export default {
 
   /**
    * 创建最终订单
-   * 这个函数被 HomeView 的 handleCreateOrder 调用
    * @param {object} orderData - 包含手机号、规格、文件ID等的订单数据
    * @returns {Promise}
    */
