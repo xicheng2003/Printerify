@@ -12,6 +12,17 @@
         <div class="step-content">
           <div v-if="state.step === 1">
             <h3 class="step-title">第一步：上传您的文档</h3>
+
+            <!-- *** THE FIX IS HERE: Added upload notice section *** -->
+            <div class="upload-notice">
+              <p><strong>上传须知</strong></p>
+              <ul>
+                <li><strong>格式推荐</strong>: 为确保打印效果与排版格式一致，强烈建议您上传 <strong>PDF</strong> 格式的文档。</li>
+                <li><strong>隐私安全</strong>: 我们非常重视您的隐私。所有文件将通过加密通道上传，并存储在专用服务器上。打印完成后，您的文件将被<strong>立即销毁</strong>，绝不外泄。</li>
+                <li><strong>合规声明</strong>: 请遵守相关法律法规，<strong>严禁上传</strong>任何涉密、涉政及其他违禁内容的文件。</li>
+              </ul>
+            </div>
+
             <FileUploader ref="fileUploaderRef" @upload-success="onFileUploadSuccess" />
           </div>
 
@@ -57,7 +68,7 @@
             <div class="pricing-rules">
               <p><strong>计费规则说明</strong></p>
               <ul>
-                <li>打印费用: 单面打印 0.15元/页，双面打印 0.30元/页 (单双同价，即每面0.15元)。</li>
+                <li>打印费用: 单面打印 0.15元/页，双面打印 0.30元/页 (即每面0.15元)。</li>
                 <li>装订服务: 若选择装订，将额外收取 0.10元/本。</li>
                 <li>基础服务费: 每笔订单将收取 0.50元 的基础服务费。</li>
               </ul>
@@ -90,6 +101,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             <h3 class="step-title">订单提交成功！</h3>
             <p>取件时请出示取件码，请牢记或截图保存。</p>
+            <p>凭手机号和取件码，可在订单查询页面查询订单状态</p>
             <div class="pickup-code-wrapper">
               <span class="pickup-code-label">您的取件码</span>
               <strong class="pickup-code">{{ state.finalOrder.pickup_code }}</strong>
@@ -265,7 +277,7 @@ function reset() {
   margin-top: -0.5rem;
   margin-bottom: 2rem;
 }
-.pricing-rules {
+.pricing-rules, .upload-notice {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 8px;
@@ -274,21 +286,21 @@ function reset() {
   font-size: 0.9rem;
   color: #495057;
 }
-.pricing-rules p {
+.pricing-rules p, .upload-notice p {
   margin: 0 0 0.75rem 0;
   font-weight: 600;
   color: var(--text-dark);
 }
-.pricing-rules ul {
+.pricing-rules ul, .upload-notice ul {
   list-style-type: none;
   padding-left: 0;
 }
-.pricing-rules li {
+.pricing-rules li, .upload-notice li {
   margin-bottom: 0.5rem;
   position: relative;
   padding-left: 1.25rem;
 }
-.pricing-rules li::before {
+.pricing-rules li::before, .upload-notice li::before {
   content: '•';
   color: var(--primary-color);
   font-weight: bold;
@@ -297,14 +309,16 @@ function reset() {
   left: 0;
   top: 0;
 }
-.pricing-rules li:last-child {
+.pricing-rules li:last-child, .upload-notice li:last-child {
   margin-bottom: 0;
 }
+.upload-notice li strong {
+  color: #c2410c; /* A warm orange color for emphasis */
+}
 
-/* *** THE FIX IS HERE: Responsive Styles *** */
 @media (max-width: 767px) {
   .hero-section h2 {
-    font-size: 2rem; /* Smaller title on mobile */
+    font-size: 2rem;
   }
   .hero-section p {
     font-size: 1rem;
@@ -313,10 +327,10 @@ function reset() {
     font-size: 1.25rem;
   }
   .process-card {
-    padding: 1.5rem 1rem; /* Less padding on mobile */
+    padding: 1.5rem 1rem;
   }
   .options-grid {
-    grid-template-columns: 1fr; /* Force single column on mobile */
+    grid-template-columns: 1fr;
   }
   .pickup-code {
     font-size: 2rem;
