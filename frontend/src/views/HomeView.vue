@@ -16,7 +16,7 @@
               <p><strong>上传须知</strong></p>
               <ul>
                 <li><strong>格式推荐</strong>: 为确保打印效果与排版格式一致，强烈建议您上传 <strong>PDF</strong> 格式的文档。</li>
-                <li><strong>隐私安全</strong>: 我们非常重视您的隐私。所有文件将通过加密通道上传，并存储在专用服务器上。打印完成后，您的文件将被<strong>立即销毁</strong>，绝不外泄。</li>
+                <li><strong>隐私安全</strong>: 所有文件将通过加密通道上传，并存储在专用服务器上。打印完成后，您的文件将被<strong>立即销毁</strong>，绝不外泄。</li>
                 <li><strong>合规声明</strong>: 请遵守相关法律法规，<strong>严禁上传</strong>任何涉密、涉政及其他违禁内容的文件。</li>
               </ul>
             </div>
@@ -95,7 +95,6 @@
                 <p class="payment-instruction">请使用微信扫描下方二维码完成支付</p>
                 <img src="/wechat_qr.jpg" alt="微信收款二维码" class="qr-code">
               </div>
-
               <div v-if="state.paymentMethod === 'ALIPAY'">
                  <p class="payment-instruction">请使用支付宝扫描二维码，或点击下方链接</p>
                  <img src="/alipay_qr.jpg" alt="支付宝收款二维码" class="qr-code">
@@ -103,7 +102,6 @@
                    点此跳转支付宝APP付款
                  </a>
               </div>
-
               <PaymentUploader @upload-success="onScreenshotUploaded" />
             </div>
 
@@ -140,7 +138,6 @@
 import { reactive, ref } from 'vue';
 import api from '@/services/apiService';
 
-// 导入所有需要的子组件
 import Stepper from '@/components/Stepper.vue';
 import FileUploader from '@/components/FileUploader.vue';
 import PaymentUploader from '@/components/PaymentUploader.vue';
@@ -166,8 +163,7 @@ const state = reactive({
   finalOrder: null,
   isLoading: false,
   errorMessage: '',
-  // --- 支付方式状态，默认为微信 ---
-  paymentMethod: 'WECHAT', // WECHAT 或 ALIPAY
+  paymentMethod: 'WECHAT',
 });
 
 function onFileUploadSuccess(payload) {
@@ -220,7 +216,6 @@ async function handleCreateOrder() {
       specifications: state.options,
       file_ids: [state.fileId],
       payment_screenshot_id: state.screenshotId,
-      // --- 将选择的支付方式一并提交 ---
       payment_method: state.paymentMethod,
     };
     const response = await api.createOrder(orderData);
@@ -239,7 +234,6 @@ function reset() {
     step: 1, file: null, fileId: null, priceQuote: null, finalOrder: null,
     phoneNumber: '', screenshotId: null, errorMessage: '',
     options: { paper_size: 'A4', color: '黑白', sided: '单面', copies: 1, binding_method: '无装订', binding_detail: '' },
-    // 重置时也恢复默认支付方式
     paymentMethod: 'WECHAT',
   });
   if (fileUploaderRef.value) {
@@ -249,7 +243,6 @@ function reset() {
 </script>
 
 <style scoped>
-/* (已有样式保持不变) */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -316,7 +309,6 @@ function reset() {
 .pricing-rules li:last-child, .upload-notice li:last-child { margin-bottom: 0; }
 .upload-notice li strong { color: #c2410c; }
 
-/* --- 最终版：支付方式按钮样式 --- */
 .payment-method-selector {
   display: flex;
   justify-content: center;
@@ -328,35 +320,35 @@ function reset() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e2e8f0; /* 默认浅灰色边框 */
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 4px; /* 内边距给图片留出呼吸空间 */
+  padding: 4px;
   transition: all 0.2s ease-in-out;
-  width: 160px; /* 固定宽度 */
-  height: 56px; /* 固定高度 */
-  box-sizing: border-box; /* 确保 padding 和 border 不会增加总宽度 */
+  width: 160px;
+  height: 56px;
+  box-sizing: border-box;
 }
 .payment-method-selector label:hover {
   border-color: #c7d2fe;
 }
 .payment-method-selector label.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); /* 使用 outline 样式的 shadow */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 .payment-method-selector input[type="radio"] {
-  display: none; /* 隐藏原生radio按钮 */
+  display: none;
 }
 .payment-button-image {
   display: block;
-  max-height: 100%; /* 图片最大高度不超过容器 */
-  max-width: 100%; /* 图片最大宽度不超过容器 */
-  object-fit: contain; /* 保持图片比例，完整显示在容器内 */
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
 .payment-link {
   display: inline-block;
   margin-top: 1rem;
   padding: 0.6rem 1.2rem;
-  background-color: #1677ff; /* 支付宝蓝 */
+  background-color: #1677ff;
   color: white;
   text-decoration: none;
   border-radius: 5px;
@@ -365,5 +357,34 @@ function reset() {
 }
 .payment-link:hover {
   background-color: #4096ff;
+}
+
+/* --- 新增：响应式布局优化 --- */
+@media (max-width: 767px) {
+  .hero-section h2 {
+    font-size: 2rem; /* 在小屏幕上减小主标题字体 */
+  }
+  .hero-section p {
+    font-size: 1rem;
+  }
+  .step-title {
+    font-size: 1.25rem;
+  }
+  .process-card {
+    padding: 1.5rem 1rem;
+  }
+  .options-grid {
+    grid-template-columns: 1fr; /* 打印选项变为单列布局 */
+  }
+  .pickup-code {
+    font-size: 2rem;
+  }
+  .payment-method-selector {
+    gap: 1rem; /* 减小支付按钮间距 */
+  }
+  .payment-method-selector label {
+    width: 140px; /* 减小支付按钮宽度 */
+    height: 48px;
+  }
 }
 </style>
