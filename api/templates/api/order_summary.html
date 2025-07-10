@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情 - Printerify</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm 1.3cm; /* 调整页边距，使其更紧凑 */
+        }
+        body {
+            font-family: 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei', '黑体', 'Arial', sans-serif;
+            font-size: 9.5pt; /* 减小基础字号 */
+            color: #333;
+            margin: 0;
+        }
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        /* --- 页眉 --- */
+        .logo-title-table {
+            width: 100%;
+        }
+        .logo-title-table td {
+            vertical-align: bottom;
+        }
+        .logo-svg-cell {
+            width: 35px; /* 设置固定宽度给图标 */
+        }
+        .logo-svg-cell svg {
+            width: 32px; /* 控制SVG图标大小 */
+            height: 32px;
+        }
+        .logo-text-cell h1 {
+            font-family: 'Helvetica', sans-serif;
+            font-size: 24pt;
+            font-weight: bold;
+            color: #2c2c2c;
+            padding-left: 8px; /* 图标和文字的间距 */
+            margin: 0;
+        }
+        .header-title-cell {
+            text-align: right;
+        }
+        .header-title-cell h2 {
+            margin: 0;
+            font-size: 18pt;
+            color: #2c2c2c;
+            font-weight: 300;
+        }
+        .header-title-cell p {
+            margin: 2px 0 0;
+            font-size: 8.5pt;
+            color: #9B9B9B;
+        }
+        /* --- 通用区块标题 --- */
+        .section-title {
+            font-size: 12pt;
+            color: #2c2c2c;
+            font-weight: 500;
+            border-bottom: 1px solid #EAEAEA;
+            padding-bottom: 6px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        /* --- 信息区块 --- */
+        .info-table {
+             width: 100%;
+             border-collapse: separate;
+             border-spacing: 8px;
+        }
+        .info-table td {
+            width: 50%;
+            background-color: #F9F9F9;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #F0F0F0;
+            vertical-align: top;
+        }
+        .info-item .label {
+            font-size: 8.5pt;
+            color: #777;
+            margin-bottom: 2px;
+        }
+        .info-item .value {
+            font-size: 11pt;
+            font-weight: 500;
+            color: #333;
+        }
+        .info-item .pickup-code {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #D0021B;
+        }
+        /* --- 文件列表 --- */
+        .file-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .file-list li {
+            background-color: #F9F9F9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 6px;
+            font-size: 10pt;
+            border: 1px solid #F0F0F0;
+        }
+        /* --- 页脚 --- */
+        .footer-wrapper {
+            position: absolute;
+            bottom: 1cm;
+            left: 1.3cm;
+            right: 1.3cm;
+        }
+        .footer-table {
+            width: 100%;
+            border-top: 1.5px solid #F0F0F0;
+            padding-top: 10px;
+        }
+        .footer-table td {
+            vertical-align: middle;
+        }
+        .footer-text p {
+            margin: 0 0 4px 0;
+            font-size: 8pt;
+            color: #888;
+        }
+        .qrcode-container {
+            text-align: right;
+        }
+        .qrcode-container p {
+            font-size: 8pt;
+            color: #888;
+            margin: 0 0 4px 0;
+        }
+        .qrcode-container img {
+            width: 80px;
+            height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <table class="main-table">
+        <thead>
+            <tr>
+                <td colspan="2" style="border-bottom: 1.5px solid #F0F0F0; padding-bottom: 12px;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td>
+                                <table class="logo-title-table">
+                                    <tr>
+                                        <td class="logo-svg-cell">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <rect x="7" y="13" width="10" height="8" rx="1" stroke="#34495e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 13H19V11" stroke="#34495e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </td>
+                                        <td class="logo-text-cell">
+                                            <h1>Printerify</h1>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td class="header-title-cell">
+                                <h2>自助打印订单</h2>
+                                <p>请核对您的订单信息</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="2">
+                    <div class="section-title">核心信息</div>
+                    <div class="info-item" style="background-color: #F9F9F9; padding: 10px; border-radius: 5px; border: 1px solid #F0F0F0; margin-bottom: 8px;">
+                        <div class="label">取件码</div>
+                        <div class="value pickup-code">{{ order.pickup_code }}</div>
+                    </div>
+                    <table class="info-table">
+                        <tr>
+                            <td>
+                                <div class="info-item">
+                                    <div class="label">订单号</div>
+                                    <div class="value">{{ order.order_number }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="info-item">
+                                    <div class="label">用户手机</div>
+                                    <div class="value">{{ order.phone_number }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="section-title">打印任务</div>
+                    <ul class="file-list">
+                        {% for file in order.files.all %}{% if file.purpose == 'PRINT' %}<li>📄 {{ file.file.name|slice:"18:" }}</li>{% endif %}{% empty %}<li>未找到打印文件</li>{% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="section-title">打印规格</div>
+                    <table class="info-table">
+                        {% for key, value in order.specifications.items %}
+                            {% if forloop.first or forloop.counter0|divisibleby:2 %}<tr>{% endif %}
+                            <td>
+                                <div class="info-item">
+                                    <div class="label">
+                                        {% if key == 'copies' %}打印份数
+                                        {% elif key == 'paper_size' %}纸张大小
+                                        {% elif key == 'color' %}色彩模式
+                                        {% elif key == 'sided' %}单/双面
+                                        {% elif key == 'binding_method' %}装订方式
+                                        {% elif key == 'binding_detail' %}装订位置
+                                        {% else %}{{ key|capfirst }}{% endif %}
+                                    </div>
+                                    <div class="value">{{ value }}{% if key == 'copies' %} 份{% endif %}</div>
+                                </div>
+                            </td>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer-wrapper">
+        <table class="footer-table">
+            <tr>
+                <td class="footer-text">
+                    <p>感谢您使用 Printerify！</p>
+                    <p>如有任何问题，请联系我们。</p>
+                </td>
+                <td class="qrcode-container">
+                    <p>扫码继续下单</p>
+                    <img src="images/qrcode.png" alt="QR Code">
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
