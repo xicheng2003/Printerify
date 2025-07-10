@@ -1,6 +1,12 @@
 // frontend/src/services/apiService.js
 import axios from 'axios';
 
+// --- 新增的配置 ---
+// 这两行代码会告诉axios自动处理Django的CSRF令牌
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+axios.defaults.withCredentials = true; // 允许跨域请求携带cookie
+
 // 创建一个axios实例，可以进行统一的配置
 const apiClient = axios.create({
   baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
