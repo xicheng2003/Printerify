@@ -1,17 +1,14 @@
 <script setup>
 import { ref, computed } from 'vue';
-// --- 关键修改：导入并使用我们统一的API服务 ---
 import api from '@/services/apiService';
 
-// --- 状态定义 ---
 const queryPhoneNumber = ref('');
-const queryPickupCode = ref(''); // <-- 使用取件码作为查询条件
+const queryPickupCode = ref('');
 const isLoading = ref(false);
 const searchResult = ref(null);
 const searchAttempted = ref(false);
 const errorMessage = ref('');
 
-// --- 计算属性 ---
 const isQueryButtonDisabled = computed(() => {
   return !queryPhoneNumber.value || !queryPickupCode.value || isLoading.value;
 });
@@ -29,7 +26,6 @@ const statusInfo = computed(() => {
   return statusMap[status] || { text: status, class: 'status-default' };
 });
 
-// --- 方法定义 ---
 async function performQuery() {
   if (isQueryButtonDisabled.value) return;
 
@@ -39,7 +35,6 @@ async function performQuery() {
   errorMessage.value = '';
 
   try {
-    // --- 关键修改：调用apiService中正确的查询函数 ---
     const response = await api.queryOrder(queryPhoneNumber.value, queryPickupCode.value);
 
     if (response.data && response.data.length > 0) {
@@ -77,13 +72,14 @@ function formatDateTime(isoString) {
         </div>
         <button @click="performQuery" :disabled="isQueryButtonDisabled">
           <span v-if="!isLoading">查询订单</span>
-          <span v-else class="spinner"></span>
+          <div v-else class="spinner"></div>
         </button>
       </div>
     </div>
 
     <div v-if="isLoading" class="result-card loading-state">
-      <!-- ... (加载状态显示不变) ... -->
+      <div class="spinner large"></div>
+      <p>正在查询中...</p>
     </div>
 
     <div v-else-if="searchResult" class="result-card">
@@ -114,7 +110,6 @@ function formatDateTime(isoString) {
       <hr />
 
       <h4>待打印文件</h4>
-      <!-- --- 关键修改：使用新的 printable_files 字段 --- -->
       <ul class="file-list">
         <li v-for="file in searchResult.printable_files" :key="file.file">
           <a :href="file.file" target="_blank" rel="noopener noreferrer">
@@ -142,6 +137,7 @@ function formatDateTime(isoString) {
 :root {
   --primary-color: #007bff;
   --primary-hover: #0056b3;
+  --primary-color-light: rgba(0, 123, 255, 0.2);
   --background-color: #f8f9fa;
   --card-background: #ffffff;
   --text-color: #333;
@@ -151,16 +147,15 @@ function formatDateTime(isoString) {
 
 .query-container {
   font-family: 'Noto Sans SC', sans-serif;
-  background-color: var(--background-color);
-  padding: 2rem;
+  padding: 1rem; /* Adjusted for mobile */
   max-width: 800px;
-  margin: 2rem auto;
+  margin: 1rem auto;
 }
 
 .query-card, .result-card {
   background-color: var(--card-background);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem; /* Adjusted for mobile */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
 }
@@ -180,7 +175,7 @@ h2 {
 .query-form {
   display: flex;
   gap: 1rem;
-  align-items: center;
+  align-items: stretch; /* Make items same height */
 }
 
 .input-group {
@@ -189,6 +184,7 @@ h2 {
 
 input[type="tel"], input[type="text"] {
   width: 100%;
+  height: 100%; /* Ensure input fills the group */
   padding: 0.75rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -199,7 +195,7 @@ input[type="tel"], input[type="text"] {
 input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 0 0 3px var(--primary-color-light);
 }
 
 button {
@@ -214,6 +210,9 @@ button {
   transition: background-color 0.2s;
   white-space: nowrap;
   min-width: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:hover:not(:disabled) {
@@ -228,7 +227,7 @@ button:disabled {
 /* 结果卡片样式 */
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr; /* Default to single column */
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -267,7 +266,7 @@ h3, h4 { margin: 1.5rem 0 0.5rem 0; }
 .info-state, .error-state, .loading-state {
   text-align: center;
   color: var(--subtitle-color);
-  padding: 3rem;
+  padding: 3rem 1rem;
 }
 .error-state { color: #dc3545; font-weight: 500; }
 
@@ -290,5 +289,28 @@ h3, h4 { margin: 1.5rem 0 0.5rem 0; }
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* *** THE FIX IS HERE: Responsive Styles *** */
+@media (min-width: 640px) {
+  .query-container {
+    padding: 2rem;
+    margin: 2rem auto;
+  }
+  .query-card, .result-card {
+    padding: 2rem;
+  }
+  .result-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .query-form {
+    flex-direction: column;
+  }
+  button {
+    width: 100%;
+  }
 }
 </style>

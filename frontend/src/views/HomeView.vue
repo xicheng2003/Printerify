@@ -54,7 +54,6 @@
               </div>
             </div>
 
-            <!-- *** THE FIX IS HERE: Added pricing rules section *** -->
             <div class="pricing-rules">
               <p><strong>计费规则说明</strong></p>
               <ul>
@@ -213,8 +212,11 @@ function reset() {
 </script>
 
 <style scoped>
-/* 样式与之前的美化版本保持一致，并做微调 */
-.container { max-width: 1200px; margin: 0 auto; }
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem; /* Add horizontal padding for mobile */
+}
 .hero-section { text-align: center; padding: 2rem 0; margin-bottom: 2rem; }
 .hero-section h2 { font-size: 2.5rem; font-weight: 700; color: #1e293b; }
 .hero-section p { font-size: 1.125rem; color: #64748b; }
@@ -263,13 +265,12 @@ function reset() {
   margin-top: -0.5rem;
   margin-bottom: 2rem;
 }
-/* *** THE FIX IS HERE: Added styles for the pricing rules box *** */
 .pricing-rules {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 8px;
   padding: 1rem 1.5rem;
-  margin-bottom: 2rem; /* Space before the calculate button */
+  margin-bottom: 2rem;
   font-size: 0.9rem;
   color: #495057;
 }
@@ -279,16 +280,16 @@ function reset() {
   color: var(--text-dark);
 }
 .pricing-rules ul {
-  list-style-type: none; /* Remove default bullet points */
+  list-style-type: none;
   padding-left: 0;
 }
 .pricing-rules li {
   margin-bottom: 0.5rem;
   position: relative;
-  padding-left: 1.25rem; /* Space for custom bullet */
+  padding-left: 1.25rem;
 }
 .pricing-rules li::before {
-  content: '•'; /* Custom bullet point */
+  content: '•';
   color: var(--primary-color);
   font-weight: bold;
   display: inline-block;
@@ -298,5 +299,27 @@ function reset() {
 }
 .pricing-rules li:last-child {
   margin-bottom: 0;
+}
+
+/* *** THE FIX IS HERE: Responsive Styles *** */
+@media (max-width: 767px) {
+  .hero-section h2 {
+    font-size: 2rem; /* Smaller title on mobile */
+  }
+  .hero-section p {
+    font-size: 1rem;
+  }
+  .step-title {
+    font-size: 1.25rem;
+  }
+  .process-card {
+    padding: 1.5rem 1rem; /* Less padding on mobile */
+  }
+  .options-grid {
+    grid-template-columns: 1fr; /* Force single column on mobile */
+  }
+  .pickup-code {
+    font-size: 2rem;
+  }
 }
 </style>
