@@ -9,13 +9,9 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-# backend/settings.py
-
 import os
 from pathlib import Path
-# --- 关键：在文件顶部导入所有需要的工具 ---
-from decouple import config, Csv
-import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,15 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# --- 从 .env 文件加载核心配置 ---
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='***REMOVED***')
+SECRET_KEY = '***REMOVED***'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
 
-# ALLOWED_HOSTS will be configured dynamically below if DEBUG is True
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -44,18 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Third-party apps
     'rest_framework',
     'corsheaders',
-    'django_filters',
-    # Your apps
     'api',
+    'django_filters',  # 添加 django_filters 应用
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # CORS should be placed high
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -68,11 +60,10 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # 确保Django能找到我们的邮件模板
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 添加模板目录
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -88,10 +79,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        # 如果.env中没有DATABASE_URL，则回退到开发时的sqlite
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}"
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 
@@ -99,10 +90,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 
@@ -129,37 +128,44 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- CORS 设置 ---
-# 保留您原有的CORS设置
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
+# 定义用户上传文件的根目录 (MEDIA_ROOT)
+# 这会告诉Django将上传的文件存放在项目根目录下的 'media' 文件夹中
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 定义访问这些文件的URL前缀 (MEDIA_URL)
+MEDIA_URL = '/media/'
+
 # --- 动态主机配置 ---
-# 保留您原有的动态IP配置逻辑
+# 仅在开发模式 (DEBUG=True) 下进行动态配置，生产环境应使用明确的域名
 if DEBUG:
     import socket
     
     try:
+        # 获取本机在局域网中的IP地址
         hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
     except socket.gaierror:
+        # 如果获取失败（例如没有连接网络），则使用一个备用地址
         ip_address = '127.0.0.1'
 
-    # 将动态获取的IP地址和您的域名加入到允许的主机列表中
-    additional_hosts = [ip_address, 'print.morlight.top', 'www.print.morlight.top']
-    for host in additional_hosts:
-        if host not in ALLOWED_HOSTS:
-            ALLOWED_HOSTS.append(host)
+    # 将动态获取的IP地址加入到允许的主机列表中
+    # 这样无论是通过localhost还是局域网IP都可以访问Django服务
+    ALLOWED_HOSTS.extend(['print.morlight.top', 'www.print.morlight.top', ip_address, 'localhost', '127.0.0.1'])
 
     # 动态配置CORS，允许来自前端开发服务器的访问
-    frontend_dev_server_origin = f"http://{ip_address}:5173"
+    # 无论前端服务器的IP是什么，都能被正确识别
+    frontend_dev_server_origin = f"http://{ip_address}:5173" # 假设Vite端口是5173
+    
     if frontend_dev_server_origin not in CORS_ALLOWED_ORIGINS:
         CORS_ALLOWED_ORIGINS.append(frontend_dev_server_origin)
 
 
-# --- 邮件配置 (从.env文件读取) ---
+# --- 邮件配置 ---
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
