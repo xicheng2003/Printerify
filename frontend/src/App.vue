@@ -12,12 +12,37 @@
           </svg>
           <h1>Printerify</h1>
         </div>
-        <nav>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav">
           <RouterLink to="/">自助打印</RouterLink>
           <RouterLink to="/query">订单查询</RouterLink>
           <RouterLink to="/terms">关于</RouterLink>
         </nav>
+
+        <!-- Mobile Menu Button -->
+        <button @click="toggleMobileMenu" class="mobile-menu-button">
+          <!-- Show close icon when menu is open -->
+          <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <!-- Show hamburger icon when menu is closed -->
+          <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
       </div>
+
+      <!-- Mobile Dropdown Menu -->
+      <Transition name="dropdown-fade">
+        <div v-if="isMobileMenuOpen" class="mobile-menu-dropdown">
+          <nav class="mobile-nav">
+            <RouterLink to="/" @click="closeMobileMenu">自助打印</RouterLink>
+            <RouterLink to="/query" @click="closeMobileMenu">订单查询</RouterLink>
+            <RouterLink to="/terms" @click="closeMobileMenu">关于</RouterLink>
+          </nav>
+        </div>
+      </Transition>
     </header>
 
     <main class="app-main">
@@ -33,7 +58,18 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { ref } from 'vue';
+import { RouterLink, RouterView } from 'vue-router';
+
+const isMobileMenuOpen = ref(false);
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+function closeMobileMenu() {
+  isMobileMenuOpen.value = false;
+}
 </script>
 
 <style scoped>
@@ -73,20 +109,21 @@ import { RouterLink, RouterView } from 'vue-router'
   margin: 0;
 }
 
-nav {
+.desktop-nav {
   display: flex;
   gap: 1.5rem;
 }
 
-nav a {
+.desktop-nav a {
   text-decoration: none;
   color: #475569;
   font-weight: 500;
   transition: color 0.3s ease;
+  padding: 0.5rem 0;
 }
 
-nav a:hover,
-nav a.router-link-exact-active {
+.desktop-nav a:hover,
+.desktop-nav a.router-link-exact-active {
   color: #2563eb; /* Blue color for active/hover link */
 }
 
@@ -103,10 +140,76 @@ nav a.router-link-exact-active {
   font-size: 0.875rem;
 }
 
-/* General container class to center content */
 .container {
   width: 90%;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* --- Mobile Menu Styles --- */
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #1e293b;
+  z-index: 1010; /* Ensure button is above dropdown */
+}
+
+.mobile-menu-dropdown {
+  position: absolute;
+  top: 100%; /* Position right below the header */
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-top: 1px solid #e9ecef;
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.mobile-nav a {
+  text-decoration: none;
+  color: #475569;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  text-align: left;
+}
+
+.mobile-nav a:hover {
+  background-color: #f8f9fa;
+}
+
+.mobile-nav a.router-link-exact-active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* Transitions for Mobile Dropdown Menu */
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* --- Responsive Breakpoint --- */
+@media (max-width: 767px) {
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-menu-button {
+    display: block;
+  }
 }
 </style>

@@ -122,4 +122,25 @@ hr {
   border: 0;
   border-top: 1px solid #e2e8f0;
 }
+
+/* --- Responsive Styles for Mobile --- */
+@media (max-width: 767px) {
+  .terms-page {
+    padding: 1.5rem 1rem;
+    margin: 1rem auto;
+  }
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  .terms-content h3 {
+    font-size: 1.1rem;
+  }
+  .terms-content {
+    line-height: 1.7;
+    font-size: 0.9rem;
+  }
+}
 </style>
