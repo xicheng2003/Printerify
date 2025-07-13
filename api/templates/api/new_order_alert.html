@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>新订单提醒</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .header { font-size: 24px; color: #007bff; }
+        .order-details { margin-top: 20px; }
+        .order-details th, .order-details td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
+        .button { display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">新订单提醒 - Printerify</h1>
+        <p>您好，管理员！</p>
+        <p>系统刚刚收到一个新订单，请及时处理。订单详情如下：</p>
+        <table class="order-details">
+            <tr>
+                <th>订单号</th>
+                <td>{{ order.order_number }}</td>
+            </tr>
+            <tr>
+                <th>取件码</th>
+                <td><strong>{{ order.pickup_code }}</strong></td>
+            </tr>
+            <tr>
+                <th>用户手机</th>
+                <td>{{ order.phone_number }}</td>
+            </tr>
+            <tr>
+                <th>下单时间</th>
+                <td>{{ order.created_at|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </table>
+        <a href="http://{{ domain }}/admin/api/order/{{ order.id }}/change/" class="button">前往后台处理</a>
+    </div>
+</body>
+</html>
