@@ -1,5 +1,8 @@
 <template>
-  <div class="file-uploader" :class="uploadState">
+  <div
+    class="file-uploader"
+    :class="[uploadState, { 'is-disabled': disabled }]"
+  >
     <label class="uploader-label">
       <div class="icon-wrapper">
         <svg v-if="uploadState === 'idle'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -8,15 +11,15 @@
         <svg v-if="uploadState === 'error'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </div>
       <span class="uploader-text">{{ message }}</span>
+      <p v-if="disabled && uploadState === 'idle'" class="disabled-notice">请先同意下方服务条款和隐私协议</p>
       <input
         type="file"
         @change="handleFileChange"
         accept=".pdf,.doc,.docx,.ppt,.pptx"
         hidden
-        :disabled="uploadState === 'loading'"
+        :disabled="uploadState === 'loading' || disabled"
       />
     </label>
-    <!-- Progress Bar added for better UX -->
     <div v-if="uploadState === 'loading'" class="progress-bar-container">
         <div class="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
     </div>
@@ -27,11 +30,18 @@
 import { ref, computed } from 'vue';
 import api from '@/services/apiService';
 
+const props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+});
+
 const emit = defineEmits(['upload-success']);
 
 const uploadState = ref('idle'); // idle, loading, success, error
 const uploadedFileName = ref('');
-const uploadProgress = ref(0); // State for tracking upload progress
+const uploadProgress = ref(0);
 let originalFile = null;
 
 const message = computed(() => {
@@ -44,17 +54,17 @@ const message = computed(() => {
 });
 
 async function handleFileChange(event) {
+  if (props.disabled) return;
+
   const file = event.target.files[0];
   if (!file) return;
 
   originalFile = file;
   uploadState.value = 'loading';
   uploadedFileName.value = file.name;
-  uploadProgress.value = 0; // Reset progress
+  uploadProgress.value = 0;
 
   try {
-    // *** THE FIX IS HERE ***
-    // Calling the correct function `uploadPrintFile` and passing the progress callback
     const response = await api.uploadPrintFile(
       file,
       'PRINT',
@@ -65,12 +75,10 @@ async function handleFileChange(event) {
 
     uploadState.value = 'success';
 
-    // Create the payload object that HomeView expects
     const payload = {
       id: response.data.id,
       file: originalFile,
     };
-    // Emit the correct payload
     emit('upload-success', payload);
 
   } catch (error) {
@@ -81,7 +89,6 @@ async function handleFileChange(event) {
   event.target.value = '';
 }
 
-// The reset method that HomeView can call
 function reset() {
   uploadState.value = 'idle';
   uploadedFileName.value = '';
@@ -95,7 +102,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* Styles are kept the same, with addition of progress bar */
 .file-uploader {
   border: 2px dashed #d9d9d9;
   border-radius: 12px;
@@ -104,6 +110,7 @@ defineExpose({
   cursor: pointer;
   background-color: #fafafa;
   transition: all 0.3s ease;
+  position: relative; /* For positioning the notice */
 }
 .uploader-label {
   display: flex;
@@ -114,12 +121,15 @@ defineExpose({
   height: 100%;
   cursor: pointer;
 }
+.file-uploader.is-disabled .uploader-label {
+  cursor: not-allowed;
+}
 .icon-wrapper {
   margin-bottom: 1rem;
 }
 .icon-wrapper svg { color: #8c8c8c; }
 .uploader-text { font-size: 1rem; font-weight: 500; color: #595959; }
-.file-uploader:hover { border-color: #007bff; }
+.file-uploader:not(.is-disabled):hover { border-color: #007bff; }
 .file-uploader.loading { cursor: not-allowed; border-color: #007bff; }
 .file-uploader.success { border-color: #52c41a; background-color: #f6ffed; }
 .file-uploader.success .icon-wrapper svg,
@@ -137,8 +147,6 @@ defineExpose({
   animation: spin 1s ease-in-out infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Progress Bar Styles */
 .progress-bar-container {
     margin-top: 1rem;
     height: 8px;
@@ -151,5 +159,15 @@ defineExpose({
     height: 100%;
     background-color: var(--primary-color);
     transition: width 0.3s ease-in-out;
+}
+.file-uploader.is-disabled {
+  background-color: #f3f4f6;
+  opacity: 0.7;
+}
+.disabled-notice {
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
 }
 </style>

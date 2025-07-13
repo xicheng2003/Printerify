@@ -16,6 +16,13 @@ const router = createRouter({
       // 使用路由懒加载，优化性能
       component: () => import('../views/QueryView.vue'),
       meta: { title: '订单查询' }
+    },
+        // --- 新增的路由配置 ---
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('../views/TermsView.vue'),
+      meta: { title: '关于' }
     }
   ]
 })

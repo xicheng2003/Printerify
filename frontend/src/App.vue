@@ -15,6 +15,7 @@
         <nav>
           <RouterLink to="/">自助打印</RouterLink>
           <RouterLink to="/query">订单查询</RouterLink>
+          <RouterLink to="/terms">关于</RouterLink>
         </nav>
       </div>
     </header>
