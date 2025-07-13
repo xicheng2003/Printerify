@@ -82,7 +82,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 # 准备邮件内容
                 context = {
                     'order': order,
-                    'domain': config('ALLOWED_HOSTS', cast=lambda v: v.split(',')[0], default='127.0.0.1')
+                    'domain': settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
                 }
                 html_message = render_to_string('api/new_order_alert.html', context)
                 plain_message = strip_tags(html_message)
