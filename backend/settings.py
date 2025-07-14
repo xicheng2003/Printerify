@@ -21,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '***REMOVED***'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -163,6 +163,15 @@ if DEBUG:
     
     if frontend_dev_server_origin not in CORS_ALLOWED_ORIGINS:
         CORS_ALLOWED_ORIGINS.append(frontend_dev_server_origin)
+
+# 仅在生产环境（DEBUG=False）中开启HTTPS安全设置
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # SECURE_SSL_REDIRECT = True # 建议由Nginx处理重定向，但也可在此开启
+    # SECURE_HSTS_SECONDS = 31536000 # 增强安全，可选
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True # 可选
+    # SECURE_HSTS_PRELOAD = True # 可选
 
 
 # --- 邮件配置 ---
