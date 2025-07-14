@@ -346,11 +346,44 @@ async function handleCreateOrder() {
     const response = await api.createOrder(orderData);
     state.finalOrder = response.data;
     state.step = 4;
-  } catch (error) {
-    state.errorMessage = '订单创建失败！';
-    console.error(error);
-  } finally {
     state.isLoading = false;
+  } catch (error) {
+    console.error("Initial order creation failed, starting verification process:", error);
+
+    // 出现错误时不立即报错，而是启动验证流程
+    // 延迟2秒，给后端足够的时间处理订单
+    setTimeout(async () => {
+      try {
+        // **修正点**: 根据您的apiService.js，现在我们只传递手机号进行查询
+        const verificationResponse = await api.queryOrder(state.phoneNumber);
+
+        // 假设API返回一个按时间倒序排列的订单数组
+        if (verificationResponse.data && verificationResponse.data.length > 0) {
+          const latestOrder = verificationResponse.data[0];
+          const orderCreationTime = new Date(latestOrder.created_at);
+          const now = new Date();
+          const timeDiffSeconds = (now - orderCreationTime) / 1000;
+
+          // 如果最新订单是在过去30秒内创建的，我们就认为是刚刚下单成功的
+          if (timeDiffSeconds < 30) {
+            state.finalOrder = latestOrder;
+            state.step = 4;
+          } else {
+            // 如果订单太旧，说明新订单确实没创建成功
+            state.errorMessage = '订单创建失败，请稍后重试或联系客服。';
+          }
+        } else {
+          // 如果用手机号查不到任何订单，那肯定就是失败了
+          state.errorMessage = '订单创建失败，未找到相关订单记录。';
+        }
+      } catch (verificationError) {
+        console.error("Order verification also failed:", verificationError);
+        state.errorMessage = '订单状态验证失败，请检查网络或联系客服。';
+      } finally {
+        // 无论验证成功与否，都要结束加载状态
+        state.isLoading = false;
+      }
+    }, 2000); // 延迟2秒执行
   }
 }
 
