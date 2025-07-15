@@ -171,8 +171,19 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # CELERY SETTINGS
 # ------------------------------------------------------------------------------
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"  # 使用Redis的0号数据库
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+# 从环境变量中读取 Redis 密码，如果未设置，则为空（仅适用于本地无密码开发环境）
+REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
+
+# 构建带密码的 Redis URL
+if REDIS_PASSWORD:
+    REDIS_URL = f"redis://:{REDIS_PASSWORD}@127.0.0.1:6379"
+else:
+    REDIS_URL = "redis://127.0.0.1:6379"
+
+# 推荐为 Broker 和 Result Backend 使用不同的数据库
+CELERY_BROKER_URL = f"{REDIS_URL}/0"
+CELERY_RESULT_BACKEND = f"{REDIS_URL}/1"
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
