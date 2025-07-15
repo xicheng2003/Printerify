@@ -88,6 +88,17 @@ class PrintFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="上传时间")
     purpose = models.CharField(max_length=10, choices=PurposeChoices.choices, default=PurposeChoices.PRINT, verbose_name="文件用途")
 
+    # 新增字段：文件页数
+    # 这个字段用于存储文件的页数，便于异步处理、及前端显示和计算价格
+    pages = models.IntegerField(default=0, verbose_name="文件页数")
+    # (可选但推荐) 用于前端追踪计算状态
+    page_calculation_status = models.CharField(
+        max_length=20,
+        choices=[('PENDING', '待计算'), ('PROCESSING', '计算中'), ('COMPLETED', '已完成'), ('FAILED', '失败')],
+        default='PENDING',
+        verbose_name="页数计算状态"
+    )
+
     def __str__(self):
         import os
         if self.order:

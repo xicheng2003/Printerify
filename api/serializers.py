@@ -1,9 +1,10 @@
 # api/serializers.py
 
 from rest_framework import serializers
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+# --- 移除邮件相关的导入 ---
+# from django.core.mail import send_mail
+# from django.template.loader import render_to_string
+# from django.utils.html import strip_tags
 from django.conf import settings
 from decouple import config
 
@@ -57,7 +58,8 @@ class OrderSerializer(serializers.ModelSerializer):
         if file_ids:
             files_to_process = PrintFile.objects.filter(id__in=file_ids, purpose='PRINT')
             for f in files_to_process:
-                total_pages += calculate_pages(f.file)
+                # +++ 从模型中直接读取页数，而不是重新计算 +++
+                total_pages += f.pages
         
         total_price = get_price(specs, total_pages)
         validated_data['total_price'] = total_price
@@ -75,29 +77,6 @@ class OrderSerializer(serializers.ModelSerializer):
             except PrintFile.DoesNotExist:
                 print(f"警告：未找到ID为 {screenshot_id} 的待关联付款截图")
 
-        # --- 新增：发送邮件提醒 ---
-        try:
-            admin_email = config('ADMIN_EMAIL', default=None)
-            if admin_email:
-                # 准备邮件内容
-                context = {
-                    'order': order,
-                    'domain': settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
-                }
-                html_message = render_to_string('api/new_order_alert.html', context)
-                plain_message = strip_tags(html_message)
-                
-                # 发送邮件
-                send_mail(
-                    f'新订单提醒: {order.pickup_code}',
-                    plain_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [admin_email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
-        except Exception as e:
-            # 即便邮件发送失败，也不应影响订单的创建
-            print(f"邮件发送失败: {e}")
+        # --- 邮件发送逻辑已被移除，因为它现在是异步的 ---
 
         return order
