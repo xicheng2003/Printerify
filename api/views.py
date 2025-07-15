@@ -8,7 +8,10 @@ from .models import Order, PrintFile
 from .serializers import OrderSerializer, PrintFileUploadSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .pricing import calculate_pages, get_price
-from .pdf_generator import generate_order_pdf # 引入PDF生成器
+# --- 移除 PDF 生成器的导入 ---
+# from .pdf_generator import generate_order_pdf
+# +++ 导入新增的异步任务 +++
+from .tasks import process_order_creation_tasks, calculate_file_pages_task
 
 class OrderViewSet(viewsets.ModelViewSet):
     """
@@ -19,24 +22,17 @@ class OrderViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['order_number', 'phone_number', 'pickup_code']
 
+    # +++ 修改 create 方法 +++
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        order = serializer.save() # 调用 serializer.save()
 
-        # 首先，正常创建订单实例
-        order = serializer.save()
+        # --- 将耗时任务交给Celery ---
+        process_order_creation_tasks.delay(order.id)
 
-        # 然后，为这个新订单生成并保存PDF
-        try:
-            pdf_file = generate_order_pdf(order)
-            order.order_summary_pdf.save(pdf_file.name, pdf_file, save=True)
-        except Exception as e:
-            # 即使PDF生成失败，也不应该让整个下单流程失败
-            # 这里可以替换为更完善的日志记录
-            print(f"!!! PDF生成失败，订单ID: {order.order_number}, 错误: {e}")
-
-        # 使用序列化器生成最终的响应数据
         headers = self.get_success_headers(serializer.data)
+        # API会立即返回，用户无需等待
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
@@ -47,6 +43,13 @@ class PrintFileViewSet(viewsets.ModelViewSet):
     queryset = PrintFile.objects.all()
     serializer_class = PrintFileUploadSerializer
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    # +++ 新增 perform_create 方法以触发异步计算 +++
+    def perform_create(self, serializer):
+        print_file = serializer.save()
+        # 如果上传的是打印文件，则触发异步页数计算
+        if print_file.purpose == 'PRINT':
+            calculate_file_pages_task.delay(print_file.id)
 
 class PriceQuoteView(APIView):
     """实时报价接口"""
