@@ -173,6 +173,9 @@ if not DEBUG:
     # SECURE_HSTS_INCLUDE_SUBDOMAINS = True # 可选
     # SECURE_HSTS_PRELOAD = True # 可选
 
+# 告诉Django信任来自反向代理（Nginx）的X-Forwarded-Proto请求头
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # --- 邮件配置 ---
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
