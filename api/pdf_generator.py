@@ -1,4 +1,4 @@
-# 文件路径: api/pdf_generator.py
+# api/pdf_generator.py (最终版)
 
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
@@ -8,20 +8,22 @@ import os
 
 def generate_order_pdf(order):
     """
-    根据订单信息生成一个PDF文件。
+    【已重构】根据新的订单结构和您原来的HTML模板，生成PDF文件。
     """
+    # 渲染我们新的 order_summary.html 模板
     context = {'order': order}
     html_string = render_to_string('api/order_summary.html', context)
 
-    # 定义静态文件目录，WeasyPrint会在这里寻找二维码图片
+    # 【复用】您原来的静态文件路径逻辑，非常棒
     static_dir = os.path.join(settings.BASE_DIR, 'api', 'static')
     base_url = static_dir
 
-    # 使用WeasyPrint生成PDF，并提供base_url让它能解析相对路径的图片
+    # 使用WeasyPrint将HTML字符串转换为PDF
     html = HTML(string=html_string, base_url=base_url)
-    pdf_file = html.write_pdf()
+    pdf_file_content = html.write_pdf()
 
+    # 创建一个Django可以识别的文件对象
     file_name = f'order_{order.order_number}_summary.pdf'
-    django_file = ContentFile(pdf_file, name=file_name)
+    django_file = ContentFile(pdf_file_content, name=file_name)
 
     return django_file

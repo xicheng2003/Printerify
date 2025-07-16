@@ -11,6 +11,33 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# 【核心修改】我们在这里增加一个条件判断
+# 从环境变量中读取一个开关，决定是否使用PostgreSQL
+# config() 的 cast=bool 会将 'True', 'true', '1' 等字符串转换为布尔值 True
+USE_POSTGRES = config('USE_POSTGRES', default=False, cast=bool)
+
+if USE_POSTGRES:
+    # 如果开关为 True (通常在生产服务器上设置)，则使用 PostgreSQL 配置
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('POSTGRES_DB'),
+            'USER': config('POSTGRES_USER'),
+            'PASSWORD': config('POSTGRES_PASSWORD'),
+            'HOST': config('POSTGRES_HOST', default='localhost'),
+            'PORT': config('POSTGRES_PORT', default='5432'),
+        }
+    }
+else:
+    # 否则 (在您的本地开发环境中)，自动使用 SQLite 配置
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -55,6 +82,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'api',
     'django_filters',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -90,13 +118,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# 【修改】数据库配置已经在上面根据环境变量动态设置了
 
 
 # Password validation
@@ -145,6 +167,22 @@ CSRF_TRUSTED_ORIGINS = [
     "https://print.morlight.top",
 ]
 
+# 【新增】允许跨域请求携带 Cookies 和身份凭证
+CORS_ALLOW_CREDENTIALS = True
+
+# 【新增】允许所有常见的请求头通过
+CORS_ALLOW_ALL_ORIGINS = False # 我们已经指定了来源，所以这个设为False
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # --- HTTPS Security Settings ---
 # These should only be active in production (when DEBUG is False).

@@ -1,76 +1,109 @@
-# 文件路径: api/views.py
+# printerify/api/views.py (最终修复版)
 
-import json
-from rest_framework.views import APIView
+import uuid
+from pathlib import Path
+from django.conf import settings # <-- 【新增】导入Django的settings
+from django.core.files.storage import FileSystemStorage
+from rest_framework import viewsets, status, generics
 from rest_framework.response import Response
-from rest_framework import status, viewsets, parsers
-from .models import Order, PrintFile
-from .serializers import OrderSerializer, PrintFileUploadSerializer
-from django_filters.rest_framework import DjangoFilterBackend
-from .pricing import calculate_pages, get_price
-# --- 移除 PDF 生成器的导入 ---
-# from .pdf_generator import generate_order_pdf
-# +++ 导入新增的异步任务 +++
-from .tasks import process_order_creation_tasks, calculate_file_pages_task
+from .models import Order
+from .serializers import OrderCreateSerializer, OrderDetailSerializer
+from .services import pricing
 
-class OrderViewSet(viewsets.ModelViewSet):
-    """
-    一个用于查看和编辑订单的ViewSet。
-    """
-    queryset = Order.objects.all().order_by('-created_at')
-    serializer_class = OrderSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['order_number', 'phone_number', 'pickup_code']
-
-    # +++ 修改 create 方法 +++
+class FileUploadView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = serializer.save() # 调用 serializer.save()
-
-        # --- 将耗时任务交给Celery ---
-        process_order_creation_tasks.delay(order.id)
-
-        headers = self.get_success_headers(serializer.data)
-        # API会立即返回，用户无需等待
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-class PrintFileViewSet(viewsets.ModelViewSet):
-    """
-    一个用于上传和管理文件的ViewSet。
-    """
-    queryset = PrintFile.objects.all()
-    serializer_class = PrintFileUploadSerializer
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
-
-    # +++ 新增 perform_create 方法以触发异步计算 +++
-    def perform_create(self, serializer):
-        print_file = serializer.save()
-        # 如果上传的是打印文件，则触发异步页数计算
-        if print_file.purpose == 'PRINT':
-            calculate_file_pages_task.delay(print_file.id)
-
-class PriceQuoteView(APIView):
-    """实时报价接口"""
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
-
-    def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
-        specs_str = request.data.get('specifications', '{}')
-
         if not file_obj:
-            return Response({'error': '必须提供一个文件。'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            specifications = json.loads(specs_str)
-        except json.JSONDecodeError:
-            return Response({'error': '规格参数必须是合法的JSON字符串。'}, status=status.HTTP_400_BAD_REQUEST)
-
-        pages = calculate_pages(file_obj)
-        price = get_price(specifications, pages)
-
+            return Response({'error': '没有提供文件'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 【关键修复】使用settings.MEDIA_ROOT构建一个绝对、可靠的存储路径
+        temp_dir = Path(settings.MEDIA_ROOT) / 'temp_uploads'
+        fs = FileSystemStorage(location=temp_dir)
+        
+        file_extension = Path(file_obj.name).suffix
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        
+        filename = fs.save(unique_filename, file_obj)
+        
+        # 【关键修复】返回给前端的路径，应该是相对于media/的路径，而不是完整路径
+        # 这样前端传回来时，我们才能正确地拼接
+        relative_path = Path('temp_uploads') / filename
+        
         return Response({
-            'estimated_pages': pages,
-            'estimated_price': price
+            'file_id': str(relative_path), # 返回相对路径作为 file_id
+            'original_filename': file_obj.name,
+        }, status=status.HTTP_201_CREATED)
+
+class PriceEstimationView(generics.GenericAPIView):
+    def post(self, request, *args, **kwargs):
+        # 注意：这里的 'file_path' 实际上是我们上面返回的 relative_path
+        file_path_from_frontend = request.data.get('file_path')
+        color_mode = request.data.get('color_mode')
+        print_sided = request.data.get('print_sided')
+        copies = int(request.data.get('copies', 1))
+
+        if not all([file_path_from_frontend, color_mode, print_sided]):
+            return Response({'error': '缺少必要的参数'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 【关键修复】同样使用settings.MEDIA_ROOT来构建绝对路径，确保与上传时一致
+        full_file_path = Path(settings.MEDIA_ROOT) / file_path_from_frontend
+        
+        if not full_file_path.exists():
+             return Response({'error': f'文件在服务器上未找到，路径: {full_file_path}'}, status=status.HTTP_404_NOT_FOUND)
+
+        page_count, print_cost = pricing.calculate_document_price(
+            file_path=str(full_file_path),
+            color_mode=color_mode,
+            print_sided=print_sided,
+            copies=copies
+        )
+        return Response({
+            'page_count': page_count,
+            'print_cost': print_cost
         }, status=status.HTTP_200_OK)
+
+# OrderViewSet 的代码保持不变
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all().order_by('-created_at')
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderCreateSerializer
+        return OrderDetailSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        pickup_code = self.request.query_params.get('code')
+        phone_number = self.request.query_params.get('phone')
+        if pickup_code:
+            queryset = queryset.filter(pickup_code=pickup_code)
+        if phone_number:
+            queryset = queryset.filter(phone_number=phone_number)
+        return queryset
+    
+# --- 【新增】付款凭证上传视图 ---
+class PaymentScreenshotUploadView(generics.CreateAPIView):
+    """
+    一个专门用于接收付款凭证截图的视图。
+    它接收一个图片文件，将其保存到 'payments/' 目录，并返回一个唯一ID。
+    """
+    def create(self, request, *args, **kwargs):
+        screenshot_file = request.FILES.get('file')
+        if not screenshot_file:
+            return Response({'error': '没有提供文件'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 为了安全和区分，我们为支付凭证创建一个独立的存储实例
+        # 这会将其保存在 'media/payments/' 目录下
+        fs = FileSystemStorage(location=Path(settings.MEDIA_ROOT) / 'payments')
+        
+        # 使用UUID生成唯一文件名
+        file_extension = Path(screenshot_file.name).suffix
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        
+        # 保存文件
+        filename = fs.save(unique_filename, screenshot_file)
+        
+        # 返回给前端需要的数据
+        return Response({
+            'screenshot_id': filename, # 返回保存后的文件名作为ID
+        }, status=status.HTTP_201_CREATED)

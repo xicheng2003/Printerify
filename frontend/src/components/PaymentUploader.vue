@@ -3,8 +3,11 @@
     <label class="uploader-label">
       <div class="icon-wrapper">
         <svg v-if="uploadState === 'idle'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+
         <div v-if="uploadState === 'loading'" class="spinner"></div>
+
         <svg v-if="uploadState === 'success'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+
         <svg v-if="uploadState === 'error'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </div>
       <span class="uploader-text">{{ message }}</span>
@@ -22,10 +25,8 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import api from '@/services/apiService'; // 导入我们的API服务
+import axios from 'axios'; // 【修改】我们直接使用axios，以保持一致
 
-// **修正 1: 事件名称与 HomeView 保持一致**
-// HomeView 期望接收 'upload-success' 事件
 const emit = defineEmits(['upload-success']);
 
 const uploadState = ref('idle'); // idle, loading, success, error
@@ -47,20 +48,24 @@ async function handleFileChange(event) {
   uploadState.value = 'loading';
   uploadedFileName.value = file.name;
 
+  // 使用 FormData 来包装文件数据
+  const formData = new FormData();
+  formData.append('file', file);
+
   try {
-    // **修正 2: 调用正确的 API 函数**
-    // 使用通用的 uploadPrintFile 函数，并指明用途为 'PAYMENT'
-    const response = await api.uploadPrintFile(file, 'PAYMENT');
+    // 【核心修改】调用我们新的、专门的付款凭证上传接口
+    const response = await axios.post('/api/upload-payment/', formData, {
+      withCredentials: true,
+    });
 
     uploadState.value = 'success';
 
-    // **修正 3: 发出 HomeView 期望的数据**
-    // HomeView 的 onScreenshotUploaded 函数只期望接收一个参数：上传文件的 ID
-    emit('upload-success', response.data.id);
+    // 【核心修改】发出事件，并将后端返回的 screenshot_id 传递出去
+    emit('upload-success', response.data.screenshot_id);
 
   } catch (error) {
     uploadState.value = 'error';
-    console.error('Payment screenshot upload failed:', error);
+    console.error('Payment screenshot upload failed:', error.response?.data || error);
   }
 
   event.target.value = '';

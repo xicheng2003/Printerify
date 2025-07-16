@@ -18,6 +18,7 @@
         accept=".pdf,.doc,.docx,.ppt,.pptx"
         hidden
         :disabled="uploadState === 'loading' || disabled"
+        multiple
       />
     </label>
     <div v-if="uploadState === 'loading'" class="progress-bar-container">
@@ -37,7 +38,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['upload-success']);
+const emit = defineEmits(['files-selected']); // 【修改】改变事件名，更清晰
 
 const uploadState = ref('idle'); // idle, loading, success, error
 const uploadedFileName = ref('');
@@ -55,45 +56,24 @@ const message = computed(() => {
 
 async function handleFileChange(event) {
   if (props.disabled) return;
+  const files = event.target.files; // 【修改】获取文件列表
+  if (!files || files.length === 0) return; // 【修改】检查列表是否为空
 
-  const file = event.target.files[0];
-  if (!file) return;
+  // 【修改】将整个文件列表通过事件发送出去
+  emit('files-selected', files);
 
-  originalFile = file;
-  uploadState.value = 'loading';
-  uploadedFileName.value = file.name;
-  uploadProgress.value = 0;
-
-  try {
-    const response = await api.uploadPrintFile(
-      file,
-      'PRINT',
-      (progressEvent) => {
-        uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-      }
-    );
-
-    uploadState.value = 'success';
-
-    const payload = {
-      id: response.data.id,
-      file: originalFile,
-    };
-    emit('upload-success', payload);
-
-  } catch (error) {
-    uploadState.value = 'error';
-    console.error("File upload failed:", error);
-  }
-
+  // 清空<input>的值，这样用户下次才能选择相同的文件
   event.target.value = '';
 }
 
+// 【删除】原有的上传逻辑可以全部删除，
+// 因为上传和计价的复杂流程已经移到了 Pinia Store 中统一管理。
+// 所以，这个组件现在只负责一件事：把用户选择的文件列表告诉父组件。
+// handleFileChange 函数内原有的 try...catch 和 api 调用都可以删掉。
+
 function reset() {
   uploadState.value = 'idle';
-  uploadedFileName.value = '';
-  originalFile = null;
-  uploadProgress.value = 0;
+  // 其他状态重置也可以添加
 }
 
 defineExpose({

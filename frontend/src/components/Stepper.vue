@@ -18,17 +18,26 @@
 <script setup>
 import { computed } from 'vue';
 
+// 【修改】让组件接收一个名为 steps 的数组 prop
 const props = defineProps({
   currentStep: {
     type: Number,
     required: true,
     default: 1
+  },
+  steps: {
+    type: Array,
+    required: true,
+    default: () => ['第一步', '第二步', '第三步']
   }
 });
 
-const steps = ['上传文件', '打印设置', '付款', '完成'];
+// 【修改】进度条的计算现在基于传入的 steps 数组的长度，更加灵活
 const progressWidth = computed(() => {
-  const progress = ((props.currentStep - 1) / (steps.length - 1)) * 100;
+  if (props.steps.length <= 1) {
+    return '0%';
+  }
+  const progress = ((props.currentStep - 1) / (props.steps.length - 1)) * 100;
   return `${progress}%`;
 });
 </script>

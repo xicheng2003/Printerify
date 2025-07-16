@@ -60,6 +60,19 @@ export default defineConfig({
         // 因为生产环境通常会将前后端部署在同一域名
         changeOrigin: true, // 需要虚拟主机站点
         // rewrite: (path) => path.replace(/^\/api/, '') // 如果后端接口没有/api前缀，需要重写路径
+        // 【新增】在这里添加日志记录功能
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log(`[VITE PROXY] [REQUEST] ${req.method} -> ${options.target}${proxyReq.path}`);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log(`[VITE PROXY] [RESPONSE] ${req.method} ${req.url} -> ${proxyRes.statusCode}`);
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('[VITE PROXY] [ERROR]', err);
+          });
+        }
+
       },
       // 代理 /media 路径，以便能显示上传的图片等
       '/media': {

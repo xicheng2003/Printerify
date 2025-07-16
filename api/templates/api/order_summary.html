@@ -6,140 +6,59 @@
     <style>
         @page {
             size: A4;
-            margin: 1cm 1.3cm; /* 调整页边距，使其更紧凑 */
+            margin: 1cm 1.3cm;
         }
         body {
-            /* 提供了更健壮的字体栈，优先使用刚刚安装的文泉驿字体 */
             font-family: 'WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'Microsoft YaHei', 'Hiragino Sans GB', '黑体', 'sans-serif';
             font-size: 9.5pt;
             color: #333;
             margin: 0;
         }
-        .main-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        /* --- 页眉 --- */
-        .logo-title-table {
-            width: 100%;
-        }
-        .logo-title-table td {
-            vertical-align: bottom;
-        }
-        .logo-svg-cell {
-            width: 35px; /* 设置固定宽度给图标 */
-        }
-        .logo-svg-cell svg {
-            width: 32px; /* 控制SVG图标大小 */
-            height: 32px;
-        }
-        .logo-text-cell h1 {
-            font-family: 'Helvetica', sans-serif;
-            font-size: 24pt;
-            font-weight: bold;
-            color: #2c2c2c;
-            padding-left: 8px; /* 图标和文字的间距 */
-            margin: 0;
-        }
-        .header-title-cell {
-            text-align: right;
-        }
-        .header-title-cell h2 {
-            margin: 0;
-            font-size: 18pt;
-            color: #2c2c2c;
-            font-weight: 300;
-        }
-        .header-title-cell p {
-            margin: 2px 0 0;
-            font-size: 8.5pt;
-            color: #9B9B9B;
-        }
-        /* --- 通用区块标题 --- */
-        .section-title {
-            font-size: 12pt;
-            color: #2c2c2c;
-            font-weight: 500;
-            border-bottom: 1px solid #EAEAEA;
-            padding-bottom: 6px;
-            margin-top: 20px;
+        .main-table { width: 100%; border-collapse: collapse; }
+        .logo-title-table { width: 100%; }
+        .logo-title-table td { vertical-align: bottom; }
+        .logo-svg-cell { width: 35px; }
+        .logo-svg-cell svg { width: 32px; height: 32px; }
+        .logo-text-cell h1 { font-family: 'Helvetica', sans-serif; font-size: 24pt; font-weight: bold; color: #2c2c2c; padding-left: 8px; margin: 0; }
+        .header-title-cell { text-align: right; }
+        .header-title-cell h2 { margin: 0; font-size: 18pt; color: #2c2c2c; font-weight: 300; }
+        .header-title-cell p { margin: 2px 0 0; font-size: 8.5pt; color: #9B9B9B; }
+        .section-title { font-size: 12pt; color: #2c2c2c; font-weight: 500; border-bottom: 1px solid #EAEAEA; padding-bottom: 6px; margin-top: 20px; margin-bottom: 12px; }
+        .info-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .info-table td { width: 50%; background-color: #F9F9F9; padding: 10px; border-radius: 5px; border: 1px solid #F0F0F0; vertical-align: top; }
+        .info-item .label { font-size: 8.5pt; color: #777; margin-bottom: 2px; }
+        .info-item .value { font-size: 11pt; font-weight: 500; color: #333; }
+        .info-item .pickup-code { font-size: 22pt; font-weight: bold; color: #D0021B; }
+        .footer-wrapper { position: absolute; bottom: 1cm; left: 1.3cm; right: 1.3cm; }
+        .footer-table { width: 100%; border-top: 1.5px solid #F0F0F0; padding-top: 10px; }
+        .footer-table td { vertical-align: middle; }
+        .footer-text p { margin: 0 0 4px 0; font-size: 8pt; color: #888; }
+        .qrcode-container { text-align: right; }
+        .qrcode-container p { font-size: 8pt; color: #888; margin: 0 0 4px 0; }
+        .qrcode-container img { width: 80px; height: 80px; }
+        
+        /* 新增的文件详情样式 */
+        .group-card {
+            border: 1px solid #F0F0F0;
+            border-radius: 5px;
             margin-bottom: 12px;
-        }
-        /* --- 信息区块 --- */
-        .info-table {
-             width: 100%;
-             border-collapse: separate;
-             border-spacing: 8px;
-        }
-        .info-table td {
-            width: 50%;
             background-color: #F9F9F9;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #F0F0F0;
-            vertical-align: top;
         }
-        .info-item .label {
-            font-size: 8.5pt;
-            color: #777;
-            margin-bottom: 2px;
-        }
-        .info-item .value {
-            font-size: 11pt;
-            font-weight: 500;
-            color: #333;
-        }
-        .info-item .pickup-code {
-            font-size: 22pt;
+        .group-card-header {
+            padding: 8px 10px;
             font-weight: bold;
-            color: #D0021B;
+            background-color: #EAEAEA;
+            border-bottom: 1px solid #F0F0F0;
         }
-        /* --- 文件列表 --- */
-        .file-list {
-            list-style-type: none;
-            padding-left: 0;
-            margin: 0;
+        .doc-entry {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
         }
-        .file-list li {
-            background-color: #F9F9F9;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 6px;
-            font-size: 10pt;
-            border: 1px solid #F0F0F0;
+        .doc-entry:last-child {
+            border-bottom: none;
         }
-        /* --- 页脚 --- */
-        .footer-wrapper {
-            position: absolute;
-            bottom: 1cm;
-            left: 1.3cm;
-            right: 1.3cm;
-        }
-        .footer-table {
-            width: 100%;
-            border-top: 1.5px solid #F0F0F0;
-            padding-top: 10px;
-        }
-        .footer-table td {
-            vertical-align: middle;
-        }
-        .footer-text p {
-            margin: 0 0 4px 0;
-            font-size: 8pt;
-            color: #888;
-        }
-        .qrcode-container {
-            text-align: right;
-        }
-        .qrcode-container p {
-            font-size: 8pt;
-            color: #888;
-            margin: 0 0 4px 0;
-        }
-        .qrcode-container img {
-            width: 80px;
-            height: 80px;
-        }
+        .doc-entry .name { font-weight: 500; }
+        .doc-entry .specs { font-size: 8.5pt; color: #555; padding-left: 18px; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -160,9 +79,7 @@
                                                 <path d="M17 13H19V11" stroke="#34495e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </td>
-                                        <td class="logo-text-cell">
-                                            <h1>Printerify</h1>
-                                        </td>
+                                        <td class="logo-text-cell"><h1>Printerify</h1></td>
                                     </tr>
                                 </table>
                             </td>
@@ -201,37 +118,31 @@
                     </table>
                 </td>
             </tr>
+
             <tr>
                 <td colspan="2">
-                    <div class="section-title">打印任务</div>
-                    <ul class="file-list">
-                        {% for file in order.files.all %}{% if file.purpose == 'PRINT' %}<li>📄 {{ file.file.name|slice:"18:" }}</li>{% endif %}{% empty %}<li>未找到打印文件</li>{% endfor %}
-                    </ul>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <div class="section-title">打印规格</div>
-                    <table class="info-table">
-                        {% for key, value in order.specifications.items %}
-                            {% if forloop.first or forloop.counter0|divisibleby:2 %}<tr>{% endif %}
-                            <td>
-                                <div class="info-item">
-                                    <div class="label">
-                                        {% if key == 'copies' %}打印份数
-                                        {% elif key == 'paper_size' %}纸张大小
-                                        {% elif key == 'color' %}色彩模式
-                                        {% elif key == 'sided' %}单/双面
-                                        {% elif key == 'binding_method' %}装订方式
-                                        {% elif key == 'binding_detail' %}装订位置
-                                        {% else %}{{ key|capfirst }}{% endif %}
+                    <div class="section-title">打印任务详情</div>
+                    {% for group in order.groups.all %}
+                        <div class="group-card">
+                            <div class="group-card-header">
+                                装订组 #{{ group.sequence_in_order }}
+                                (装订方式: {{ group.binding_type }})
+                            </div>
+                            {% for doc in group.documents.all %}
+                                <div class="doc-entry">
+                                    <div class="name">📄 {{ doc.original_filename }}</div>
+                                    <div class="specs">
+                                        规格: {{ doc.copies }} 份 | 
+                                        {% if doc.color_mode == 'color' %}彩色{% else %}黑白{% endif %} | 
+                                        {% if doc.print_sided == 'double' %}双面{% else %}单面{% endif %} | 
+                                        {{ doc.page_count }} 页
                                     </div>
-                                    <div class="value">{{ value }}{% if key == 'copies' %} 份{% endif %}</div>
                                 </div>
-                            </td>
-                            {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
-                        {% endfor %}
-                    </table>
+                            {% endfor %}
+                        </div>
+                    {% empty %}
+                        <p>未找到任何打印任务。</p>
+                    {% endfor %}
                 </td>
             </tr>
         </tbody>
@@ -246,7 +157,7 @@
                 </td>
                 <td class="qrcode-container">
                     <p>扫码继续下单</p>
-                    <img src="images/qrcode.png" alt="QR Code">
+                    <img src="{{ STATIC_URL }}images/qrcode.png" alt="QR Code">
                 </td>
             </tr>
         </table>
