@@ -19,6 +19,7 @@ export const useOrderStore = defineStore('order', () => {
     const phoneNumber = ref('');
     const paymentMethod = ref('ALIPAY'); // 默认支付方式
     const paymentScreenshotFile = ref(null);
+    const isLoading = ref(false); // <--- 【新增】全局加载状态
 
     // 【关键修复】内部函数现在接收 docId，而不是整个 doc 对象
     async function _fetchPriceForDocument(docId) {
@@ -117,6 +118,11 @@ export const useOrderStore = defineStore('order', () => {
         }
     }
 
+    // 我们只需要在 Store 中暴露一个方法来切换加载状态
+    function setLoading(status) {
+        isLoading.value = status;
+    }
+
     function resetStore() { groups.value = []; phoneNumber.value = ''; paymentMethod.value = 'WECHAT'; paymentScreenshotFile.value = null; }
 
     const totalCost = computed(() => {
@@ -141,6 +147,8 @@ export const useOrderStore = defineStore('order', () => {
 
     return {
         groups, phoneNumber, paymentMethod, paymentScreenshotFile,
+        isLoading, // <--- 暴露状态
+        setLoading, // <--- 暴露方法
         addFiles, removeDocument, updateDocumentSettings, updateGroupBinding, resetStore, mergeGroups, // <--- 在这里导出新函数
         totalCost, isReadyToSubmit
     };

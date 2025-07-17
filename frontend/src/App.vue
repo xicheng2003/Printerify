@@ -3,7 +3,6 @@
     <header class="app-header">
       <div class="container">
         <div class="logo-container">
-          <!-- Printerify SVG Logo -->
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -13,27 +12,22 @@
           <h1>Printerify</h1>
         </div>
 
-        <!-- Desktop Navigation -->
         <nav class="desktop-nav">
           <RouterLink to="/">自助打印</RouterLink>
           <RouterLink to="/query">订单查询</RouterLink>
           <RouterLink to="/terms">关于</RouterLink>
         </nav>
 
-        <!-- Mobile Menu Button -->
         <button @click="toggleMobileMenu" class="mobile-menu-button">
-          <!-- Show close icon when menu is open -->
           <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
-          <!-- Show hamburger icon when menu is closed -->
           <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
       </div>
 
-      <!-- Mobile Dropdown Menu -->
       <Transition name="dropdown-fade">
         <div v-if="isMobileMenuOpen" class="mobile-menu-dropdown">
           <nav class="mobile-nav">
@@ -54,14 +48,21 @@
         <p>&copy; 2025 Printerify. All Rights Reserved.</p>
       </div>
     </footer>
-  </div>
+
+    <Teleport to="body">
+      <LoadingSpinner v-if="orderStore.isLoading" />
+    </Teleport>
+    </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { useOrderStore } from '@/stores/order';
 
 const isMobileMenuOpen = ref(false);
+const orderStore = useOrderStore();
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
