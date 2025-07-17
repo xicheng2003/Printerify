@@ -1,5 +1,12 @@
 <template>
+  <!-- 【修改】为根元素增加相对定位，以便遮罩层可以正确定位 -->
   <div class="document-item" :class="{ 'has-error': document.error }">
+    <!-- 【新增】单个文件价格计算时的加载遮罩 -->
+    <div v-if="document.isRecalculating" class="recalculating-overlay">
+        <div class="spinner"></div>
+        <span>计算中...</span>
+    </div>
+
     <div class="file-info">
       <span class="doc-drag-handle" title="拖拽此文件可调整组内顺序">⠿</span>
       <span class="file-icon">📄</span>
@@ -107,27 +114,56 @@ function retryUpload() {
 </script>
 
 <style scoped>
-/*
-  DocumentItem.vue 的样式已更新，使用 CSS 变量以支持主题切换。
-*/
 .document-item {
-  background-color: var(--color-background); /* 已修改 */
-  border: 1px solid var(--color-border); /* 已修改 */
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
-  position: relative;
+  position: relative; /* 【修改】为遮罩层提供定位上下文 */
   transition: box-shadow 0.2s, border-color 0.2s;
   overflow: hidden;
 }
 
+/* 【新增】单个文件价格计算时的加载遮罩样式 */
+.recalculating-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(var(--color-background-rgb), 0.8);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text);
+  font-weight: 500;
+  z-index: 10;
+  transition: opacity 0.2s;
+}
+
+.recalculating-overlay .spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(var(--color-primary-rgb), 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .document-item:hover {
-  border-color: var(--color-primary); /* 已修改 */
+  border-color: var(--color-primary);
 }
 
 .document-item.has-error {
-  border-color: var(--color-danger); /* 已修改 */
-  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.05); /* 已修改 */
+  border-color: var(--color-danger);
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.05);
 }
 
 .file-info {
@@ -138,7 +174,7 @@ function retryUpload() {
 
 .doc-drag-handle {
   cursor: grab;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
   padding-right: 0.75rem;
   font-size: 1.25rem;
   align-self: flex-start;
@@ -151,7 +187,7 @@ function retryUpload() {
 
 .file-icon {
   font-size: 1.75rem;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
 }
 
 .file-details {
@@ -160,20 +196,20 @@ function retryUpload() {
 
 .file-name {
   font-weight: 600;
-  color: var(--color-heading); /* 已修改 */
+  color: var(--color-heading);
   margin: 0 0 0.25rem 0;
 }
 
 .file-meta {
   font-size: 0.875rem;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .file-meta strong {
-  color: var(--color-primary); /* 已修改 */
+  color: var(--color-primary);
 }
 
 .settings-toggle-btn {
@@ -187,12 +223,12 @@ function retryUpload() {
 }
 
 .settings-toggle-btn:hover {
-  background-color: var(--color-background-mute); /* 已修改 */
+  background-color: var(--color-background-mute);
 }
 
 .settings-toggle-btn svg {
   transition: transform 0.2s ease-in-out;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
 }
 
 .settings-toggle-btn svg.is-expanded {
@@ -201,7 +237,7 @@ function retryUpload() {
 
 .settings-container {
   margin-top: 1rem;
-  border-top: 1px solid var(--color-border); /* 已修改 */
+  border-top: 1px solid var(--color-border);
   padding-top: 1rem;
 }
 
@@ -218,7 +254,7 @@ function retryUpload() {
 
 .settings-grid label {
   font-size: 0.8rem;
-  color: var(--color-text); /* 已修改 */
+  color: var(--color-text);
   margin-bottom: 0.375rem;
   font-weight: 500;
 }
@@ -228,23 +264,23 @@ function retryUpload() {
   width: 100%;
   padding: 0.6rem;
   border-radius: 8px;
-  border: 1px solid var(--color-border); /* 已修改 */
-  background-color: var(--color-background); /* 已修改 */
-  color: var(--color-text); /* 已修改 */
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .settings-grid input:focus,
 .settings-grid select:focus {
   outline: none;
-  border-color: var(--color-primary); /* 已修改 */
-  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改 */
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
 }
 
 .remove-button-container {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-border); /* 已修改 */
+  border-top: 1px solid var(--color-border);
   display: flex;
   justify-content: flex-end;
 }
@@ -254,8 +290,8 @@ function retryUpload() {
   align-items: center;
   gap: 0.5rem;
   background-color: transparent;
-  border: 1px solid var(--color-border); /* 已修改 */
-  color: var(--color-danger); /* 已修改 */
+  border: 1px solid var(--color-border);
+  color: var(--color-danger);
   font-weight: 500;
   padding: 0.4rem 0.8rem;
   font-size: 0.875rem;
@@ -265,8 +301,8 @@ function retryUpload() {
 }
 
 .remove-file-btn:hover {
-  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1); /* 已修改 */
-  border-color: var(--color-danger); /* 已修改 */
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1);
+  border-color: var(--color-danger);
 }
 
 .slide-fade-enter-active {
@@ -293,23 +329,22 @@ function retryUpload() {
 
 .upload-progress {
   font-size: 0.875rem;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
 }
 
 .upload-progress progress {
   width: 100%;
   height: 0.5rem;
-  accent-color: var(--color-primary); /* 已修改 */
+  accent-color: var(--color-primary);
 }
 
 .error-text {
   font-size: 0.875rem;
-  color: var(--color-danger); /* 已修改 */
+  color: var(--color-danger);
   display: flex;
   align-items: center;
 }
 
-/* --- 【修复】为重试按钮添加样式 --- */
 .retry-btn {
   margin-left: 1rem;
   font-size: 0.75rem;
