@@ -371,6 +371,7 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--color-heading); /* 已修改 */
+  margin-bottom: 0.5rem;
 }
 
 .hero-section p {
@@ -539,8 +540,12 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 
 .upload-notice p {
   margin: 0 0 0.75rem 0;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-heading);
+}
+/* --- 【新增】请在这里添加以下新规则 --- */
+.upload-notice p strong {
+  font-weight: 700; /* 或者 bold, 800, 900，具体取决于字体支持 */
 }
 
 .upload-notice ul {

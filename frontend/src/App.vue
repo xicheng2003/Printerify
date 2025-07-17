@@ -3,6 +3,7 @@
     <header class="app-header">
       <div class="container">
         <div class="logo-container">
+          <!-- Logo SVG is preserved -->
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -20,7 +21,6 @@
 
         <div class="header-controls">
           <ThemeSwitcher />
-
           <button @click="toggleMobileMenu" class="mobile-menu-button">
             <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
@@ -62,14 +62,14 @@
 <script setup>
 import { ref } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue';      // 1. 导入主题切换器
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { useOrderStore } from '@/stores/order';
-import { useThemeStore } from '@/stores/theme';                  // 2. 导入主题 store
+import { useThemeStore } from '@/stores/theme';
 
 const isMobileMenuOpen = ref(false);
 const orderStore = useOrderStore();
-useThemeStore(); // 3. 初始化 theme store 以激活其功能
+useThemeStore();
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -81,23 +81,22 @@ function closeMobileMenu() {
 </script>
 
 <style scoped>
-/* 您的原始样式已完全保留，仅将颜色部分替换为 CSS 变量 */
 #app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--color-background); /* 已修改 */
+  background-color: var(--color-background);
 }
 
 .app-header {
-  background-color: var(--color-background-soft); /* 已修改 */
-  box-shadow: 0 2px 4px var(--shadow-color); /* 已修改 */
+  background-color: var(--color-background-soft);
+  box-shadow: 0 2px 4px var(--shadow-color);
   padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid var(--color-border); /* 为深色模式增加边界感 */
-  transition: background-color 0.3s, border-color 0.3s;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.3s, border-color 0.3s, padding 0.3s;
 }
 
 .app-header .container {
@@ -112,14 +111,18 @@ function closeMobileMenu() {
   gap: 0.75rem;
 }
 
+.logo-container svg {
+  transition: width 0.3s, height 0.3s;
+}
+
 .logo-container h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-heading); /* 已修改 */
+  color: var(--color-heading);
   margin: 0;
+  transition: font-size 0.3s;
 }
 
-/* 为了给主题切换器和移动按钮留出空间 */
 .header-controls {
   display: flex;
   align-items: center;
@@ -129,14 +132,13 @@ function closeMobileMenu() {
 .desktop-nav {
   display: flex;
   gap: 1.5rem;
-  /* 将导航推向左侧，为右侧控件留出空间 */
   margin-right: auto;
   margin-left: 2.5rem;
 }
 
 .desktop-nav a {
   text-decoration: none;
-  color: var(--color-text-mute); /* 已修改 */
+  color: var(--color-text-mute);
   font-weight: 500;
   transition: color 0.3s ease;
   padding: 0.5rem 0;
@@ -144,7 +146,7 @@ function closeMobileMenu() {
 
 .desktop-nav a:hover,
 .desktop-nav a.router-link-exact-active {
-  color: var(--color-primary); /* 已修改 */
+  color: var(--color-primary);
 }
 
 .app-main {
@@ -153,12 +155,12 @@ function closeMobileMenu() {
 }
 
 .app-footer {
-  background-color: var(--color-background-soft); /* 已修改 */
-  color: var(--color-text-mute); /* 已修改 */
+  background-color: var(--color-background-soft);
+  color: var(--color-text-mute);
   padding: 1rem 0;
   text-align: center;
   font-size: 0.875rem;
-  border-top: 1px solid var(--color-border); /* 已修改 */
+  border-top: 1px solid var(--color-border);
 }
 
 .container {
@@ -167,31 +169,33 @@ function closeMobileMenu() {
   margin: 0 auto;
 }
 
-/* --- Mobile Menu Styles --- */
 .mobile-menu-button {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  color: var(--color-heading); /* 已修改 */
-  z-index: 1010; /* Ensure button is above dropdown */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--color-heading);
+  z-index: 1010;
+  border-radius: 50%;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+.mobile-menu-button:hover {
+    background-color: var(--color-background-mute);
 }
 
 .mobile-menu-dropdown {
   position: absolute;
-  top: 100%; /* Position right below the header */
+  top: 100%;
   left: 0;
   right: 0;
-  background-color: var(--color-background-soft); /* 已修改 */
-  box-shadow: 0 8px 16px var(--shadow-color); /* 已修改 */
-  border-top: 1px solid var(--color-border); /* 已修改 */
+  background-color: var(--color-background-soft);
+  box-shadow: 0 8px 16px var(--shadow-color);
+  border-top: 1px solid var(--color-border);
 }
 
 .mobile-nav {
@@ -202,7 +206,7 @@ function closeMobileMenu() {
 
 .mobile-nav a {
   text-decoration: none;
-  color: var(--color-text); /* 已修改 */
+  color: var(--color-text);
   font-weight: 500;
   font-size: 1rem;
   padding: 0.75rem 1.5rem;
@@ -211,15 +215,14 @@ function closeMobileMenu() {
 }
 
 .mobile-nav a:hover {
-  background-color: var(--color-background-mute); /* 已修改 */
+  background-color: var(--color-background-mute);
 }
 
 .mobile-nav a.router-link-exact-active {
-  color: var(--color-primary); /* 已修改 */
+  color: var(--color-primary);
   font-weight: 600;
 }
 
-/* Transitions for Mobile Dropdown Menu */
 .dropdown-fade-enter-active,
 .dropdown-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -230,13 +233,26 @@ function closeMobileMenu() {
   transform: translateY(-10px);
 }
 
-/* --- Responsive Breakpoint --- */
 @media (max-width: 767px) {
   .desktop-nav {
     display: none;
   }
   .mobile-menu-button {
-    display: block;
+    display: flex;
+  }
+
+  /* --- 移动端导航栏优化 --- */
+  .app-header {
+    padding: 0.75rem 0; /* 减小垂直内边距 */
+  }
+
+  .logo-container svg {
+    width: 28px; /* 缩小 Logo */
+    height: 28px;
+  }
+
+  .logo-container h1 {
+    font-size: 1.25rem; /* 缩小标题 */
   }
 }
 </style>
