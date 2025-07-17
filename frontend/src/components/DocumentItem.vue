@@ -4,7 +4,7 @@
     <!-- 【新增】单个文件价格计算时的加载遮罩 -->
     <div v-if="document.isRecalculating" class="recalculating-overlay">
         <div class="spinner"></div>
-        <span>计算中...</span>
+        <span>重新计价中...</span>
     </div>
 
     <div class="file-info">
