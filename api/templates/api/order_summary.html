@@ -127,7 +127,7 @@
                         <div class="group-card">
                             <div class="group-card-header">
                                 装订组 #{{ group.sequence_in_order }}
-                                (装订方式: {{ group.binding_type }})
+                                (装订方式: {{ group.binding_type_display }})
                             </div>
                             {% for doc in group.documents.all %}
                                 <div class="doc-entry">

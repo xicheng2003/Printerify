@@ -107,6 +107,22 @@ class BindingGroup(models.Model):
     binding_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="此组的装订费用")
     sequence_in_order = models.PositiveIntegerField(default=0, help_text="组在订单中的顺序")
 
+    # --- ▼▼▼ 在这里添加下面的代码 ▼▼▼ ---
+    @property
+    def binding_type_display(self):
+        """返回装订方式的中文显示名称"""
+        # 这个映射表可以根据您的需求随时扩展
+        mapping = {
+            'none': '不装订',
+            'staple_top_left': '订书钉 (左上角)',
+            'staple_left_side': '订书钉 (左侧)',
+            'staple': '骑马钉',
+            'ring_bound': '胶圈装',
+        }
+        # 如果在映射表中找不到，则安全地返回原始英文值
+        return mapping.get(self.binding_type, self.binding_type)
+    # --- ▲▲▲ 添加代码结束 ▲▲▲ ---
+
     class Meta:
         ordering = ['sequence_in_order']
 
