@@ -9,12 +9,10 @@ const searchResult = ref(null);
 const searchAttempted = ref(false);
 const errorMessage = ref('');
 
-// 【恢复】恢复您原来的禁用逻辑：必须同时输入两者
 const isQueryButtonDisabled = computed(() => {
   return !queryPhoneNumber.value || !queryPickupCode.value || isLoading.value;
 });
 
-// 【修改】状态的key值与我们新模型保持一致
 const statusInfo = computed(() => {
   if (!searchResult.value) return {};
   const status = searchResult.value.status;
@@ -35,8 +33,6 @@ async function performQuery() {
   errorMessage.value = '';
 
   try {
-    // 【修改】现在我们只根据取件码查询，因为它是唯一的
-    // 但后端逻辑会同时验证手机号，保证安全
     const response = await axios.get('/api/orders/', {
       params: {
         phone: queryPhoneNumber.value,
@@ -46,9 +42,7 @@ async function performQuery() {
     });
 
     if (response.data && response.data.length > 0) {
-      // 假设API返回一个数组，我们只取第一个，因为手机号和取件码组合应该是唯一的
       const orderId = response.data[0].id;
-      // 请求详情接口以获取完整的 group 和 document 数据
       const detailedResponse = await axios.get(`/api/orders/${orderId}/`, {
         withCredentials: true,
       });
@@ -139,94 +133,210 @@ function formatDateTime(isoString) {
 </template>
 
 <style scoped>
-/* 将 @import 移到最前面 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
-
-/* --- 【新增】为新的卡片式布局添加样式 --- */
-.result-group-card {
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 12px; /* 与您的 query-card 保持一致 */
-  margin-top: 1.5rem;
-  background-color: var(--card-background, #ffffff);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); /* 柔和的阴影 */
-  overflow: hidden; /* 防止内部元素溢出圆角 */
-}
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background-color: var(--background-color, #f8f9fa); /* 复用背景色 */
-  border-bottom: 1px solid var(--border-color, #dee2e6);
-  font-weight: 600;
-  color: #34495e;
-}
-.document-list {
-  padding: 0.5rem;
-}
-.document-entry {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  transition: background-color 0.2s;
-  border-radius: 8px;
-}
-.document-entry:hover {
-  background-color: var(--background-color, #f8f9fa);
-}
-.document-entry-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.file-icon {
-  font-size: 1.5rem;
-  color: #6c757d;
-}
-.file-name {
-  font-weight: 500;
-  color: var(--text-color, #333);
-  margin: 0 0 0.25rem 0;
-}
-.file-specs {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: var(--subtitle-color, #6c757d);
-}
-.view-file-link {
-  font-size: 0.9em;
-  text-decoration: none;
-  color: var(--primary-color, #007bff);
-  font-weight: 500;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  background-color: transparent;
-  border: 1px solid transparent;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-.view-file-link:hover {
-  background-color: var(--primary-color-light, rgba(0, 123, 255, 0.1));
-  border-color: var(--primary-color-light, rgba(0, 123, 255, 0.2));
-}
-
-
-:root {
-  --primary-color: #007bff;
-  --primary-hover: #0056b3;
-  --primary-color-light: rgba(0, 123, 255, 0.2);
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --text-color: #333;
-  --subtitle-color: #6c757d;
-  --border-color: #dee2e6;
-}
-
+/*
+  OrderQuery.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+*/
 .query-container {
   font-family: 'Noto Sans SC', sans-serif;
   padding: 1rem;
   max-width: 800px;
   margin: 1rem auto;
 }
-/* ... etc. (所有您之前的CSS代码都复制到这里) ... */
+
+.query-card,
+.result-card {
+  background-color: var(--color-background-soft); /* 已修改 */
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-card); /* 已修改 */
+  margin-bottom: 2rem;
+  border: 1px solid var(--color-border); /* 已修改 */
+}
+
+h2 {
+  text-align: center;
+  color: var(--color-heading); /* 已修改 */
+  margin-top: 0;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--color-text-mute); /* 已修改 */
+  margin-bottom: 2rem;
+}
+
+.query-form {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.input-group {
+  flex-grow: 1;
+}
+
+input[type="tel"],
+input[type="text"] {
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border); /* 已修改 */
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-background); /* 已修改 */
+  color: var(--color-text); /* 已修改 */
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-primary); /* 已修改 */
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改 */
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background-color: var(--color-primary); /* 已修改 */
+  color: var(--color-text-on-primary); /* 已修改 */
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover); /* 已修改 */
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.result-grid div {
+  background-color: var(--color-background); /* 已修改 */
+  padding: 0.75rem;
+  border-radius: 6px;
+  color: var(--color-text); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--color-border); /* 已修改 */
+  margin: 1.5rem 0;
+}
+
+h3,
+h4 {
+  margin: 1.5rem 0 0.5rem 0;
+  color: var(--color-heading); /* 已修改 */
+}
+
+.status-badge {
+  padding: 0.25em 0.6em;
+  font-size: 0.85em;
+  font-weight: 700;
+  border-radius: 2em;
+  color: white; /* 状态徽章背景色已足够区分，文字用白色即可 */
+}
+
+.status-pending { background-color: var(--color-secondary); }
+.status-printing { background-color: var(--color-primary); }
+.status-completed { background-color: var(--color-success); }
+.status-cancelled { background-color: var(--color-danger); }
+.status-default { background-color: var(--color-text); }
+
+.info-state,
+.error-state,
+.loading-state {
+  text-align: center;
+  color: var(--color-text-mute); /* 已修改 */
+  padding: 3rem 1rem;
+}
+
+.error-state {
+  color: var(--color-danger); /* 已修改 */
+  font-weight: 500;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3); /* 按钮内的 spinner，背景是深色，所以用白色 */
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.spinner.large {
+  width: 40px;
+  height: 40px;
+  border-top-color: var(--color-primary); /* 已修改 */
+  border-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1); /* 已修改 */
+  border-width: 4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spec-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.document-details-item {
+  background-color: var(--color-background); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.doc-title-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.doc-title-line strong {
+  color: var(--color-heading); /* 已修改 */
+  font-weight: 500;
+}
+
+.doc-title-line a {
+  font-size: 0.9em;
+  color: var(--color-primary); /* 已修改 */
+}
+
+.doc-specs-line {
+  font-size: 0.85rem;
+  color: var(--color-text-mute); /* 已修改 */
+}
+
+@media (max-width: 639px) {
+  .query-form {
+    flex-direction: column;
+  }
+  button {
+    width: 100%;
+  }
+}
 </style>

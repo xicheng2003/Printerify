@@ -7,22 +7,83 @@ defineProps({
 
 <template>
   <button class="base-button" :disabled="loading || disabled">
-    <div v-if="loading" class="spinner"></div>
-    <slot v-else></slot> </button>
+    <div v-if="loading" class="spinner-wrapper">
+      <div class="spinner"></div>
+    </div>
+    <span class="content-wrapper" :class="{ 'is-loading': loading }">
+      <slot></slot>
+    </span>
+  </button>
 </template>
 
 <style scoped>
-/* ... (可以从OrderQuery.vue中复制并调整按钮和spinner的样式) ... */
+/*
+  BaseButton.vue 的样式已完全重写，以支持主题切换、加载状态和禁用状态。
+*/
 .base-button {
   position: relative;
-  padding: 0.8rem 2rem;
-  /* ... 其他样式 ... */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+
+  /* 默认样式使用主题色 */
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
 }
-.spinner {
+
+.base-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+}
+
+.base-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* --- 加载中状态 --- */
+.spinner-wrapper {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  /* ... spinner样式 ... */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(var(--color-text-on-primary-rgb, 255, 255, 255), 0.3);
+  border-top-color: var(--color-text-on-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.content-wrapper.is-loading {
+  opacity: 0; /* 加载时隐藏文字内容 */
+}
+
+/* --- 禁用状态 --- */
+.base-button:disabled {
+  cursor: not-allowed;
+  background-color: var(--color-secondary);
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

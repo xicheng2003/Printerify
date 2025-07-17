@@ -77,7 +77,6 @@
 </template>
 
 <script setup>
-// --- script 部分的代码无需改动，保持原样即可 ---
 import { ref } from 'vue';
 import { useOrderStore } from '@/stores/order';
 
@@ -108,71 +107,155 @@ function retryUpload() {
 </script>
 
 <style scoped>
-/* --- 【修改】这里是全新的样式，包含了新的移除按钮样式和布局调整 --- */
-.doc-drag-handle {
-  cursor: grab; color: #94a3b8; padding-right: 0.75rem; font-size: 1.25rem;
-  align-self: flex-start; padding-top: 0.25rem;
-}
-.doc-drag-handle:active { cursor: grabbing; }
-
+/*
+  DocumentItem.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+*/
 .document-item {
-  background-color: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-  padding: 1rem; margin-bottom: 1rem; position: relative;
-  transition: box-shadow 0.2s; overflow: hidden;
+  background-color: var(--color-background); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  overflow: hidden;
 }
-.document-item:hover { border-color: #c7d2fe; }
-.document-item.has-error { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.05); }
 
-.file-info { display: flex; align-items: center; gap: 0.5rem; }
-.file-icon { font-size: 1.75rem; color: #94a3b8; }
-.file-details { flex-grow: 1; }
-.file-name { font-weight: 600; color: #1e293b; margin: 0 0 0.25rem 0; }
-.file-meta { font-size: 0.875rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
-.file-meta strong { color: var(--primary-color); }
+.document-item:hover {
+  border-color: var(--color-primary); /* 已修改 */
+}
+
+.document-item.has-error {
+  border-color: var(--color-danger); /* 已修改 */
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.05); /* 已修改 */
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doc-drag-handle {
+  cursor: grab;
+  color: var(--color-text-mute); /* 已修改 */
+  padding-right: 0.75rem;
+  font-size: 1.25rem;
+  align-self: flex-start;
+  padding-top: 0.25rem;
+}
+
+.doc-drag-handle:active {
+  cursor: grabbing;
+}
+
+.file-icon {
+  font-size: 1.75rem;
+  color: var(--color-text-mute); /* 已修改 */
+}
+
+.file-details {
+  flex-grow: 1;
+}
+
+.file-name {
+  font-weight: 600;
+  color: var(--color-heading); /* 已修改 */
+  margin: 0 0 0.25rem 0;
+}
+
+.file-meta {
+  font-size: 0.875rem;
+  color: var(--color-text-mute); /* 已修改 */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-meta strong {
+  color: var(--color-primary); /* 已修改 */
+}
 
 .settings-toggle-btn {
-  background: transparent; border: none; cursor: pointer; padding: 0.5rem;
-  margin-left: auto; border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
-.settings-toggle-btn:hover { background-color: #f1f5f9; }
-.settings-toggle-btn svg { transition: transform 0.2s ease-in-out; color: #64748b; }
-.settings-toggle-btn svg.is-expanded { transform: rotate(180deg); }
+
+.settings-toggle-btn:hover {
+  background-color: var(--color-background-mute); /* 已修改 */
+}
+
+.settings-toggle-btn svg {
+  transition: transform 0.2s ease-in-out;
+  color: var(--color-text-mute); /* 已修改 */
+}
+
+.settings-toggle-btn svg.is-expanded {
+  transform: rotate(180deg);
+}
 
 .settings-container {
   margin-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border); /* 已修改 */
   padding-top: 1rem;
 }
 
 .settings-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1rem;
 }
-.settings-grid div { display: flex; flex-direction: column; }
-.settings-grid label { font-size: 0.8rem; color: #475569; margin-bottom: 0.375rem; font-weight: 500; }
-.settings-grid input, .settings-grid select {
-  width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid #cbd5e1;
-  background-color: #fff; transition: border-color 0.2s, box-shadow 0.2s;
-}
-.settings-grid input:focus, .settings-grid select:focus {
-  outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+
+.settings-grid div {
+  display: flex;
+  flex-direction: column;
 }
 
-/* 移除按钮的新样式和容器 */
+.settings-grid label {
+  font-size: 0.8rem;
+  color: var(--color-text); /* 已修改 */
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+}
+
+.settings-grid input,
+.settings-grid select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border); /* 已修改 */
+  background-color: var(--color-background); /* 已修改 */
+  color: var(--color-text); /* 已修改 */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-grid input:focus,
+.settings-grid select:focus {
+  outline: none;
+  border-color: var(--color-primary); /* 已修改 */
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改 */
+}
+
 .remove-button-container {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border); /* 已修改 */
   display: flex;
-  justify-content: flex-end; /* 让按钮靠右对齐 */
+  justify-content: flex-end;
 }
+
 .remove-file-btn {
-  display: inline-flex; /* 让图标和文字在同一行 */
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   background-color: transparent;
-  border: 1px solid #e2e8f0;
-  color: #ef4444; /* 红色文字，表示危险操作 */
+  border: 1px solid var(--color-border); /* 已修改 */
+  color: var(--color-danger); /* 已修改 */
   font-weight: 500;
   padding: 0.4rem 0.8rem;
   font-size: 0.875rem;
@@ -180,15 +263,25 @@ function retryUpload() {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .remove-file-btn:hover {
-  background-color: #fef2f2; /* 悬浮时淡红色背景 */
-  border-color: #fecaca;
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1); /* 已修改 */
+  border-color: var(--color-danger); /* 已修改 */
 }
 
-/* 动画和响应式样式保持不变 */
-.slide-fade-enter-active { transition: all 0.2s ease-out; }
-.slide-fade-leave-active { transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1); }
-.slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(-10px); opacity: 0; }
+.slide-fade-enter-active {
+  transition: all 0.2s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
 
 @media (max-width: 767px) {
   .document-item { padding: 0.75rem; }
@@ -198,9 +291,39 @@ function retryUpload() {
   .settings-grid input, .settings-grid select { padding: 0.5rem; font-size: 0.9rem; }
 }
 
-/* 其他已有样式 */
-.upload-progress { font-size: 0.875rem; color: #64748b; }
-.upload-progress progress { width: 100%; height: 0.5rem; accent-color: var(--primary-color); }
-.error-text { font-size: 0.875rem; color: #b91c1c; display: flex; align-items: center; }
-.retry-btn { margin-left: 1rem; font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+.upload-progress {
+  font-size: 0.875rem;
+  color: var(--color-text-mute); /* 已修改 */
+}
+
+.upload-progress progress {
+  width: 100%;
+  height: 0.5rem;
+  accent-color: var(--color-primary); /* 已修改 */
+}
+
+.error-text {
+  font-size: 0.875rem;
+  color: var(--color-danger); /* 已修改 */
+  display: flex;
+  align-items: center;
+}
+
+/* --- 【修复】为重试按钮添加样式 --- */
+.retry-btn {
+  margin-left: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--color-danger);
+  background-color: transparent;
+  color: var(--color-danger);
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1);
+}
 </style>

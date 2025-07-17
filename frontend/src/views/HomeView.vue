@@ -110,7 +110,8 @@
           </div>
 
           <div v-if="currentStep === 3 && finalOrder" class="completion-view">
-            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <!-- 【修改】这里的 SVG stroke 颜色使用了 CSS 变量 -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             <h3 class="step-title">订单提交成功！</h3>
             <p>取件时请出示取件码，请牢记或截图保存。</p>
             <p>凭手机号和取件码，可在订单查询页面查询订单状态</p>
@@ -349,72 +350,230 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 </script>
 
 <style scoped>
-/* Your existing styles... */
+/* ===================================================================
+  样式已更新，使用 CSS 变量以支持主题切换。
+  所有布局、尺寸和响应式逻辑均已完整保留。
+  ===================================================================
+*/
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
 }
-.hero-section { text-align: center; padding: 2rem 0; margin-bottom: 2rem; }
-.hero-section h2 { font-size: 2.5rem; font-weight: 700; color: #1e293b; }
-.hero-section p { font-size: 1.125rem; color: #64748b; }
-.process-section { padding-bottom: 2rem; }
+
+.hero-section {
+  text-align: center;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.hero-section h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-heading); /* 已修改 */
+}
+
+.hero-section p {
+  font-size: 1.125rem;
+  color: var(--color-text-mute); /* 已修改 */
+}
+
+.process-section {
+  padding-bottom: 2rem;
+}
+
 .process-card {
-  background-color: #ffffff;
+  background-color: var(--color-background-soft); /* 已修改 */
   border-radius: 16px;
   padding: 1.5rem 2.5rem;
   max-width: 800px;
   margin: 0 auto;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-card); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
+  transition: background-color 0.3s, border-color 0.3s;
 }
-.step-title { font-size: 1.5rem; font-weight: 600; text-align: center; margin-bottom: 2rem; color: var(--text-dark); }
+
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--color-heading); /* 已修改 */
+}
+
 .options-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
-.options-grid div { display: flex; flex-direction: column; }
-.options-grid label { margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark); }
-.price-result { background: #f0f4ff; border: 1px solid #c7d2fe; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; }
-.price { font-size: 1.75rem; color: var(--primary-color); font-weight: 700; }
-.payment-section { border-top: 1px solid var(--border-color); padding: 1.5rem 0; margin-top: 1.5rem; text-align: center; }
-.payment-instruction { margin-top: 0; color: #334155; }
-.qr-code { max-width: 180px; margin: 1rem auto; display: block; border-radius: 8px; }
-.form-group { margin-top: 1.5rem; margin-bottom: 1.5rem; }
-.form-group label { margin-bottom: 0.5rem; font-weight: 500; }
-.full-width-btn { width: 100%; padding: 0.875rem; font-size: 1.1rem; }
-.completion-view { text-align: center; padding: 2rem 0; }
-.completion-view > p { color: #64748b; margin-bottom: 1rem; }
-.pickup-code-wrapper { background-color: #f0f4ff; border: 1px dashed var(--primary-color); padding: 1rem; border-radius: 8px; margin: 1.5rem auto; max-width: 300px; }
-.pickup-code-label { font-size: 1rem; color: #475569; }
-.pickup-code { display: block; font-size: 2.5rem; font-weight: 700; color: var(--primary-color); letter-spacing: 4px; margin-top: 0.5rem; }
-.error-message { color: #ef4444; font-weight: 500; margin-top: 1.5rem; text-align: center; background-color: rgba(239, 68, 68, 0.1); padding: 0.75rem; border-radius: 8px;}
-.order-number-info { color: #94a3b8; font-size: 0.875rem; margin-top: -0.5rem; margin-bottom: 2rem; }
-.pricing-rules, .upload-notice {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
+
+.options-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.options-grid label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-heading); /* 已修改 */
+}
+
+.price-result {
+  background-color: var(--color-background-mute); /* 已修改 */
+  border: 1px solid var(--color-primary); /* 已修改 */
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.price-result p {
+    color: var(--color-text);
+}
+
+.price {
+  font-size: 1.75rem;
+  color: var(--color-primary); /* 已修改 */
+  font-weight: 700;
+}
+
+.payment-section {
+  border-top: 1px solid var(--color-border); /* 已修改 */
+  padding: 1.5rem 0;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.payment-instruction {
+  margin-top: 0;
+  color: var(--color-text); /* 已修改 */
+}
+
+.qr-code {
+  max-width: 180px;
+  margin: 1rem auto;
+  display: block;
+  border-radius: 8px;
+  background-color: white; /* 为确保二维码可扫，背景强制为白色 */
+  padding: 5px; /* 增加内边距，确保扫描效果 */
+}
+
+.form-group {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block; /* 【修复】让标签独占一行，从而与输入框产生间距 */
+  margin-bottom: 0.75rem; /* 【修复】增加明确的下边距 */
+  font-weight: 500;
+  color: var(--color-heading);
+}
+
+.full-width-btn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1.1rem;
+}
+
+.completion-view {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.completion-view > p {
+  color: var(--color-text-mute); /* 已修改 */
+  margin-bottom: 1rem;
+}
+
+.pickup-code-wrapper {
+  background-color: var(--color-background-mute); /* 已修改 */
+  border: 1px dashed var(--color-primary); /* 已修改 */
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1.5rem auto;
+  max-width: 300px;
+}
+
+.pickup-code-label {
+  font-size: 1rem;
+  color: var(--color-text); /* 已修改 */
+}
+
+.pickup-code {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary); /* 已修改 */
+  letter-spacing: 4px;
+  margin-top: 0.5rem;
+}
+
+.error-message {
+  color: var(--color-text-on-danger); /* 已修改 */
+  font-weight: 500;
+  margin-top: 1.5rem;
+  text-align: center;
+  background-color: var(--color-danger); /* 已修改 */
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.order-number-info {
+  color: var(--color-text-mute); /* 已修改 */
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 2rem;
+}
+
+.upload-notice {
+  background-color: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem 1.5rem;
   margin-bottom: 2rem;
   font-size: 0.9rem;
-  color: #495057;
+  color: var(--color-text);
 }
-.pricing-rules p, .upload-notice p { margin: 0 0 0.75rem 0; font-weight: 600; color: var(--text-dark); }
-.pricing-rules ul, .upload-notice ul { list-style-type: none; padding-left: 0; }
-.pricing-rules li, .upload-notice li { margin-bottom: 0.5rem; position: relative; padding-left: 1.25rem; }
-.pricing-rules li::before, .upload-notice li::before {
+
+.upload-notice p {
+  margin: 0 0 0.75rem 0;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.upload-notice ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.upload-notice li {
+  margin-bottom: 0.75rem; /* 稍微增加行间距 */
+  position: relative;
+  padding-left: 1.25rem;
+  font-weight: 500; /* 【修复】恢复字体粗细 */
+  line-height: 1.6; /* 增加行高，提升可读性 */
+}
+
+.upload-notice li::before {
   content: '•';
-  color: var(--primary-color);
+  color: var(--color-primary);
   font-weight: bold;
   display: inline-block;
   position: absolute;
   left: 0;
   top: 0;
 }
-.pricing-rules li:last-child, .upload-notice li:last-child { margin-bottom: 0; }
-.upload-notice li strong { color: #c2410c; }
+
+.upload-notice li:last-child {
+  margin-bottom: 0;
+}
+
+.upload-notice li strong {
+  color: var(--color-primary); /* 【修复】将关键词颜色修正为主题蓝 */
+  font-weight: 600; /* 【修复】恢复关键词粗细 */
+}
 
 .payment-method-selector {
   display: flex;
@@ -422,144 +581,170 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
+
 .payment-method-selector label {
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 4px;
   transition: all 0.2s ease-in-out;
   width: 160px;
   height: 56px;
   box-sizing: border-box;
+  background-color: var(--color-background);
 }
+
 .payment-method-selector label:hover {
-  border-color: #c7d2fe;
+  border-color: var(--color-border-hover);
 }
+
 .payment-method-selector label.active {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
+
 .payment-method-selector input[type="radio"] {
   display: none;
 }
+
 .payment-button-image {
   display: block;
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
+  transition: filter 0.3s; /* 【新增】为滤镜添加平滑过渡 */
 }
+
+/* --- 【核心修改】暗色模式下，为图片应用滤镜 --- */
+html.dark .payment-button-image {
+  filter: invert(1) grayscale(1) brightness(1.5);
+}
+
 .payment-link {
   display: inline-block;
   margin-top: 1rem;
   padding: 0.6rem 1.2rem;
-  background-color: #1677ff;
+  background-color: #1677ff; /* 支付宝品牌色，保持不变 */
   color: white;
   text-decoration: none;
   border-radius: 5px;
   font-weight: 500;
   transition: background-color 0.2s;
 }
+
 .payment-link:hover {
   background-color: #4096ff;
 }
 
-/* Styles for the agreement section and modal text */
 .terms-agreement {
   font-size: 0.9rem;
-  color: #666;
-  margin-top: 2rem; /* Added margin-top to separate from uploader */
-  margin-bottom: 0; /* Removed bottom margin as it's the last element */
+  color: var(--color-text-mute); /* 已修改 */
+  margin-top: 2rem;
+  margin-bottom: 0;
   padding: 1rem;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background-color: var(--color-background-mute); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
   border-radius: 8px;
 }
+
 .terms-agreement div {
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .terms-agreement div:last-child {
   margin-bottom: 0;
 }
+
 .terms-agreement input[type="checkbox"] {
   margin-right: 0.5rem;
   width: auto;
 }
+
 .terms-agreement label {
   margin-bottom: 0;
   font-weight: normal;
 }
+
 .terms-agreement a {
-  color: var(--primary-color);
+  color: var(--color-primary); /* 已修改 */
   text-decoration: underline;
   cursor: pointer;
 }
+
 .terms-text {
-  /* 【修改】移除 white-space 属性，让文字可以自然换行 */
   font-family: inherit;
   font-size: 0.9rem;
-  line-height: 1.7; /* 稍微增加行高，提升阅读舒适度 */
+  line-height: 1.7;
   text-align: left;
-  color: #333;
+  color: var(--color-text); /* 已修改 */
 }
-.terms-text h4 { /* 【新增】为新的标题添加样式 */
+
+.terms-text h4 {
   font-size: 1.1rem;
   font-weight: 600;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
-  color: #1e293b;
+  color: var(--color-heading); /* 已修改 */
 }
-.terms-text p { /* 【新增】为段落添加样式 */
+
+.terms-text p {
   margin-bottom: 1em;
 }
-.terms-text p:first-child { /* 让第一个加粗的日期不产生上边距 */
+
+.terms-text p:first-child {
     margin-top: 0;
 }
-/* 【新增】计费规则说明入口的样式 */
+
 .billing-info-trigger {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  color: var(--subtitle-color, #6c757d);
+  color: var(--color-text-mute); /* 已修改 */
   font-size: 0.9rem;
   margin-bottom: 2rem;
   cursor: pointer;
   transition: color 0.2s;
 }
+
 .billing-info-trigger:hover {
-  color: var(--primary-color, #007bff);
-}
-.billing-info-trigger svg {
-  margin-top: -2px; /* 微调图标位置 */
+  color: var(--color-primary); /* 已修改 */
 }
 
-/* 【新增】弹窗内容的样式 */
+.billing-info-trigger svg {
+  margin-top: -2px;
+}
+
 .billing-rules-content ul {
   list-style-type: none;
   padding-left: 0;
   margin: 0;
 }
+
 .billing-rules-content li {
   margin-bottom: 1.25rem;
 }
+
 .billing-rules-content li:last-child {
   margin-bottom: 0;
 }
+
 .billing-rules-content strong {
   display: block;
   font-size: 1.1em;
-  color: var(--text-dark, #333);
+  color: var(--color-heading); /* 已修改 */
   margin-bottom: 0.25rem;
 }
+
 .billing-rules-content p {
   margin: 0;
-  color: #64748b;
+  color: var(--color-text-mute); /* 已修改 */
   line-height: 1.6;
 }
 
@@ -568,19 +753,18 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
   .hero-section p { font-size: 1rem; }
   .step-title { font-size: 1.25rem; }
   .process-card { padding: 1.5rem 1rem; }
-  .options-grid { grid-template-columns: 1fr; }
   .pickup-code { font-size: 2rem; }
   .payment-method-selector { gap: 1rem; }
   .payment-method-selector label { width: 140px; height: 48px; }
 }
-/* --- 【新增】加载动画的样式 --- */
+
 .loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(var(--color-background-rgb, 255, 255, 255), 0.8); /* 已修改，支持主题 */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -592,8 +776,8 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 .spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid rgba(37, 99, 235, 0.2);
-  border-top-color: var(--primary-color);
+  border: 5px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改，支持主题 */
+  border-top-color: var(--color-primary); /* 已修改 */
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -602,12 +786,34 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
   margin-top: 1.5rem;
   font-size: 1rem;
   font-weight: 500;
-  color: #4b5563;
+  color: var(--color-text); /* 已修改 */
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
+}
+/* --- 【修复】为手机号输入框添加样式 --- */
+.form-group input[type="tel"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input[type="tel"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+}
+
+.form-group input[type="tel"]::placeholder {
+  color: var(--color-text-mute);
+  opacity: 0.7;
 }
 </style>

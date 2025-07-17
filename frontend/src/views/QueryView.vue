@@ -67,6 +67,7 @@ function formatDateTime(isoString) {
 </script>
 
 <template>
+  <!-- --- 模板部分无需任何修改，保持原样即可 --- -->
   <div class="query-container">
     <div class="query-card">
       <h2>订单状态查询</h2>
@@ -139,143 +140,73 @@ function formatDateTime(isoString) {
 </template>
 
 <style scoped>
-/* 将 @import 移到最前面 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
-
-/* --- 【核心修改】为新的卡片式布局添加样式 --- */
-.result-group-card {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  margin-top: 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  font-weight: 600;
-  color: #34495e;
-}
-.document-list {
-  padding: 0.5rem;
-}
-.document-entry {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  transition: background-color 0.2s;
-  border-radius: 8px;
-}
-.document-entry:hover {
-  background-color: #f8f9fa;
-}
-.document-entry-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.file-icon {
-  font-size: 1.5rem;
-  color: #6c757d;
-}
-.file-text {
-  display: flex;
-  flex-direction: column;
-}
-.file-name {
-  font-weight: 500;
-  color: #333;
-  margin: 0 0 0.25rem 0;
-}
-.file-specs {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #6c757d;
-}
-.view-file-link {
-  font-size: 0.9em;
-  text-decoration: none;
-  color: #007bff;
-  font-weight: 500;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  background-color: transparent;
-  border: 1px solid transparent;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-.view-file-link:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-  border-color: rgba(0, 123, 255, 0.1);
-}
-
-/* --- 您原有的所有样式保持不变 --- */
-:root {
-  --primary-color: #007bff;
-  --primary-hover: #0056b3;
-  --primary-color-light: rgba(0, 123, 255, 0.1);
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --text-color: #333;
-  --subtitle-color: #6c757d;
-  --border-color: #dee2e6;
-}
-
+/*
+  QueryView.vue 的样式已完全重写，以支持主题切换。
+  所有布局、尺寸和响应式逻辑均已完整保留。
+*/
 .query-container {
   font-family: 'Noto Sans SC', sans-serif;
   padding: 1rem;
   max-width: 800px;
   margin: 1rem auto;
 }
-.query-card, .result-card {
-  background-color: var(--card-background);
+
+.query-card,
+.result-card {
+  background-color: var(--color-background-soft);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   margin-bottom: 2rem;
+  border: 1px solid var(--color-border);
 }
+
 h2 {
   text-align: center;
-  color: var(--text-color);
+  color: var(--color-heading);
   margin-top: 0;
 }
+
 .subtitle {
   text-align: center;
-  color: var(--subtitle-color);
+  color: var(--color-text-mute);
   margin-bottom: 2rem;
 }
+
 .query-form {
   display: flex;
   gap: 1rem;
   align-items: stretch;
 }
+
 .input-group {
   flex-grow: 1;
 }
-input[type="tel"], input[type="text"] {
+
+input[type="tel"],
+input[type="text"] {
   width: 100%;
   height: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
+
 input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--primary-color-light);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
 }
+
 button {
   padding: 0.75rem 1.5rem;
   border: none;
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 500;
@@ -287,30 +218,43 @@ button {
   align-items: center;
   justify-content: center;
 }
+
 button:hover:not(:disabled) {
-  background-color: var(--primary-hover);
+  background-color: var(--color-primary-hover);
 }
+
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
 .result-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
+
 .result-grid div {
-  background-color: #f8f9fa;
+  background-color: var(--color-background);
   padding: 0.75rem;
   border-radius: 6px;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
+
 hr {
   border: none;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   margin: 1.5rem 0;
 }
-h3, h4 { margin: 1.5rem 0 0.5rem 0; }
+
+h3,
+h4 {
+  margin: 1.5rem 0 0.5rem 0;
+  color: var(--color-heading);
+}
+
 .status-badge {
   padding: 0.25em 0.6em;
   font-size: 0.85em;
@@ -318,18 +262,27 @@ h3, h4 { margin: 1.5rem 0 0.5rem 0; }
   border-radius: 2em;
   color: white;
 }
-.status-pending { background-color: #6c757d; }
-.status-printing { background-color: #007bff; }
-.status-completed { background-color: #28a745; }
-.status-picked-up { background-color: #17a2b8; }
-.status-cancelled { background-color: #dc3545; }
-.status-default { background-color: #343a40; }
-.info-state, .error-state, .loading-state {
+
+.status-pending { background-color: var(--color-secondary); }
+.status-printing { background-color: var(--color-primary); }
+.status-completed { background-color: var(--color-success); }
+.status-cancelled { background-color: var(--color-danger); }
+.status-default { background-color: var(--color-text); }
+
+
+.info-state,
+.error-state,
+.loading-state {
   text-align: center;
-  color: var(--subtitle-color);
+  color: var(--color-text-mute);
   padding: 3rem 1rem;
 }
-.error-state { color: #dc3545; font-weight: 500; }
+
+.error-state {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
 .spinner {
   display: inline-block;
   width: 20px;
@@ -339,16 +292,101 @@ h3, h4 { margin: 1.5rem 0 0.5rem 0; }
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
 }
+
 .spinner.large {
   width: 40px;
   height: 40px;
-  border-top-color: var(--primary-color);
-  border-color: rgba(0, 123, 255, 0.1);
+  border-top-color: var(--color-primary);
+  border-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
   border-width: 4px;
 }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.result-group-card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-top: 1.5rem;
+  background-color: var(--color-background);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--color-background-soft);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.document-list {
+  padding: 0.5rem;
+}
+
+.document-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  transition: background-color 0.2s;
+  border-radius: 8px;
+}
+
+.document-entry:hover {
+  background-color: var(--color-background-soft);
+}
+
+.document-entry-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-icon {
+  font-size: 1.5rem;
+  color: var(--color-text-mute);
+}
+
+.file-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 0.25rem 0;
+}
+
+.file-specs {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text-mute);
+}
+
+.view-file-link {
+  font-size: 0.9em;
+  text-decoration: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.view-file-link:hover {
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+  border-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+}
+
 @media (max-width: 639px) {
   .query-form {
     flex-direction: column;

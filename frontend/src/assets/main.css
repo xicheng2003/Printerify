@@ -1,86 +1,106 @@
-/* Link to import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Reset and Base Styles */
+/* =================================================================== */
+/* 1. 主题颜色变量定义 (已更新为您的蓝色主题) */
+/* =================================================================== */
 :root {
-  --primary-color: #2563eb;
-  --primary-hover: #1d4ed8;
-  --text-dark: #1e293b;
-  --text-light: #64748b;
-  --background-light: #f8f9fa;
-  --background-white: #ffffff;
-  --border-color: #e2e8f0;
+  /* 背景色 */
+  --color-background: #ffffff;
+  --color-background-soft: #f8f9fa; /* 匹配您原始的背景色 */
+  --color-background-mute: #f1f3f5;
+
+  /* 边框色 */
+  --color-border: #dee2e6;
+  --color-border-hover: #ced4da;
+
+  /* 文本颜色 */
+  --color-heading: #1e293b; /* 匹配您原始的标题色 */
+  --color-text: #343a40;
+  --color-text-mute: #6c757d; /* 匹配您原始的页脚色 */
+  --color-text-on-primary: #ffffff;
+  --color-text-on-danger: #ffffff;
+
+  /* 主题色 (已替换为您偏爱的蓝色) */
+  --color-primary: #2563eb; /* 您原始的蓝色主题色 */
+  --color-primary-hover: #1d4ed8; /* 一个稍暗的蓝色用于悬停 */
+  --color-secondary: #6c757d;
+
+  /* 功能色 */
+  --color-danger: #dc3545;
+  --color-danger-hover: #c82333;
+  --color-warning: #ffc107;
+  --color-success: #28a745;
+
+  /* 阴影 */
+  --shadow-color: rgba(0, 0, 0, 0.05); /* 匹配您原始的阴影 */
+  --shadow-card: 0 2px 8px var(--shadow-color);
 }
 
+html.dark {
+  /* 背景色 */
+  --color-background: #121212;
+  --color-background-soft: #1e1e1e;
+  --color-background-mute: #2a2a2a;
+
+  /* 边框色 */
+  --color-border: #424242;
+  --color-border-hover: #5a5a5a;
+
+  /* 文本颜色 */
+  --color-heading: rgba(255, 255, 255, 0.87);
+  --color-text: rgba(255, 255, 255, 0.87);
+  --color-text-mute: rgba(255, 255, 255, 0.6);
+  --color-text-on-primary: #ffffff;
+  --color-text-on-danger: #ffffff;
+
+  /* 主题色 (适配暗色模式的蓝色) */
+  --color-primary: #3b82f6; /* 更明亮的蓝色以适应暗色背景 */
+  --color-primary-hover: #60a5fa; /* 悬停时更亮 */
+  --color-secondary: #8a9199;
+
+  /* 功能色 */
+  --color-danger: #ef5350;
+  --color-danger-hover: #f16e6c;
+  --color-warning: #ffca28;
+  --color-success: #66bb6a;
+
+  /* 阴影 */
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+
+/* =================================================================== */
+/* 2. 基础和全局样式调整 */
+/* =================================================================== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: normal;
 }
 
 body {
-  background-color: var(--background-light);
-  color: var(--text-dark);
-  line-height: 1.6;
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition: color 0.3s, background-color 0.3s;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 16px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Form Styles */
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="tel"], /* <--- FIX: Added input[type="tel"] to the selector */
-select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: var(--background-white);
-  font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-heading);
 }
 
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.3s;
 }
 
-/* Button Styles */
-button {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: center;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-}
-
-button:hover {
-  background-color: var(--primary-hover);
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-button:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-/* Utility Classes */
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
+a:hover {
+  color: var(--color-primary-hover);
 }

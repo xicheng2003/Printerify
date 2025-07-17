@@ -95,77 +95,74 @@
 </template>
 
 <style scoped>
+/*
+  TermsView.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+  所有布局、尺寸和响应式逻辑均已完整保留。
+*/
 .terms-page {
   padding: 2rem 3rem;
   max-width: 800px;
   margin: 2rem auto;
-  background-color: #fff;
+  background-color: var(--color-background-soft); /* 已修改 */
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card); /* 已修改 */
+  border: 1px solid var(--color-border); /* 已修改 */
 }
 
-/* --- NEW STYLES for About Section --- */
-.about-section {
-  text-align: justify;
-  line-height: 1.8;
-  color: #333;
-}
-.about-section h3 {
-  font-size: 1.25rem;
-  color: #1e293b;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-.about-section p {
-  margin-bottom: 1rem;
-}
-.about-section a {
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
-}
-.about-section a:hover {
-  text-decoration: underline;
-}
-/* --- END NEW STYLES --- */
-
+.about-section,
 .terms-content {
   text-align: justify;
   line-height: 1.8;
-  color: #333;
+  color: var(--color-text); /* 已修改 */
 }
+
+.about-section h3,
 .terms-content h3 {
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--color-heading); /* 已修改 */
   margin-top: 2rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border); /* 已修改 */
 }
+
+.about-section p,
 .terms-content p {
   margin-bottom: 1rem;
 }
-h1, h2 {
-  text-align: center;
-  color: #1e293b;
+
+.about-section a {
+  color: var(--color-primary); /* 已修改 */
+  text-decoration: none;
+  font-weight: 500;
 }
+
+.about-section a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2 {
+  text-align: center;
+  color: var(--color-heading); /* 已修改 */
+}
+
 h1 {
   font-size: 2rem;
-  margin-bottom: 1.5rem; /* Added spacing below the main title */
+  margin-bottom: 1.5rem;
 }
+
 h2 {
   font-size: 1.5rem;
   margin-top: 2.5rem;
 }
+
 hr {
   margin: 2.5rem 0;
   border: 0;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border); /* 已修改 */
 }
 
-/* --- Responsive Styles for Mobile --- */
 @media (max-width: 767px) {
   .terms-page {
     padding: 1.5rem 1rem;
@@ -177,9 +174,11 @@ hr {
   h2 {
     font-size: 1.25rem;
   }
+  .about-section h3,
   .terms-content h3 {
     font-size: 1.1rem;
   }
+  .about-section,
   .terms-content {
     line-height: 1.7;
     font-size: 0.9rem;

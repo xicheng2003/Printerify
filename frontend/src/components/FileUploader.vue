@@ -29,7 +29,6 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import api from '@/services/apiService';
 
 const props = defineProps({
   disabled: {
@@ -38,12 +37,11 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['files-selected']); // 【修改】改变事件名，更清晰
+const emit = defineEmits(['files-selected']);
 
 const uploadState = ref('idle'); // idle, loading, success, error
 const uploadedFileName = ref('');
 const uploadProgress = ref(0);
-let originalFile = null;
 
 const message = computed(() => {
   switch (uploadState.value) {
@@ -54,26 +52,18 @@ const message = computed(() => {
   }
 });
 
-async function handleFileChange(event) {
+function handleFileChange(event) {
   if (props.disabled) return;
-  const files = event.target.files; // 【修改】获取文件列表
-  if (!files || files.length === 0) return; // 【修改】检查列表是否为空
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-  // 【修改】将整个文件列表通过事件发送出去
   emit('files-selected', files);
 
-  // 清空<input>的值，这样用户下次才能选择相同的文件
   event.target.value = '';
 }
 
-// 【删除】原有的上传逻辑可以全部删除，
-// 因为上传和计价的复杂流程已经移到了 Pinia Store 中统一管理。
-// 所以，这个组件现在只负责一件事：把用户选择的文件列表告诉父组件。
-// handleFileChange 函数内原有的 try...catch 和 api 调用都可以删掉。
-
 function reset() {
   uploadState.value = 'idle';
-  // 其他状态重置也可以添加
 }
 
 defineExpose({
@@ -82,16 +72,21 @@ defineExpose({
 </script>
 
 <style scoped>
+/*
+  FileUploader.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+  所有状态（默认、悬停、成功、失败、禁用）的样式均已适配。
+*/
 .file-uploader {
-  border: 2px dashed #d9d9d9;
+  border: 2px dashed var(--color-border); /* 已修改 */
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  background-color: #fafafa;
+  background-color: var(--color-background-mute); /* 已修改 */
   transition: all 0.3s ease;
-  position: relative; /* For positioning the notice */
+  position: relative;
 }
+
 .uploader-label {
   display: flex;
   flex-direction: column;
@@ -101,53 +96,99 @@ defineExpose({
   height: 100%;
   cursor: pointer;
 }
+
 .file-uploader.is-disabled .uploader-label {
   cursor: not-allowed;
 }
+
 .icon-wrapper {
   margin-bottom: 1rem;
 }
-.icon-wrapper svg { color: #8c8c8c; }
-.uploader-text { font-size: 1rem; font-weight: 500; color: #595959; }
-.file-uploader:not(.is-disabled):hover { border-color: #007bff; }
-.file-uploader.loading { cursor: not-allowed; border-color: #007bff; }
-.file-uploader.success { border-color: #52c41a; background-color: #f6ffed; }
+
+.icon-wrapper svg {
+  color: var(--color-text-mute); /* 已修改 */
+  transition: color 0.3s;
+}
+
+.uploader-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text); /* 已修改 */
+  transition: color 0.3s;
+}
+
+/* --- 状态样式 --- */
+.file-uploader:not(.is-disabled):hover {
+  border-color: var(--color-primary); /* 已修改 */
+}
+
+.file-uploader.loading {
+  cursor: not-allowed;
+  border-color: var(--color-primary); /* 已修改 */
+}
+
+.file-uploader.success {
+  border-color: var(--color-success); /* 已修改 */
+  background-color: rgba(var(--color-success-rgb, 40, 167, 69), 0.1); /* 已修改：使用变量的 RGBA 形式 */
+}
+
 .file-uploader.success .icon-wrapper svg,
-.file-uploader.success .uploader-text { color: #52c41a; }
-.file-uploader.error { border-color: #f5222d; background-color: #fff1f0; }
+.file-uploader.success .uploader-text {
+  color: var(--color-success); /* 已修改 */
+}
+
+.file-uploader.error {
+  border-color: var(--color-danger); /* 已修改 */
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1); /* 已修改：使用变量的 RGBA 形式 */
+}
+
 .file-uploader.error .icon-wrapper svg,
-.file-uploader.error .uploader-text { color: #f5222d; }
+.file-uploader.error .uploader-text {
+  color: var(--color-danger); /* 已修改 */
+}
+
+.file-uploader.is-disabled {
+  background-color: var(--color-background-mute); /* 已修改 */
+  opacity: 0.7;
+}
+
+.disabled-notice {
+  color: var(--color-danger); /* 已修改 */
+  font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* --- 加载动画 --- */
 .spinner {
   display: inline-block;
   width: 48px;
   height: 48px;
-  border: 4px solid rgba(0, 123, 255, 0.2);
+  border: 4px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改 */
   border-radius: 50%;
-  border-top-color: #007bff;
+  border-top-color: var(--color-primary); /* 已修改 */
   animation: spin 1s ease-in-out infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- 进度条 --- */
 .progress-bar-container {
     margin-top: 1rem;
     height: 8px;
     width: 100%;
-    background-color: #e9ecef;
+    background-color: var(--color-border); /* 已修改 */
     border-radius: 4px;
     overflow: hidden;
 }
+
 .progress-bar {
     height: 100%;
-    background-color: var(--primary-color);
+    background-color: var(--color-primary); /* 已修改 */
     transition: width 0.3s ease-in-out;
-}
-.file-uploader.is-disabled {
-  background-color: #f3f4f6;
-  opacity: 0.7;
-}
-.disabled-notice {
-  color: #ef4444;
-  font-weight: 600;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
 }
 </style>

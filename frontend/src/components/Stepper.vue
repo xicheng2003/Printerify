@@ -18,7 +18,6 @@
 <script setup>
 import { computed } from 'vue';
 
-// 【修改】让组件接收一个名为 steps 的数组 prop
 const props = defineProps({
   currentStep: {
     type: Number,
@@ -32,7 +31,6 @@ const props = defineProps({
   }
 });
 
-// 【修改】进度条的计算现在基于传入的 steps 数组的长度，更加灵活
 const progressWidth = computed(() => {
   if (props.steps.length <= 1) {
     return '0%';
@@ -43,6 +41,10 @@ const progressWidth = computed(() => {
 </script>
 
 <style scoped>
+/*
+  Stepper.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+  所有布局、尺寸和逻辑均已完整保留。
+*/
 .stepper-container {
   position: relative;
   padding: 1.5rem 0;
@@ -53,7 +55,7 @@ const progressWidth = computed(() => {
   display: flex;
   justify-content: space-between;
   position: relative;
-  z-index: 1; /* 确保图标在进度条上方 */
+  z-index: 1;
 }
 
 .step {
@@ -61,7 +63,6 @@ const progressWidth = computed(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* 每个步骤的容器宽度为 80px */
   width: 80px;
 }
 
@@ -69,62 +70,64 @@ const progressWidth = computed(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #e2e8f0;
-  color: #64748b;
+  background-color: var(--color-background-mute); /* 已修改 */
+  color: var(--color-text-mute); /* 已修改 */
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;
   transition: all 0.4s ease;
-  border: 3px solid #e2e8f0;
+  border: 3px solid var(--color-border); /* 已修改 */
   background-clip: padding-box;
 }
 
 .step-label {
   margin-top: 1rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--color-text-mute); /* 已修改 */
   transition: color 0.4s ease;
 }
 
+/* --- Active Step Styles --- */
 .step.active .step-icon {
-  background-color: #e0e7ff;
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  background-color: var(--color-primary); /* 已修改：使用主题色填充背景 */
+  border-color: var(--color-primary); /* 已修改：边框颜色保持一致 */
+  color: var(--color-text-on-primary); /* 已修改：图标内文字颜色反白 */
 }
+
 .step.active .step-label {
-  color: var(--primary-color);
+  color: var(--color-primary); /* 已修改 */
   font-weight: 600;
 }
 
+/* --- Completed Step Styles --- */
 .step.completed .step-icon {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-.step.completed .step-label {
-  color: var(--text-dark);
+  background-color: var(--color-primary); /* 已修改 */
+  border-color: var(--color-primary); /* 已修改 */
+  color: var(--color-text-on-primary); /* 已修改 */
 }
 
+.step.completed .step-label {
+  color: var(--color-text); /* 已修改 */
+}
+
+/* --- Progress Line Styles --- */
 .stepper-line {
   position: absolute;
-  top: calc(1.5rem + 20px); /* 垂直居中于图标 */
+  top: calc(1.5rem + 20px);
   height: 4px;
-  background-color: #e2e8f0;
+  background-color: var(--color-border); /* 已修改 */
   z-index: 0;
-
-  /* --- ▼▼▼ 这是最关键的修改 ▼▼▼ --- */
-  /* 使用固定的像素值（每个步骤宽度 80px 的一半）来确保精准对齐 */
   left: 40px;
   right: 40px;
-  /* --- ▲▲▲ 修改结束 ▲▲▲ --- */
 }
 
 .stepper-progress {
   height: 100%;
-  background-color: var(--primary-color);
+  background-color: var(--color-primary); /* 已修改 */
   width: 0%;
   transition: width 0.5s ease;
+  border-radius: 2px;
 }
 </style>

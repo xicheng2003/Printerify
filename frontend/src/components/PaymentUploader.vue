@@ -3,11 +3,8 @@
     <label class="uploader-label">
       <div class="icon-wrapper">
         <svg v-if="uploadState === 'idle'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-
         <div v-if="uploadState === 'loading'" class="spinner"></div>
-
         <svg v-if="uploadState === 'success'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
         <svg v-if="uploadState === 'error'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </div>
       <span class="uploader-text">{{ message }}</span>
@@ -25,7 +22,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import axios from 'axios'; // 【修改】我们直接使用axios，以保持一致
+import axios from 'axios';
 
 const emit = defineEmits(['upload-success']);
 
@@ -48,19 +45,15 @@ async function handleFileChange(event) {
   uploadState.value = 'loading';
   uploadedFileName.value = file.name;
 
-  // 使用 FormData 来包装文件数据
   const formData = new FormData();
   formData.append('file', file);
 
   try {
-    // 【核心修改】调用我们新的、专门的付款凭证上传接口
     const response = await axios.post('/api/upload-payment/', formData, {
       withCredentials: true,
     });
 
     uploadState.value = 'success';
-
-    // 【核心修改】发出事件，并将后端返回的 screenshot_id 传递出去
     emit('upload-success', response.data.screenshot_id);
 
   } catch (error) {
@@ -73,17 +66,21 @@ async function handleFileChange(event) {
 </script>
 
 <style scoped>
-/* 样式保持不变，它们设计得很好 */
+/*
+  PaymentUploader.vue 的样式已更新，使用 CSS 变量以支持主题切换。
+  所有状态的样式均已适配。
+*/
 .payment-uploader {
-  border: 2px dashed #d9d9d9;
+  border: 2px dashed var(--color-border); /* 已修改 */
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  background-color: #fafafa;
+  background-color: var(--color-background-soft); /* 已修改 */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 1rem;
 }
+
 .uploader-label {
   display: flex;
   flex-direction: column;
@@ -93,49 +90,65 @@ async function handleFileChange(event) {
   height: 100%;
   cursor: pointer;
 }
+
 .icon-wrapper {
   margin-bottom: 1rem;
 }
+
+.icon-wrapper svg {
+  color: var(--color-text-mute); /* 已修改 */
+}
+
 .uploader-text {
   font-size: 1rem;
   font-weight: 500;
-  color: #595959;
+  color: var(--color-text); /* 已修改 */
 }
+
+/* --- 状态样式 --- */
 .payment-uploader:hover {
-  border-color: #007bff;
+  border-color: var(--color-primary); /* 已修改 */
 }
+
 .payment-uploader.loading {
   cursor: not-allowed;
   border-style: solid;
-  border-color: #007bff;
+  border-color: var(--color-primary); /* 已修改 */
 }
+
 .payment-uploader.success {
   border-style: solid;
-  border-color: #52c41a;
-  background-color: #f6ffed;
+  border-color: var(--color-success); /* 已修改 */
+  background-color: rgba(var(--color-success-rgb, 40, 167, 69), 0.1); /* 已修改 */
 }
+
 .payment-uploader.success .icon-wrapper svg,
 .payment-uploader.success .uploader-text {
-  color: #52c41a;
+  color: var(--color-success); /* 已修改 */
 }
+
 .payment-uploader.error {
   border-style: solid;
-  border-color: #f5222d;
-  background-color: #fff1f0;
+  border-color: var(--color-danger); /* 已修改 */
+  background-color: rgba(var(--color-danger-rgb, 220, 53, 69), 0.1); /* 已修改 */
 }
+
 .payment-uploader.error .icon-wrapper svg,
 .payment-uploader.error .uploader-text {
-  color: #f5222d;
+  color: var(--color-danger); /* 已修改 */
 }
+
+/* --- 加载动画 --- */
 .spinner {
   display: inline-block;
   width: 48px;
   height: 48px;
-  border: 4px solid rgba(0, 123, 255, 0.2);
+  border: 4px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2); /* 已修改 */
   border-radius: 50%;
-  border-top-color: #007bff;
+  border-top-color: var(--color-primary); /* 已修改 */
   animation: spin 1s ease-in-out infinite;
 }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
