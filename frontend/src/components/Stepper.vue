@@ -44,7 +44,7 @@ const progressWidth = computed(() => {
 
 <style scoped>
 .stepper-container {
-  /* *** FIX 1: Make this the positioning context *** */
+  /* *** FIX 1: 将此容器设为子元素绝对定位的参照物 *** */
   position: relative;
   padding: 1.5rem 0;
   margin-bottom: 2rem;
@@ -54,7 +54,7 @@ const progressWidth = computed(() => {
   display: flex;
   justify-content: space-between;
   position: relative;
-  z-index: 1; /* Ensure icons and labels are above the line */
+  z-index: 1; /* 确保图标和文字在进度条上方 */
 }
 
 .step {
@@ -78,12 +78,12 @@ const progressWidth = computed(() => {
   font-size: 1.1rem;
   transition: all 0.4s ease;
   border: 3px solid #e2e8f0;
-  /* Ensure icons have a white background to sit on top of the line */
+  /* 确保图标有白色背景，可以盖住进度条 */
   background-clip: padding-box;
 }
 
 .step-label {
-  margin-top: 1rem; /* This now correctly only affects the label's position */
+  margin-top: 1rem;
   font-size: 0.875rem;
   color: #64748b;
   transition: color 0.4s ease;
@@ -111,14 +111,16 @@ const progressWidth = computed(() => {
 }
 
 .stepper-line {
-  /* *** FIX 2: Use absolute positioning *** */
+  /* *** FIX 2: 使用绝对定位将进度条从文档流中取出 *** */
   position: absolute;
-  top: calc(1.5rem + 20px); /* (Container padding + half of icon height) */
+  /* 垂直居中：容器内边距 + 图标高度的一半 */
+  top: calc(1.5rem + 20px);
+  /* 左右留出边距，使其不会顶到最两边 */
   left: 5%;
   right: 5%;
   height: 4px;
   background-color: #e2e8f0;
-  z-index: 0; /* Place it behind the icons */
+  z-index: 0; /* 把它放在图标们的后面 */
 }
 
 .stepper-progress {

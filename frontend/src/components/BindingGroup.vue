@@ -149,4 +149,19 @@ function onDrop(event) {
 .documents-container {
   padding-top: 0.5rem;
 }
+/* 【新增】响应式布局调整 */
+@media (max-width: 767px) {
+  .group-header {
+    flex-direction: column; /* 垂直堆叠 */
+    align-items: flex-start; /* 左对齐 */
+    gap: 0.75rem; /* 增加堆叠后的间距 */
+  }
+  .group-title {
+    font-size: 1rem; /* 减小标题字号 */
+  }
+  .binding-selector select {
+    padding: 0.4rem; /* 减小选择框内边距 */
+    font-size: 0.9rem;
+  }
+}
 </style>
