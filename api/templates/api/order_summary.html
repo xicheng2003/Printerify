@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -157,7 +158,7 @@
                 </td>
                 <td class="qrcode-container">
                     <p>扫码继续下单</p>
-                    <img src="{{ STATIC_URL }}images/qrcode.png" alt="QR Code">
+                    <img src="{% static 'images/qrcode.png' %}" alt="QR Code">
                 </td>
             </tr>
         </table>
