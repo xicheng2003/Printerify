@@ -44,7 +44,6 @@ const progressWidth = computed(() => {
 
 <style scoped>
 .stepper-container {
-  /* *** FIX 1: 将此容器设为子元素绝对定位的参照物 *** */
   position: relative;
   padding: 1.5rem 0;
   margin-bottom: 2rem;
@@ -54,7 +53,7 @@ const progressWidth = computed(() => {
   display: flex;
   justify-content: space-between;
   position: relative;
-  z-index: 1; /* 确保图标和文字在进度条上方 */
+  z-index: 1; /* 确保图标在进度条上方 */
 }
 
 .step {
@@ -62,6 +61,7 @@ const progressWidth = computed(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  /* 每个步骤的容器宽度为 80px */
   width: 80px;
 }
 
@@ -78,7 +78,6 @@ const progressWidth = computed(() => {
   font-size: 1.1rem;
   transition: all 0.4s ease;
   border: 3px solid #e2e8f0;
-  /* 确保图标有白色背景，可以盖住进度条 */
   background-clip: padding-box;
 }
 
@@ -89,7 +88,6 @@ const progressWidth = computed(() => {
   transition: color 0.4s ease;
 }
 
-/* Active state */
 .step.active .step-icon {
   background-color: #e0e7ff;
   border-color: var(--primary-color);
@@ -100,7 +98,6 @@ const progressWidth = computed(() => {
   font-weight: 600;
 }
 
-/* Completed state */
 .step.completed .step-icon {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
@@ -111,16 +108,17 @@ const progressWidth = computed(() => {
 }
 
 .stepper-line {
-  /* *** FIX 2: 使用绝对定位将进度条从文档流中取出 *** */
   position: absolute;
-  /* 垂直居中：容器内边距 + 图标高度的一半 */
-  top: calc(1.5rem + 20px);
-  /* 左右留出边距，使其不会顶到最两边 */
-  left: 5%;
-  right: 5%;
+  top: calc(1.5rem + 20px); /* 垂直居中于图标 */
   height: 4px;
   background-color: #e2e8f0;
-  z-index: 0; /* 把它放在图标们的后面 */
+  z-index: 0;
+
+  /* --- ▼▼▼ 这是最关键的修改 ▼▼▼ --- */
+  /* 使用固定的像素值（每个步骤宽度 80px 的一半）来确保精准对齐 */
+  left: 40px;
+  right: 40px;
+  /* --- ▲▲▲ 修改结束 ▲▲▲ --- */
 }
 
 .stepper-progress {
