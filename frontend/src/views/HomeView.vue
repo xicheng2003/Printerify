@@ -40,6 +40,29 @@
               :disabled="!agreedToTerms || !agreedToPrivacy"
             />
 
+            <transition name="fade">
+              <div v-if="orderStore.groups.length > 0 && isBindingHelpVisible" class="binding-help-alert">
+                <div class="help-alert-content">
+                  <div class="help-alert-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  </div>
+                  <div class="help-alert-text">
+                    <strong>装订组使用技巧：</strong>
+                    <ul>
+                      <li>
+                        <strong>合并装订：</strong>新上传时，每个文件都是独立的“装订组”。如需将多个文件装订在一起，请按住组标题旁的 <span>⠿</span> 拖拽，并覆盖到另一组上即可合并。
+                      </li>
+                      <li>
+                        <strong>调整顺序：</strong>当您为合并后的组选择了任意一项装订服务后，组内文件的从上到下顺序即为最终的打印和装订顺序。您可以按住单个文件左侧的 <span>⠿</span> 上下拖拽，自由调整它们的打印顺序。
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <button @click="dismissBindingHelp" class="help-alert-close-btn" title="关闭提示">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </transition>
             <OrderConfiguration v-if="orderStore.groups.length > 0" />
 
             <div class="terms-agreement">
@@ -242,10 +265,14 @@ const showBillingModal = ref(false); // 用于显示计费规则说明的模态�
 const fileUploaderRef = ref(null);
 const finalOrder = ref(null); // 用于存储最终成功创建的订单信息
 
-// --- 计算属性，让模板更简洁 ---
+// ▼▼▼ 在这里新增控制逻辑 ▼▼▼
+const isBindingHelpVisible = ref(true); // 默认显示
 
+function dismissBindingHelp() {
+  isBindingHelpVisible.value = false;
+}
+// ▲▲▲ 新增代码结束 ▲▲▲
 
-// 【新增】这个计算属性整合了所有“下一步”按钮的可用条件
 const isReadyToGoNext = computed(() => {
   return orderStore.isReadyToSubmit && agreedToTerms.value && agreedToPrivacy.value;
 });
@@ -822,4 +849,104 @@ html.dark .payment-button-image {
   color: var(--color-text-mute);
   opacity: 0.7;
 }
+/* ▼▼▼ 在这里新增全局帮助信息框的样式 ▼▼▼ */
+.binding-help-alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  /* 定义一个更柔和的信息提示背景色 */
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 2rem; /* 与上方的 FileUploader 保持间距 */
+  margin-bottom: 1.5rem; /* 与下方的 OrderConfiguration 保持间距 */
+}
+
+.help-alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.help-alert-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+
+.help-alert-close-btn {
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-mute);
+  transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.help-alert-close-btn:hover {
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
+}
+/* 更新帮助文本的样式 */
+.help-alert-text strong {
+  font-weight: 600;
+  color: var(--color-heading);
+  display: block; /* 让标题独占一行 */
+  margin-bottom: 0.5rem;
+}
+
+.help-alert-text p,
+.help-alert-text ul { /* 同时为 p 和 ul 设置样式 */
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.6;
+  padding-left: 0.1em; /* 为 ul 添加左边距 */
+}
+
+.help-alert-text li {
+  margin-bottom: 0.5rem;
+}
+.help-alert-text li:last-child {
+  margin-bottom: 0;
+  padding-left: 0; /* 最后一项不需要左边距 */
+}
+
+.help-alert-text li::marker {
+  color: var(--color-primary); /* 美化列表的项目符号 */
+}
+
+.help-alert-text li strong {
+  display: inline; /* 修正 li 内 strong 的显示方式 */
+  margin-bottom: 0;
+}
+
+/* 这个是新增的，用于高亮显示拖拽图标 */
+.help-alert-text span {
+  font-family: monospace;
+  background-color: var(--color-border);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  display: inline-block;
+  line-height: 1;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+/* ▲▲▲ 新增样式结束 ▲▲▲ */
 </style>

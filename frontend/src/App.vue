@@ -49,6 +49,7 @@
 
     <footer class="app-footer">
       <div class="container">
+        <p>Made with ❤️ by Xicheng2003</p>
         <p>&copy; 2025 Printerify. All Rights Reserved.</p>
       </div>
     </footer>
