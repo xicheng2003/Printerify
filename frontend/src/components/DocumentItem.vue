@@ -50,16 +50,15 @@
             />
           </div>
           <div>
-            <label :for="'paper-' + document.id">纸张尺寸</label>
+            <label :for="'sided-' + document.id">单/双面</label>
             <select
-              :id="'paper-' + document.id"
-              :value="document.settings.paperSize"
-              @change="updateSetting('paperSize', $event.target.value)"
+              :id="'sided-' + document.id"
+              :value="document.settings.printSided"
+              @change="updateSetting('printSided', $event.target.value)"
             >
-              <option value="a4">A4</option>
-              <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option>
-              <!-- 【预留】添加更多纸张尺寸选项 -->
-              <!-- <option value="b5">B5</option> -->
+              <option value="single">单面打印</option>
+              <option value="double">双面打印</option>
+              <option value="single_double">首页单面，内容双面</option>
             </select>
           </div>
           <div>
@@ -76,15 +75,16 @@
             </select>
           </div>
           <div>
-            <label :for="'sided-' + document.id">单/双面</label>
+            <label :for="'paper-' + document.id">纸张尺寸</label>
             <select
-              :id="'sided-' + document.id"
-              :value="document.settings.printSided"
-              @change="updateSetting('printSided', $event.target.value)"
+              :id="'paper-' + document.id"
+              :value="document.settings.paperSize"
+              @change="updateSetting('paperSize', $event.target.value)"
             >
-              <option value="single">单面打印</option>
-              <option value="double">双面打印</option>
-              <option value="single_double">首页单面，内容双面</option>
+              <option value="a4">A4</option>
+              <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option>
+              <!-- 【预留】添加更多纸张尺寸选项 -->
+              <!-- <option value="b5">B5</option> -->
             </select>
           </div>
         </div>
@@ -127,7 +127,7 @@ function remove() {
   }
 }
 function retryUpload() {
-  alert('重试功能待开发');
+  alert('重试功能待开发。请移除文件后重新上传。');
 }
 </script>
 
@@ -357,13 +357,13 @@ function retryUpload() {
     gap: 0.75rem;
   }
 .settings-grid input, .settings-grid select {
-padding-top: 0.6rem; /* 适当调整顶部内边距 /
-padding-bottom: 0.6rem; / 适当调整底部内边距 /
+padding-top: 0.6rem;
+padding-bottom: 0.6rem;
 padding-left: 0.5rem;
 padding-right: 0.5rem;
 font-size: 0.9rem;
-height: 2.5rem; / 设置统一的高度，您可以尝试其他值 /
-box-sizing: border-box; / 确保 padding 不会增加元素的总高度 */
+height: 2.5rem; /* 设置统一的高度，您可以尝试其他值 */
+box-sizing: border-box;
 }
 }
 
