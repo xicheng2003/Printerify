@@ -2,40 +2,161 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>新订单提醒</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新订单提醒 - Printerify</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
-        .header { font-size: 24px; color: #007bff; }
-        .order-details { margin-top: 20px; }
-        .order-details th, .order-details td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
-        .button { display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; }
+        /* General Reset & Body Style */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f4f7f6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
+        /* Main Container */
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            overflow: hidden; /* Ensures border-radius is respected */
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .header .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .header h1 {
+            color: #212529;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            margin-left: 10px; /* Space between logo and text */
+        }
+
+        /* Content Area */
+        .content {
+            padding: 30px 40px;
+            color: #495057;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .content p {
+            margin: 0 0 25px 0;
+        }
+
+        /* Order Details Table */
+        .order-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .order-details th, .order-details td {
+            padding: 12px 0;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        .order-details th {
+            color: #6c757d;
+            font-weight: 500;
+            width: 120px; /* Fixed width for labels */
+        }
+        .order-details td {
+            color: #212529;
+            font-weight: 600;
+        }
+        .order-details tr:last-child th,
+        .order-details tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Call-to-Action Button */
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #adb5bd;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="header">新订单提醒 - Printerify</h1>
-        <p>您好，管理员！</p>
-        <p>系统刚刚收到一个新订单，请及时处理。订单详情如下：</p>
-        <table class="order-details">
-            <tr>
-                <th>订单号</th>
-                <td>{{ order.order_number }}</td>
-            </tr>
-            <tr>
-                <th>取件码</th>
-                <td><strong>{{ order.pickup_code }}</strong></td>
-            </tr>
-            <tr>
-                <th>用户手机</th>
-                <td>{{ order.phone_number }}</td>
-            </tr>
-            <tr>
-                <th>下单时间</th>
-                <td>{{ order.created_at|date:"Y-m-d H:i:s" }}</td>
-            </tr>
-        </table>
-        <a href="http://{{ domain }}/admin/api/order/{{ order.id }}/change/" class="button">前往后台处理</a>
+        <!-- Header with Logo and Brand Name -->
+        <div class="header">
+            <div style="display: inline-block; vertical-align: middle;">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="7" y="13" width="10" height="8" rx="1" stroke="#343a40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 13H19V11" stroke="#343a40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1 style="display: inline-block; vertical-align: middle; margin-left: 12px; color: #212529; font-size: 28px;">Printerify</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <p>您好，管理员！</p>
+            <p>系统刚刚收到一个新订单，请及时处理。订单详情如下：</p>
+            
+            <!-- Order Details -->
+            <table class="order-details">
+                <tr>
+                    <th>订单号</th>
+                    <td>{{ order.order_number }}</td>
+                </tr>
+                <tr>
+                    <th>取件码</th>
+                    <td><strong>{{ order.pickup_code }}</strong></td>
+                </tr>
+                <tr>
+                    <th>用户手机</th>
+                    <td>{{ order.phone_number }}</td>
+                </tr>
+                <tr>
+                    <th>下单时间</th>
+                    <td>{{ order.created_at|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            </table>
+
+            <!-- Action Button -->
+            <div class="button-container">
+                <a href="https://print.morlight.top/admin/api/order/{{ order.id }}/change/" class="button">前往后台处理</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            &copy; 2024 Printerify. All rights reserved.
+        </div>
     </div>
 </body>
 </html>
