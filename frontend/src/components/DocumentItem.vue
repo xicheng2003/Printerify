@@ -184,14 +184,6 @@ function retryUpload() {
   gap: 0.5rem;
 }
 
-.doc-drag-handle {
-  cursor: grab;
-  color: var(--color-text-mute);
-  padding-right: 0.75rem;
-  font-size: 1.25rem;
-  align-self: flex-start;
-  padding-top: 0.25rem;
-}
 
 .doc-drag-handle:active {
   cursor: grabbing;
@@ -224,13 +216,19 @@ function retryUpload() {
   color: var(--color-primary);
 }
 
+/* --- 【核心修复】为拖拽手柄和设置按钮应用统一的、居中的样式 --- */
+.doc-drag-handle,
 .settings-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   background: transparent;
   border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  margin-left: auto;
   border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
   transition: background-color 0.2s;
 }
 
