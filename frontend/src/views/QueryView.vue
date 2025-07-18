@@ -64,6 +64,21 @@ function formatDateTime(isoString) {
   const date = new Date(isoString);
   return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
 }
+
+// ▼▼▼ 在此处新增以下函数 ▼▼▼
+/**
+ * 将 'print_sided' 字段的英文代码转换为中文。
+ * @param {string} sidedCode - 后端返回的 print_sided 值
+ */
+function formatPrintSided(sidedCode) {
+  const map = {
+    'single': '单面打印',
+    'double': '双面打印',
+    'single_double': '封面单面'
+  };
+  return map[sidedCode] || sidedCode; // 如果没匹配到，返回原始值
+}
+// ▲▲▲ 新增函数结束 ▲▲▲
 </script>
 
 <template>
@@ -119,8 +134,9 @@ function formatDateTime(isoString) {
                 <p class="file-name">{{ doc.original_filename }}</p>
                 <div class="file-specs">
                   <span>{{ doc.copies }} 份</span>
+                  <span>{{ doc.paper_size.toUpperCase() }}</span>
                   <span>{{ doc.color_mode === 'color' ? '彩色' : '黑白' }}</span>
-                  <span>{{ doc.print_sided === 'double' ? '双面' : '单面' }}</span>
+                  <span>{{ formatPrintSided(doc.print_sided) }}</span>
                 </div>
               </div>
             </div>
