@@ -190,7 +190,7 @@ function retryUpload() {
 }
 
 .file-icon {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   color: var(--color-text-mute);
 }
 
@@ -198,18 +198,22 @@ function retryUpload() {
   flex-grow: 1;
 }
 
+/* 请将 DocumentItem.vue 中 .file-name 的样式替换为以下代码 */
 .file-name {
   font-weight: 600;
   color: var(--color-heading);
   margin: 0 0 0.25rem 0;
+  word-break: break-word; /* 【修复】允许长文件名换行 */
 }
 
+/* 请将 DocumentItem.vue 中 .file-meta 的样式替换为以下代码 */
 .file-meta {
   font-size: 0.875rem;
   color: var(--color-text-mute);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap; /* 【保持】强制元数据不换行 */
 }
 
 .file-meta strong {
