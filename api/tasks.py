@@ -17,9 +17,6 @@ def process_order_creation_tasks(self, order_id):
     """
     【已重构】异步处理订单创建后的所有耗时任务。
     """
-    # ▼▼▼ 在这里新增一行临时的诊断代码 ▼▼▼
-    print(f"--- CELERY DIAGNOSIS: The value of DEFAULT_FROM_EMAIL is: '{settings.DEFAULT_FROM_EMAIL}' ---")
-    # ▲▲▲ 诊断代码结束 ▲▲▲
 
     try:
         order = Order.objects.get(id=order_id)
