@@ -356,11 +356,15 @@ function retryUpload() {
     grid-template-columns: 1fr 1fr; /* 每行两列 */
     gap: 0.75rem;
   }
-  /* 【修正】已删除强制第一项占满全行的规则 */
-  .settings-grid input, .settings-grid select {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-  }
+.settings-grid input, .settings-grid select {
+padding-top: 0.6rem; /* 适当调整顶部内边距 /
+padding-bottom: 0.6rem; / 适当调整底部内边距 /
+padding-left: 0.5rem;
+padding-right: 0.5rem;
+font-size: 0.9rem;
+height: 2.5rem; / 设置统一的高度，您可以尝试其他值 /
+box-sizing: border-box; / 确保 padding 不会增加元素的总高度 */
+}
 }
 
 .upload-progress {
