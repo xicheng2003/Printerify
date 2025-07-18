@@ -1,10 +1,12 @@
 <template>
-  <!-- 【修改】为根元素增加相对定位，以便遮罩层可以正确定位 -->
   <div class="document-item" :class="{ 'has-error': document.error }">
-    <!-- 【新增】单个文件价格计算时的加载遮罩 -->
+    <!-- 【修改】加载遮罩层现在使用方案一的“图标脉冲效果” -->
     <div v-if="document.isRecalculating" class="recalculating-overlay">
-        <div class="spinner"></div>
-        <span>重新计价中...</span>
+      <!-- 【新增】带有脉冲动画的齿轮 SVG 图标 -->
+      <svg class="pulsating-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20v-4"/><path d="M12 4V2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="m17.66 6.34 1.41-1.41"/>
+      </svg>
+      <span>重新计价中...</span>
     </div>
 
     <div class="file-info">
@@ -120,12 +122,12 @@ function retryUpload() {
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
-  position: relative; /* 【修改】为遮罩层提供定位上下文 */
+  position: relative;
   transition: box-shadow 0.2s, border-color 0.2s;
   overflow: hidden;
 }
 
-/* 【新增】单个文件价格计算时的加载遮罩样式 */
+/* --- 【修改】加载遮罩样式更新为方案一 --- */
 .recalculating-overlay {
   position: absolute;
   top: 0;
@@ -135,6 +137,7 @@ function retryUpload() {
   background-color: rgba(var(--color-background-rgb), 0.8);
   backdrop-filter: blur(2px);
   display: flex;
+  flex-direction: column; /* 让图标和文字垂直排列 */
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
@@ -142,21 +145,30 @@ function retryUpload() {
   font-weight: 500;
   z-index: 10;
   transition: opacity 0.2s;
+  border-radius: 12px; /* 确保遮罩层也有圆角 */
 }
 
-.recalculating-overlay .spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(var(--color-primary-rgb), 0.2);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* 【新增】脉冲动画的容器 */
+.recalculating-overlay .pulsating-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary);
+  animation: pulse 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* 【新增】定义脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
 }
 
+/* --- 原有样式保持不变 --- */
 .document-item:hover {
   border-color: var(--color-primary);
 }
