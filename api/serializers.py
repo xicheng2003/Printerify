@@ -12,17 +12,21 @@ from .tasks import process_order_creation_tasks
 
 # --- 嵌套序列化器：用于处理层级关系 ---
 
+# --- ▼▼▼ DocumentCreateSerializer 已修改 ▼▼▼ ---
 class DocumentCreateSerializer(serializers.Serializer):
     """
     用于在创建订单时，接收单个文件信息的“子序列化器”。
-    【注意】这是一个临时的 Serializer，不对应任何 model，只用于数据校验。
+    【已更新】增加了 paper_size 并更新了 print_sided 的选项。
     """
-    file_id = serializers.CharField()  # 前端预上传文件后得到的临时ID
+    file_id = serializers.CharField()
     original_filename = serializers.CharField()
     color_mode = serializers.ChoiceField(choices=['black_white', 'color'])
-    print_sided = serializers.ChoiceField(choices=['single', 'double'])
+    # 使用 Document 模型中定义的常量，确保前后端一致
+    print_sided = serializers.ChoiceField(choices=Document.PrintSidedChoices.values)
+    paper_size = serializers.ChoiceField(choices=Document.PaperSizeChoices.values)
     copies = serializers.IntegerField(min_value=1)
     sequence_in_group = serializers.IntegerField()
+# --- ▲▲▲ 修改结束 ▲▲▲ ---
 
 class BindingGroupCreateSerializer(serializers.Serializer):
     """
@@ -34,14 +38,13 @@ class BindingGroupCreateSerializer(serializers.Serializer):
 
 # --- 主序列化器：用于创建订单 ---
 
-# --- 主序列化器 (核心修改) ---
+# --- 主序列化器 (create 方法已修改) ---
 class OrderCreateSerializer(serializers.ModelSerializer):
     groups = BindingGroupCreateSerializer(many=True, write_only=True)
     phone_number = serializers.CharField(required=False, allow_blank=True)
-    # 【新增】接收前端传来的付款凭证ID
     payment_screenshot_id = serializers.CharField(write_only=True, required=False, allow_null=True)
-    # 【新增】接收前端传来的支付方式
     payment_method = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
     class Meta:
         model = Order
         fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'phone_number', 'groups', 'created_at', 'payment_method', 'payment_screenshot_id')
@@ -50,9 +53,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         groups_data = validated_data.pop('groups')
         phone_number = validated_data.pop('phone_number', None)
-        # 【新增】从验证过的数据中获取凭证ID
         screenshot_id = validated_data.pop('payment_screenshot_id', None)
-        # 【新增】获取支付方式
         payment_method = validated_data.pop('payment_method', None)
 
         with transaction.atomic():
@@ -62,14 +63,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 phone_number=phone_number,
                 pickup_code=pickup_code_str,
                 pickup_code_num=pickup_code_num_val,
-                payment_method=payment_method # <--- 在创建订单时直接存入
+                payment_method=payment_method
             )
 
             #【修改后】总价从我们定义的基础服务费开始计算
             total_order_price = pricing.PRICE_CONFIG.get('base_service_fee', 0)
-
-            # 【新增】在订单总价计算完成后，处理付款凭证的“搬家”
-            order.total_price = total_order_price
 
             if screenshot_id:
                 temp_screenshot_path = Path(settings.MEDIA_ROOT) / 'payments' / screenshot_id
@@ -99,14 +97,18 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                         continue
 
                     # 2. 计算价格 (使用临时文件的路径)
+                    # --- ▼▼▼ 计价函数调用已修改 ▼▼▼ ---
                     page_count, print_cost = pricing.calculate_document_price(
                         file_path=str(temp_file_full_path),
+                        paper_size=doc_data['paper_size'], # 传递 paper_size
                         color_mode=doc_data['color_mode'],
                         print_sided=doc_data['print_sided'],
                         copies=doc_data['copies']
                     )
+                    # --- ▲▲▲ 修改结束 ▲▲▲ ---
                     
                     # 3. 创建Document实例，但暂时不关联文件
+                    # --- ▼▼▼ Document 实例创建已修改 ▼▼▼ ---
                     document = Document.objects.create(
                         group=group,
                         original_filename=doc_data['original_filename'],
@@ -114,9 +116,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                         print_cost=print_cost,
                         color_mode=doc_data['color_mode'],
                         print_sided=doc_data['print_sided'],
+                        paper_size=doc_data['paper_size'], # 保存 paper_size 到数据库
                         copies=doc_data['copies'],
                         sequence_in_group=doc_data['sequence_in_group']
                     )
+                    # --- ▲▲▲ 修改结束 ▲▲▲ ---
                     
                     # 4. 打开临时文件，并用Django的File对象包装它
                     with open(temp_file_full_path, 'rb') as f:

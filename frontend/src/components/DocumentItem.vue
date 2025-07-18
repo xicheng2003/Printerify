@@ -50,6 +50,19 @@
             />
           </div>
           <div>
+            <label :for="'paper-' + document.id">纸张尺寸</label>
+            <select
+              :id="'paper-' + document.id"
+              :value="document.settings.paperSize"
+              @change="updateSetting('paperSize', $event.target.value)"
+            >
+              <option value="a4">A4</option>
+              <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option>
+              <!-- 【预留】添加更多纸张尺寸选项 -->
+              <!-- <option value="b5">B5</option> -->
+            </select>
+          </div>
+          <div>
             <label :for="'color-' + document.id">色彩</label>
             <select
               :id="'color-' + document.id"
@@ -57,7 +70,9 @@
               @change="updateSetting('colorMode', $event.target.value)"
             >
               <option value="black_white">黑白</option>
-              <option value="color">彩色</option>
+              <option value="black_white">（由于机器限制，仅提供黑白打印）</option>
+              <!-- 【预留】添加彩色选项 -->
+              <!-- <option value="color">彩色</option> -->
             </select>
           </div>
           <div>
@@ -69,6 +84,7 @@
             >
               <option value="single">单面打印</option>
               <option value="double">双面打印</option>
+              <option value="single_double">首页单面，内容双面</option>
             </select>
           </div>
         </div>
@@ -336,9 +352,15 @@ function retryUpload() {
 @media (max-width: 767px) {
   .document-item { padding: 0.75rem; }
   .file-name { font-size: 0.9rem; }
-  .settings-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  .settings-grid div:first-child { grid-column: 1 / -1; }
-  .settings-grid input, .settings-grid select { padding: 0.5rem; font-size: 0.9rem; }
+  .settings-grid {
+    grid-template-columns: 1fr 1fr; /* 每行两列 */
+    gap: 0.75rem;
+  }
+  /* 【修正】已删除强制第一项占满全行的规则 */
+  .settings-grid input, .settings-grid select {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 .upload-progress {

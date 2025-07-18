@@ -306,6 +306,7 @@ async function handleCreateOrder() {
       documents: group.documents.map((doc, docIndex) => ({
         file_id: doc.serverId, // 使用预上传后服务器返回的ID
         original_filename: doc.fileName,
+        paper_size: doc.settings.paperSize, // <--- 【核心修正】在这里补上 paper_size 字段
         color_mode: doc.settings.colorMode,
         print_sided: doc.settings.printSided,
         copies: doc.settings.copies,

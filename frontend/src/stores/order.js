@@ -31,6 +31,7 @@ export const useOrderStore = defineStore('order', () => {
                 file_path: doc.serverId,
                 color_mode: doc.settings.colorMode,
                 print_sided: doc.settings.printSided,
+                paper_size: doc.settings.paperSize, // <--- 【在此处新增】
                 copies: doc.settings.copies
             }, { withCredentials: true });
             doc.pageCount = response.data.page_count;
@@ -80,8 +81,13 @@ export const useOrderStore = defineStore('order', () => {
             const newDocument = {
                 id: `doc_${uuidv4()}`,
                 fileObject: file, fileName: file.name, serverId: null,
-                isUploading: true, uploadProgress: 0, isRecalculating: false, error: null, // 【核心修复】使用 isRecalculating
-                settings: { colorMode: 'black_white', printSided: 'single', copies: 1 },
+                isUploading: true, uploadProgress: 0, isRecalculating: false, error: null,
+                settings: {
+                    colorMode: 'black_white',
+                    printSided: 'single',
+                    copies: 1,
+                    paperSize: 'a4' // <--- 【在此处新增】
+                },
                 pageCount: 0, printCost: 0,
             };
             const newGroup = { id: `group_${uuidv4()}`, bindingType: 'none', documents: [newDocument] };

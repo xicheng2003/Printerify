@@ -130,18 +130,55 @@ class BindingGroup(models.Model):
         return f"Group {self.id} for Order {self.order.order_number}"
 
 class Document(models.Model):
+     # --- ▼▼▼ 修正后的代码 ▼▼▼ ---
+
+    # 1. 定义选择项的嵌套类 (这是推荐的 Django 实践)
+    class PaperSizeChoices(models.TextChoices):
+        A4 = 'a4', 'A4'
+        B5 = 'b5', 'B5'
+
+    class PrintSidedChoices(models.TextChoices):
+        SINGLE = 'single', '单面打印'
+        DOUBLE = 'double', '双面打印'
+        SINGLE_DOUBLE = 'single_double', '封面单面'
+
     group = models.ForeignKey(BindingGroup, related_name='documents', on_delete=models.CASCADE, help_text="所属装订组")
     original_filename = models.CharField(max_length=255)
-    # 【已修改】这里的 upload_to 指向了我们新的函数
     file_path = models.FileField(upload_to=get_order_document_path, help_text="文件存储路径")
     
     color_mode = models.CharField(max_length=20, default='black_white', help_text="色彩模式")
-    print_sided = models.CharField(max_length=20, default='single', help_text="单双面")
-    copies = models.PositiveIntegerField(default=1, help_text="打印份数")
     
+    # 2. 【修正】确保字段正确引用嵌套类
+    print_sided = models.CharField(
+        max_length=20,
+        choices=PrintSidedChoices.choices,  # <-- 引用 PrintSidedChoices 类的 .choices 属性
+        default=PrintSidedChoices.SINGLE,
+        help_text="单双面"
+    )
+    
+    # 3. 【修正】确保字段正确引用嵌套类
+    paper_size = models.CharField(
+        max_length=10,
+        choices=PaperSizeChoices.choices, # <-- 引用 PaperSizeChoices 类的 .choices 属性
+        default=PaperSizeChoices.A4,
+        help_text="纸张尺寸"
+    )
+    
+    copies = models.PositiveIntegerField(default=1, help_text="打印份数")
     page_count = models.PositiveIntegerField(help_text="文件页数")
     print_cost = models.DecimalField(max_digits=10, decimal_places=2, help_text="此文件的打印费用")
     sequence_in_group = models.PositiveIntegerField(default=0, help_text="文件在组内的顺序")
+    
+    # (可选但推荐) 新增 display 属性，方便模板和后台调用
+    @property
+    def print_sided_display(self):
+        return self.get_print_sided_display()
+
+    @property
+    def paper_size_display(self):
+        return self.get_paper_size_display()
+        
+    # --- ▲▲▲ 修正代码结束 ▲▲▲ ---
     
     class Meta:
         ordering = ['sequence_in_group']

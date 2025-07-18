@@ -41,9 +41,11 @@ class PriceEstimationView(generics.GenericAPIView):
         color_mode = request.data.get('color_mode')
         print_sided = request.data.get('print_sided')
         copies = int(request.data.get('copies', 1))
+        # 【核心修正】从请求中获取 paper_size
+        paper_size = request.data.get('paper_size') # <-- 【新增】获取纸张尺寸
 
-        if not all([file_path_from_frontend, color_mode, print_sided]):
-            return Response({'error': '缺少必要的参数'}, status=status.HTTP_400_BAD_REQUEST)
+        if not all([file_path_from_frontend, color_mode, print_sided, copies, paper_size]):
+            return Response({'error': '缺少必要的参数 (file_path, color_mode, print_sided, copies, paper_size)'}, status=status.HTTP_400_BAD_REQUEST)
         
         # 【关键修复】同样使用settings.MEDIA_ROOT来构建绝对路径，确保与上传时一致
         full_file_path = Path(settings.MEDIA_ROOT) / file_path_from_frontend
@@ -51,16 +53,28 @@ class PriceEstimationView(generics.GenericAPIView):
         if not full_file_path.exists():
              return Response({'error': f'文件在服务器上未找到，路径: {full_file_path}'}, status=status.HTTP_404_NOT_FOUND)
 
-        page_count, print_cost = pricing.calculate_document_price(
-            file_path=str(full_file_path),
-            color_mode=color_mode,
-            print_sided=print_sided,
-            copies=copies
-        )
-        return Response({
-            'page_count': page_count,
-            'print_cost': print_cost
-        }, status=status.HTTP_200_OK)
+        try:
+            # 【核心修正】将 paper_size 传递给计价函数
+            page_count, print_cost = pricing.calculate_document_price(
+                file_path=str(full_file_path),
+                paper_size=paper_size, # <--- 传递新参数
+                color_mode=color_mode,
+                print_sided=print_sided,
+                copies=int(copies)
+            )
+            
+            # 返回成功响应
+            return Response({
+                "page_count": page_count,
+                "print_cost": f"{print_cost:.2f}"
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # 捕获其他潜在错误（如计价逻辑内部错误）
+            return Response(
+                {"error": f"计算价格时发生错误: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 # OrderViewSet 的代码保持不变
 class OrderViewSet(viewsets.ModelViewSet):

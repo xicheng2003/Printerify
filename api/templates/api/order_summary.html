@@ -133,10 +133,9 @@
                                 <div class="doc-entry">
                                     <div class="name">📄 {{ doc.original_filename }}</div>
                                     <div class="specs">
-                                        规格: {{ doc.copies }} 份 | 
+                                        规格: {{ doc.copies }} 份 | {{ doc.paper_size_display }} | 
                                         {% if doc.color_mode == 'color' %}彩色{% else %}黑白{% endif %} | 
-                                        {% if doc.print_sided == 'double' %}双面{% else %}单面{% endif %} | 
-                                        {{ doc.page_count }} 页
+                                        {{ doc.print_sided_display }} | {{ doc.page_count }} 页
                                     </div>
                                 </div>
                             {% endfor %}
