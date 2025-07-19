@@ -86,7 +86,9 @@ function closeMobileMenu() {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--color-background);
+  /* ▼▼▼ 核心修改（第1处）▼▼▼ */
+  /* 将这里的背景色，修改为与导航栏和页脚一致的颜色 */
+  background-color: var(--color-background-soft);
 }
 
 .app-header {
@@ -153,6 +155,9 @@ function closeMobileMenu() {
 .app-main {
   flex-grow: 1;
   padding: 2rem 0;
+  /* ▼▼▼ 核心修改（第2处）▼▼▼ */
+  /* 在这里为主要内容区域，明确指定它自己的背景色 */
+  background-color: var(--color-background);
 }
 
 .app-footer {
