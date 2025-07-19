@@ -2,7 +2,8 @@
   <div id="app-container">
     <header class="app-header">
       <div class="container">
-        <div class="logo-container">
+        <!-- 【重要更新】将 logo 容器改为指向首页的链接 -->
+        <RouterLink to="/" class="logo-container" @click="closeMobileMenu">
           <!-- Logo SVG is preserved -->
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -11,10 +12,10 @@
             <path d="M17 13H19V11" stroke="var(--color-heading)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <h1>Printerify</h1>
-        </div>
+        </RouterLink>
 
         <nav class="desktop-nav">
-          <RouterLink to="/">自助打印</RouterLink>
+          <RouterLink to="/order">自助打印</RouterLink>
           <RouterLink to="/query">订单查询</RouterLink>
           <RouterLink to="/terms">关于</RouterLink>
         </nav>
@@ -35,7 +36,7 @@
       <Transition name="dropdown-fade">
         <div v-if="isMobileMenuOpen" class="mobile-menu-dropdown">
           <nav class="mobile-nav">
-            <RouterLink to="/" @click="closeMobileMenu">自助打印</RouterLink>
+            <RouterLink to="/order" @click="closeMobileMenu">自助打印</RouterLink>
             <RouterLink to="/query" @click="closeMobileMenu">订单查询</RouterLink>
             <RouterLink to="/terms" @click="closeMobileMenu">关于</RouterLink>
           </nav>

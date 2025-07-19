@@ -1,12 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-
+import ProductIntroView from '../views/ProductIntroView.vue'
+// 引入新页面组件
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // ▼▼▼ 2. 修改和添加下面的路由配置 ▼▼▼
     {
       path: '/',
-      name: 'home',
+      name: 'intro', // 将 name 从 'home' 改为 'intro'
+      component: ProductIntroView // 将 component 指向新创建的页面
+    },
+    {
+      path: '/order',
+      name: 'order',
       component: HomeView,
       meta: { title: '自助下单' }
     },

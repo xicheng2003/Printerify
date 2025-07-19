@@ -1,5 +1,5 @@
 import './assets/main.css'
-
+import './assets/tailwind.css' // <-- 在文件的最顶部添加这一行
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
