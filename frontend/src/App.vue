@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue'; // 1. 引入 watchEffect
 import { RouterLink, RouterView } from 'vue-router';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
@@ -70,7 +70,25 @@ import { useThemeStore } from '@/stores/theme';
 
 const isMobileMenuOpen = ref(false);
 const orderStore = useOrderStore();
-useThemeStore();
+const themeStore = useThemeStore(); // 2. 获取 themeStore 实例
+
+// 3. 新增一个副作用函数，用于动态修改网页“画布”的底色
+watchEffect(() => {
+  // a. 定义两种背景色
+  const softBackground = 'var(--color-background-soft)';
+  const mainBackground = 'var(--color-background)';
+
+  // b. 根据当前主题，设置 <body> 的背景色
+  // 这将改变刘海屏等安全区域的颜色
+  document.body.style.backgroundColor = softBackground;
+
+  // c. 确保应用容器的背景色是主背景色
+  // 这样做可以避免在切换主题时，页面背景出现不必要的闪烁
+  const appContainer = document.getElementById('app-container');
+  if (appContainer) {
+    appContainer.style.backgroundColor = mainBackground;
+  }
+});
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -86,9 +104,8 @@ function closeMobileMenu() {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* ▼▼▼ 核心修改（第1处）▼▼▼ */
-  /* 将这里的背景色，修改为与导航栏和页脚一致的颜色 */
-  background-color: var(--color-background-soft);
+  /* ▼▼▼ 第1处修改：将这里的背景色改回原来的值 ▼▼▼ */
+  background-color: var(--color-background);
 }
 
 .app-header {
@@ -155,8 +172,8 @@ function closeMobileMenu() {
 .app-main {
   flex-grow: 1;
   padding: 2rem 0;
-  /* ▼▼▼ 核心修改（第2处）▼▼▼ */
-  /* 在这里为主要内容区域，明确指定它自己的背景色 */
+  /* ▼▼▼ 第2处修改：确保主要内容区域的背景色被明确指定 ▼▼▼ */
+  /* 如果您之前没有加过这一行，请加上它 */
   background-color: var(--color-background);
 }
 
