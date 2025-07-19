@@ -950,10 +950,13 @@ html.dark .payment-button-image {
 }
 /* ▲▲▲ 新增样式结束 ▲▲▲ */
 
-/* ---【最终方案】无缝循环动画 英雄标题样式 --- */
+/* ---【优化方案】基于 CSS 变量的真正无缝循环动画 --- */
 
 /* 1. 基础/暗色模式样式 */
 .animated-hero-title {
+  /* ▼▼▼【核心修改 ①】定义一个 CSS 变量，用于控制背景宽度 ▼▼▼ */
+  --scroll-width: 400px;
+
   font-family: 'Inter', sans-serif;
   font-weight: 800;
   font-size: 3.2rem;
@@ -968,13 +971,12 @@ html.dark .payment-button-image {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 
-  /* ▼▼▼【核心修改 ①】让背景可以在 X 轴无限重复 ▼▼▼ */
   background-repeat: repeat-x;
 
-  /* 将背景尺寸设定为固定的像素值，以更好地控制重复效果 */
-  background-size: 400px 100%;
+  /* ▼▼▼【核心修改 ②】使用变量设定背景尺寸 ▼▼▼ */
+  background-size: var(--scroll-width) 100%;
 
-  /* ▼▼▼【核心修改 ②】应用下方重新定义的、无缝滚动的动画 ▼▼▼ */
+  /* 应用下方经过优化的、动态的滚动动画 */
   animation: seamless-scroll 5s linear infinite;
 
   text-shadow:
@@ -986,17 +988,21 @@ html.dark .payment-button-image {
 
 /* 2. 亮色模式专属样式 */
 html:not(.dark) .animated-hero-title {
+  /* ▼▼▼【核心修改 ③】仅需重写变量的值，即可改变背景尺寸 ▼▼▼ */
+  --scroll-width: 300px; /* 可根据需要调整此值 */
+
+  /* ▼▼▼【核心修改 ④】调整渐变色，使其首尾颜色相同，实现真正的无缝 ▼▼▼ */
   background: linear-gradient(
     100deg,
-    #232323, #aeaeae, #333
+    #333333, #aeaeae, #232323, #aeaeae, #333333
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 
-  /* 同样应用无限重复和固定尺寸 */
+  /* 其他属性会自动继承或复用，无需重复声明 */
   background-repeat: repeat-x;
-  background-size: 250px 100%;
+  background-size: var(--scroll-width) 100%;
 
   text-shadow:
     0px 1px 1px rgba(255, 255, 255, 0.5),
@@ -1005,15 +1011,13 @@ html:not(.dark) .animated-hero-title {
 
 
 /* 3. 动画定义 */
-/* ▼▼▼【核心修改 ③】重新定义动画，使其持续向一个方向滚动 ▼▼▼ */
 @keyframes seamless-scroll {
   from {
-    /* 从 0 的位置开始 */
-    background-position: 0% 0;
+    background-position: 0 0;
   }
   to {
-    /* 滚动到背景图案的一个完整宽度，实现无缝对接 */
-    background-position: -400px 0; /* 这个值需要和暗色模式的 background-size 匹配 */
+    /* ▼▼▼【核心修改 ⑤】使用变量设定动画位移，确保其与背景尺寸始终一致 ▼▼▼ */
+    background-position: calc(-1 * var(--scroll-width)) 0;
   }
 }
 
@@ -1024,5 +1028,5 @@ html:not(.dark) .animated-hero-title {
     letter-spacing: -1px;
   }
 }
-/* --- 最终方案结束 --- */
+/* --- 优化方案结束 --- */
 </style>
