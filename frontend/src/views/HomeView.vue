@@ -8,7 +8,7 @@
     </Teleport>
 
     <section class="hero-section">
-      <h2>简单，快速，可靠</h2>
+      <h2 class="animated-hero-title">简单、快速、可靠</h2>
       <p>Printerify，为每一次打印赋能。</p>
     </section>
 
@@ -949,4 +949,80 @@ html.dark .payment-button-image {
   transform: translateY(-10px);
 }
 /* ▲▲▲ 新增样式结束 ▲▲▲ */
+
+/* ---【最终方案】无缝循环动画 英雄标题样式 --- */
+
+/* 1. 基础/暗色模式样式 */
+.animated-hero-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 3.2rem;
+  text-align: center;
+  letter-spacing: -1.5px;
+
+  background: linear-gradient(
+    100deg,
+    #666666, #b2b2b2, #ffffff, #b2b2b2, #666666
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* ▼▼▼【核心修改 ①】让背景可以在 X 轴无限重复 ▼▼▼ */
+  background-repeat: repeat-x;
+
+  /* 将背景尺寸设定为固定的像素值，以更好地控制重复效果 */
+  background-size: 400px 100%;
+
+  /* ▼▼▼【核心修改 ②】应用下方重新定义的、无缝滚动的动画 ▼▼▼ */
+  animation: seamless-scroll 5s linear infinite;
+
+  text-shadow:
+    0px 1px 1px rgba(255, 255, 255, 0.1),
+    0 0 10px rgba(192, 219, 255, 0.2),
+    0 0 30px rgba(192, 219, 255, 0.1),
+    0px -1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* 2. 亮色模式专属样式 */
+html:not(.dark) .animated-hero-title {
+  background: linear-gradient(
+    100deg,
+    #232323, #aeaeae, #333
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* 同样应用无限重复和固定尺寸 */
+  background-repeat: repeat-x;
+  background-size: 250px 100%;
+
+  text-shadow:
+    0px 1px 1px rgba(255, 255, 255, 0.5),
+    0px -1px 1px rgba(0, 0, 0, 0.1);
+}
+
+
+/* 3. 动画定义 */
+/* ▼▼▼【核心修改 ③】重新定义动画，使其持续向一个方向滚动 ▼▼▼ */
+@keyframes seamless-scroll {
+  from {
+    /* 从 0 的位置开始 */
+    background-position: 0% 0;
+  }
+  to {
+    /* 滚动到背景图案的一个完整宽度，实现无缝对接 */
+    background-position: -400px 0; /* 这个值需要和暗色模式的 background-size 匹配 */
+  }
+}
+
+/* 4. 响应式调整 (保持不变) */
+@media (max-width: 767px) {
+  .animated-hero-title {
+    font-size: 2.6rem;
+    letter-spacing: -1px;
+  }
+}
+/* --- 最终方案结束 --- */
 </style>

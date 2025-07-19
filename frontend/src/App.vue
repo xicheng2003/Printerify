@@ -67,6 +67,8 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { useOrderStore } from '@/stores/order';
 import { useThemeStore } from '@/stores/theme';
+// ▼▼▼【核心修改】在这里导入我们新创建的页脚组件 ▼▼▼
+import TheFooter from './components/TheFooter.vue';
 
 const isMobileMenuOpen = ref(false);
 const orderStore = useOrderStore();
@@ -183,6 +185,7 @@ function closeMobileMenu() {
   padding: 1rem 0;
   text-align: center;
   font-size: 0.875rem;
+  font-weight: 400;
   border-top: 1px solid var(--color-border);
 }
 
