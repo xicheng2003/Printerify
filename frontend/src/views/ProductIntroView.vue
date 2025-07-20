@@ -1065,14 +1065,17 @@ details[open] > summary.faq-question::after {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
-    padding: 0.5rem;
-    scale: 0.9;
+    padding: 0.0rem;
+    scale: 0.875;
+    width: 100%;
+    max-width: 400px;
   }
   :deep(.binding-group .group-header) {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.8rem 0rem;
+    scale: 0.9;
   }
   :deep(.binding-group .group-title) {
     font-size: 1rem;
