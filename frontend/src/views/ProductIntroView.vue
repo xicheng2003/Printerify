@@ -454,6 +454,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   perspective: 1000px; /* 创造3D透视效果 */
+  width: 100%;
 }
 
 /* 【重要样式更新】调整左侧文字排版 */
@@ -461,6 +462,7 @@ onUnmounted(() => {
   flex: 1;
   max-width: 550px;
   animation: fade-in-left 0.8s ease-out;
+  width: 100%;
 }
 
 .hero-main-title {
@@ -566,11 +568,42 @@ onUnmounted(() => {
 }
 
 @media (max-width: 767px) {
-  .hero-main-title { font-size: 2.25rem; }
+  .hero-main-title { font-size: 2rem; }
   .hero-main-subtitle { font-size: 1rem; }
-  .hero-main-title .service-name { font-size: 2rem; }
+  .hero-main-title .service-name { font-size: 1.85rem; }
   .hero-cta-button { padding: 0.75rem 2rem; font-size: 1rem; }
-  .hero-animation-container { transform: scale(0.8) rotateY(-25deg) rotateX(15deg); }
+
+  /* 【重要更新】调整动画容器和标签在移动端的尺寸与定位 */
+  .hero-animation-container {
+    /* 缩小动画容器的基础尺寸，以适应移动端屏幕 */
+    width: 300px;
+    height: 300px;
+    transform: scale(0.8) rotateY(-25deg) rotateX(15deg);
+  }
+
+  /* 为关键词标签设置一个更紧凑的字体和内边距 */
+  .keyword-tag {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  /* 将标签的位置向内收，防止溢出 */
+  .tag-1 { top: 20%; left: 5%; }
+  .tag-2 { top: 45%; right: 5%; }
+  .tag-3 { bottom: 15%; left: 10%; }
+}
+
+/* 【推荐补充】针对极小屏幕的优化 */
+@media (max-width: 420px) {
+  .hero-animation-container {
+    /* 在非常窄的屏幕上进一步缩小动画容器 */
+    width: 280px;
+    height: 280px;
+  }
+
+  .keyword-tag {
+    font-size: 0.8rem;
+  }
 }
 
 /* 动画定义 */
