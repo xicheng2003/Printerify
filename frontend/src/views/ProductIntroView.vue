@@ -1,14 +1,34 @@
-<template>
+    <template>
   <div class="page-container">
-    <section class="hero-section">
-      <div class="content-wrapper">
-        <h1 class="hero-title">简单、快速、可靠的打印服务</h1>
-        <p class="hero-subtitle">
-          从上传文件到取件，我们为您提供一站式无忧打印解决方案。Printerify，为每一次打印赋能。
-        </p>
-        <router-link to="/order">
-          <BaseButton>立即打印</BaseButton>
-        </router-link>
+    <section class="hero-section-reimagined">
+      <div class="content-wrapper hero-split-layout">
+        <div class="hero-left">
+  <h1 class="hero-main-title">
+    简单、快速、可靠的
+    <br />
+    <span class="service-name">自助打印服务</span>
+  </h1>
+  <p class="hero-main-subtitle">
+    从上传文件到获取取件码，体验前所未有的流畅与便捷。我们致力于让高质量打印触手可及。
+  </p>
+  <router-link to="/order">
+    <BaseButton class="hero-cta-button">立即开始打印</BaseButton>
+  </router-link>
+</div>
+
+        <div class="hero-right">
+          <div class="hero-animation-container">
+            <div class="paper-sheet sheet-3"></div>
+            <div class="paper-sheet sheet-2"></div>
+            <div class="paper-sheet sheet-1">
+              <div v-for="(feature, index) in features" :key="feature.title"
+                   :class="['keyword-tag', `tag-${index + 1}`]"
+                   :style="{ animationDelay: `${0.5 + index * 0.2}s` }">
+                ✔ {{ feature.title }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -147,13 +167,67 @@
     <section class="cta-section">
         <div class="content-wrapper cta-content">
           <h2 class="cta-title">准备好体验便捷的打印服务了吗？</h2>
-          <p class="cta-description">只需几步，即可上传文件、设置选项并轻松下单。</p>
+          <p class="cta-description">Printerify，为每一次打印赋能。</p>
           <p class="cta-description">立即开始，享受高质量的打印体验！</p>
           <router-link to="/order">
-             <BaseButton class="cta-button">立即打印</BaseButton>
+             <BaseButton class="cta-button">立即开始打印</BaseButton>
           </router-link>
         </div>
       </section>
+
+   <section class="faq-section">
+    <div class="content-wrapper">
+      <h2 class="section-title">常见问题解答</h2>
+<div class="faq-container">
+  <details class="faq-item">
+<summary class="faq-question">Printerify 支持哪些文件格式？</summary>
+<div class="faq-answer">
+<p>Printerify 支持主流的文档格式，包括 PDF, DOC, DOCX, PPT, PPTX, JPG, PNG 等。为了获得最佳打印效果，我们强烈推荐您上传 PDF 文件。</p>
+</div>
+</details>
+<details class="faq-item">
+<summary class="faq-question">使用 Printerify 如何收取费用？</summary>
+<div class="faq-answer">
+<p>Printerify 的收费标准主要根据订单的页数、纸张类型和其他附加服务来计算。具体计费规则说明可在自助打印下单页面点击查看。在下单过程中，您也可以在确认订单前查看详细的费用明细。</p>
+</div>
+</details>
+<details class="faq-item">
+<summary class="faq-question">在Printerify 打印需要多长时间？</summary>
+<div class="faq-answer">
+<p>生产时间取决于您的订单复杂程度和当前排队情况，通常在8小时内完成。具体订单状态可在订单查询页面查看。</p>
+</div>
+</details>
+<details class="faq-item">
+<summary class="faq-question">Printerify 有哪些打印规格可供选择？</summary>
+<div class="faq-answer">
+<p>Printerify 提供多种打印规格选项，包括纸张大小（如 A4、B5）、单/双面（单面打印或双面打印）等，请以实际下单页面提供的选项为准。您可以在下单时根据需要选择合适的打印规格。</p>
+</div>
+</details>
+<details class="faq-item">
+<summary class="faq-question">如果我对打印质量不满意怎么办？</summary>
+<div class="faq-answer">
+<p>Printerify 对打印质量有严格的把控。如果您收到的成品有任何质量问题（如错印、装订错误等），请立即联系我们的客服，我们将为您免费重印或进行退款处理。</p>
+</div>
+</details>
+<details class="faq-item">
+<summary class="faq-question">如何获取 Printerify 的服务支持？</summary>
+<div class="faq-answer">
+<p>如果您在使用 Printerify 的过程中遇到任何问题或需要帮助，请随时联系我们的客服团队。</p>
+<p>您可以通过以下方式获取支持：</p>
+<ul>
+<li>访问我们的产品页面，查阅常见问题解答和使用指南。</li>
+<li>通过在线聊天工具（微信群或QQ群）与我们的客服代表实时沟通。</li>
+<li>用户群的加入方式可以发送邮件至 xicheng.lin@foxmail.com，我们会尽快邀请您加入。</li>
+<li>其他事宜也可发送电子邮件至 xicheng.lin@foxmail.com，我们会尽快回复您。</li>
+</ul>
+</div>
+</details>
+</div>
+
+</div>
+</section>
+
+
 
   </div>
 </template>
@@ -163,6 +237,13 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import Stepper from '@/components/Stepper.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BindingGroup from '@/components/BindingGroup.vue';
+// --- 【新增】动态 Hero 区块的数据和逻辑 ---
+// --- Hero 区块所需的数据 ---
+const features = ref([
+  { title: '简单' },
+  { title: '快速' },
+  { title: '可靠' },
+]);
 
 // --- 【重要逻辑更新】粘性滚动处理 ---
 const steps = ref(['上传文件', '设置选项', '确认下单']);
@@ -342,49 +423,226 @@ onUnmounted(() => {
   margin-bottom: 3rem;
 }
 
-/* Hero Section Styles */
-.hero-section {
+/* ==================================================== */
+/* Hero Section 样式                                  */
+/* ==================================================== */
+
+
+/* ==================================================== */
+/* 【重要样式更新】全新 Hero Section 样式         */
+/* ==================================================== */
+
+.hero-section-reimagined {
   background-color: var(--color-background-soft);
-  text-align: center;
   padding: 6rem 2rem;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-split-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+}
+
+.hero-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px; /* 创造3D透视效果 */
+}
+
+/* 【重要样式更新】调整左侧文字排版 */
+.hero-left {
+  flex: 1;
+  max-width: 550px;
+  animation: fade-in-left 0.8s ease-out;
+}
+
+.hero-main-title {
+  font-size: 2.9rem; /* 略微增大核心优势字号 */
+  font-weight: 700;
+  color: var(--color-heading);
+  line-height: 1.5; /* 调整行高 */
+  margin-bottom: 1.5rem;
+}
+
+/* 新增：为标题中的服务名设置独立样式 */
+.hero-main-title .service-name {
+  font-size: 2.5rem; /* 字号比主标题略小 */
+  font-weight: 600; /* 字重更细 */
+  color: var(--color-text); /* 颜色更柔和 */
+}
+
+.hero-main-subtitle {
+  font-size: 1.0rem; /* 减小副标题字号 */
+  color: var(--color-text);
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+  line-height: 1.7; /* 增加行高，提升可读性 */
+}
+
+.hero-cta-button {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* 动画容器 */
+.hero-animation-container {
+  position: relative;
+  width: 350px;
+  height: 350px;
+  transform: rotateY(-25deg) rotateX(15deg);
+  transform-style: preserve-3d;
+  animation: float 6s ease-in-out infinite;
+}
+
+/* 【重要样式更新】纸张样式，不受暗黑模式影响 */
+.paper-sheet {
+  position: absolute;
+  width: 80%;
+  height: 100%;
+  border-radius: 12px;
+  /* 将边框颜色固定为浅灰色 */
+  border: 1px solid #dee2e6;
+  box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1);
+  transition: transform 0.5s ease;
+}
+
+.sheet-1 {
+  /* 将顶层纸张背景固定为纯白色 */
+  background: #ffffff;
+  transform: translateZ(20px);
+}
+.sheet-2 {
+  /* 将中层纸张背景固定为极浅的灰色 */
+  background: #f8f9fa;
+  transform: translateZ(10px) translateX(5px) translateY(5px);
+}
+.sheet-3 {
+  /* 将底层纸张背景固定为略深的灰色，以营造堆叠感 */
+  background: #e9ecef;
+  transform: translateZ(0px) translateX(10px) translateY(10px);
+}
+
+/* 关键词标签样式 */
+.keyword-tag {
+  position: absolute;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 2px 5px rgba(var(--color-primary-rgb), 0.1);
+  opacity: 0;
+  animation: fade-in-stamp 0.5s ease-out forwards;
+}
+
+.tag-1 { top: 20%; left: 15%; }
+.tag-2 { top: 45%; right: 15%; }
+.tag-3 { bottom: 15%; left: 15%; }
+
+/* 响应式布局 */
+@media (max-width: 982px) {
+  .hero-split-layout {
+    flex-direction: column;
+    text-align: center;
+    gap: 5rem;
+  }
+  .hero-right {
+    margin-top: 2rem;
+  }
+  .hero-main-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-main-title { font-size: 2.25rem; }
+  .hero-main-subtitle { font-size: 1rem; }
+  .hero-main-title .service-name { font-size: 2rem; }
+  .hero-cta-button { padding: 0.75rem 2rem; font-size: 1rem; }
+  .hero-animation-container { transform: scale(0.8) rotateY(-25deg) rotateX(15deg); }
+}
+
+/* 动画定义 */
+@keyframes float {
+  0% { transform: translateY(0px) rotateY(-25deg) rotateX(15deg); }
+  50% { transform: translateY(-20px) rotateY(-25deg) rotateX(15deg); }
+  100% { transform: translateY(0px) rotateY(-25deg) rotateX(15deg); }
+}
+
+@keyframes fade-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in-stamp {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==================================================== */
+/* Features, Stats, Testimonials, FAQ, CTA Sections     */
+/* ==================================================== */
+
+.features-section,
+.testimonials-section,
+.faq-section,
+.cta-section {
+  padding: 5rem 2rem;
+}
+.stats-section {
+  padding: 4rem 2rem;
+  border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }
 
-.hero-title {
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: var(--color-heading);
-  line-height: 1.2;
-}
-
-.hero-subtitle {
-  font-size: 1.25rem;
-  color: var(--color-text);
-  margin-top: 1rem;
-  margin-bottom: 2rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Features Section Styles */
-.features-section {
-  padding: 5rem 2rem;
-}
-
-.features-grid {
+.features-grid, .stats-grid, .testimonials-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
   gap: 2rem;
   max-width: 1100px;
   margin: 0 auto;
 }
 
+.features-grid, .stats-grid {
+  grid-template-columns: repeat(1, 1fr);
+}
+
 @media (min-width: 768px) {
-  .features-grid {
+  .features-grid, .stats-grid, .testimonials-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+  .testimonials-grid {
+      grid-template-columns: repeat(1, 1fr);
+  }
 }
+@media (min-width: 992px) {
+    .testimonials-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 
 .feature-card {
   text-align: center;
@@ -394,11 +652,7 @@ onUnmounted(() => {
   border-radius: 12px;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-card);
-}
+.feature-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-card); }
 
 .icon-wrapper {
   display: inline-flex;
@@ -407,187 +661,17 @@ onUnmounted(() => {
   width: 4rem;
   height: 4rem;
   border-radius: 50%;
-  background-color: var(--color-primary-soft, #ebf4ff); /* Using a fallback */
+  background-color: var(--color-primary-soft, #ebf4ff);
   color: var(--color-primary);
   margin-bottom: 1.5rem;
 }
+.icon-wrapper .icon { width: 2rem; height: 2rem; }
+.feature-title { font-size: 1.25rem; font-weight: 600; color: var(--color-heading); margin-bottom: 0.5rem; }
+.feature-description { color: var(--color-text); line-height: 1.6; }
 
-.icon-wrapper .icon {
-  width: 2rem;
-  height: 2rem;
-}
-
-.feature-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-heading);
-  margin-bottom: 0.5rem;
-}
-
-.feature-description {
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
-/* Stats Section Styles */
-.stats-section {
-  background-color: var(--color-background);
-  padding: 4rem 2rem;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 2rem;
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.stat-item {
-  padding: 1rem;
-}
-
-.stat-number {
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  line-height: 1;
-}
-
-.stat-label {
-  margin-top: 0.5rem;
-  font-size: 1rem;
-  color: var(--color-text);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-/* 【重要样式更新】粘性滚动相关样式 */
-.how-it-works-section {
-  background-color: var(--color-background-soft);
-  /* 设置一个足够大的高度来创建滚动“轨道” */
-  height: 300vh;
-  padding: 5rem 2rem 0; /* 调整内边距以适应粘性布局 */
-}
-
-/* 新增的粘性包裹层样式 */
-.sticky-wrapper {
-  position: -webkit-sticky; /* 兼容 Safari */
-  position: sticky;
-  top: 0;
-  height: 100vh; /* 占据整个视口高度 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sticky-wrapper > .content-wrapper {
-  max-width: 1200px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.section-title {
-  padding-top: 3rem; /* 增加一些顶部空间 */
-}
-
-.stepper-container {
-  max-width: 800px;
-  margin: 0 auto 2.5rem auto;
-  width: 100%;
-}
-
-.step-content {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 2rem;
-  /* 高度由内容和父容器决定，不再设置min-height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  max-width: 800px;
-  width: 100%;
-  margin: 0 auto;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-}
-
-/* 【重要样式更新】为步骤面板增加内部滚动能力 */
-.step-pane {
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* 从顶部开始对齐 */
-
-  /* 设置一个最大高度，内容超出时可滚动 */
-  max-height: 75vh;
-  overflow-y: auto; /* Y轴超出时自动显示滚动条 */
-
-  /* 为滚动条留出空间，防止内容紧贴边缘 */
-  padding: 1.5rem;
-}
-
-
-.step-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-heading);
-  margin-bottom: 1rem;
-}
-
-.step-content p {
-  max-width: 500px;
-  color: var(--color-text);
-  margin-bottom: 1.5rem;
-}
-
-.step-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-  margin-top: 1rem;
-  border: 1px solid var(--color-border);
-}
-
-.mock-uploader {
-  border: 2px dashed var(--color-border);
-  border-radius: 8px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 400px;
-  transition: border-color 0.2s;
-  cursor: pointer;
-}
-.mock-uploader:hover {
-  border-color: var(--color-primary);
-}
-
-.upload-icon {
-  width: 3rem;
-  height: 3rem;
-  margin: 0 auto 1rem auto;
-  color: var(--color-text);
-}
-
-.upload-hint {
-  font-size: 0.875rem;
-  color: var(--color-text);
-  margin-top: 0.5rem;
-}
+.stat-item { padding: 1rem; text-align: center; }
+.stat-number { font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1; }
+.stat-label { margin-top: 0.5rem; font-size: 1rem; color: var(--color-text); letter-spacing: 0.05em; text-transform: uppercase; }
 
 /* Testimonials Section */
 .testimonials-section {
@@ -651,7 +735,13 @@ onUnmounted(() => {
   padding: 5rem 2rem;
   background-color: var(--color-background-soft);
 }
-
+.faq-section h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
 .faq-container {
   max-width: 800px;
   margin: 0 auto;
@@ -665,7 +755,7 @@ onUnmounted(() => {
 }
 
 .faq-question {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: var(--color-heading);
   cursor: pointer;
@@ -713,13 +803,14 @@ details[open] > summary.faq-question::after {
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-heading);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .cta-description {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: var(--color-text);
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
+  line-height: 0.75;
 }
 
 .cta-button {
@@ -727,135 +818,90 @@ details[open] > summary.faq-question::after {
     padding: 1rem 2rem;
 }
 
-/* Transition Styles */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.4s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-/* 新增：为步骤二和步骤三添加的补充样式 */
-.binding-group-container,
-.order-summary-container {
-  width: 100%;
-  max-width: 450px; /* 限制内容最大宽度，使其更美观 */
-  margin-top: 1.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1.5rem;
-  background-color: var(--color-background-soft);
-}
 
-.order-summary-container {
-  text-align: left;
-}
+/* ==================================================== */
+/* How It Works (粘性滚动) Section                      */
+/* ==================================================== */
 
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-}
-
-.summary-label {
-  color: var(--color-text);
-}
-
-.summary-value {
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.summary-total {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-heading);
-}
-
-.summary-price {
-  color: var(--color-primary);
-  font-size: 1.5rem;
-}
-/* 【重要更新】确保以下样式存在或得到更新 */
 .how-it-works-section {
   background-color: var(--color-background-soft);
-  padding: 5rem 2rem;
+  height: 300vh;
+  padding: 5rem 2rem 0;
 }
-
-.stepper-container {
-  max-width: 800px;
-  margin: 0 auto 2.5rem auto;
+.sticky-wrapper {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
+.sticky-wrapper > .content-wrapper {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stepper-container { max-width: 800px; margin: 0 auto 2.5rem auto; width: 100%; }
 .step-content {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 2rem;
-  min-height: 480px; /* 增加最小高度以容纳组件 */
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
 }
-
-
-.step-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-heading);
-  margin-bottom: 0.75rem;
+.step-pane {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 1.5rem;
 }
-
-.step-content p {
-  max-width: 500px;
-  color: var(--color-text);
-  margin-bottom: 2rem;
-}
-
-.step-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin-top: 1rem;
-  border: 1px solid var(--color-border);
-}
-
+.step-content h3 { font-size: 1.5rem; font-weight: 600; color: var(--color-heading); margin-bottom: 0.75rem; }
+.step-content p { max-width: 500px; color: var(--color-text); margin-bottom: 2rem; }
 .mock-uploader {
+  width: 35rem;
+  height: 20rem;
   border: 2px dashed var(--color-border);
   border-radius: 8px;
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 450px;
-  transition: border-color 0.2s, background-color 0.2s;
-  cursor: pointer;
-}
-.mock-uploader:hover {
-  border-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background-color: var(--color-background-soft);
-}
-
-.upload-icon {
-  width: 3rem;
-  height: 3rem;
-  margin: 0 auto 1rem auto;
-  color: var(--color-text-light);
-}
-
-.upload-hint {
-  font-size: 0.875rem;
   color: var(--color-text);
+  margin-bottom: 1.25rem;
+  margin-top: 1.25rem;
+  line-height: 2;
+  font-size: 1rem;
+}
+.mock-uploader .upload-hint {
+  font-size: 0.9rem;
+  color: var(--color-text-soft);
   margin-top: 0.5rem;
+}
+.mock-uploader .upload-icon {
+  width: 9rem;
+  height: 9rem;
+  margin-bottom: 0rem;
+  color: var(--color-primary);
+  padding: auto;
+
 }
 
 /* Transition Styles */
@@ -942,4 +988,101 @@ details[open] > summary.faq-question::after {
   border-radius: 0 0 7px 7px; /* 只保留底部圆角 */
   border-top: 1px solid var(--color-border-hover);
 }
+
+
+/* ==================================================== */
+/* 移动端响应式优化                           */
+/* ==================================================== */
+
+/* 平板 & 较小桌面 (<= 992px) */
+@media (max-width: 992px) {
+  .testimonials-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+/* 移动设备 (<= 767px) */
+@media (max-width: 767px) {
+  .content-wrapper { padding: 0 1.5rem; }
+  .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
+
+  .paper-sheet { width: 100%; }
+  .keyword-tag { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
+
+  .features-section, .testimonials-section, .faq-section, .cta-section { padding: 4rem 1.5rem; }
+  .stats-section { padding: 3rem 1.5rem; }
+  .stat-number { font-size: 2.5rem; }
+  .stat-label { font-size: 0.8rem; }
+
+  .how-it-works-section { height: 250vh; padding: 4rem 1.5rem 0; }
+  .stepper-container { margin-bottom: 1rem; }
+  .step-content { padding: 1rem; }
+  .step-pane { padding: 1rem; max-height: 70vh; }
+  .step-content h3 { font-size: 1.3rem; }
+  .step-content p { font-size: 0.85rem; margin: auto; }
+  .mock-uploader { height: 10rem; width: 100%; font-size: 0.9rem; }
+  .mock-uploader .upload-icon { width: 6rem; height: 6rem; }
+  .faq-section h2 { font-size: 1.5rem; }
+  .cta-title { font-size: 1.5rem; }
+  .cta-description { font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .cta-button { padding: 0.8rem 1.5rem; font-size: 1rem; }
+
+  /* 【重要】BindingGroup 和 DocumentItem 移动端样式 */
+  :deep(.binding-group) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 0.5rem;
+    scale: 0.9;
+  }
+  :deep(.binding-group .group-header) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  :deep(.binding-group .group-title) {
+    font-size: 1rem;
+  }
+  :deep(.binding-group .binding-selector label) {
+    font-size: 0.9rem;
+  }
+  :deep(.document-item) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 0.5rem;
+    gap: 0.75rem;
+    scale: 0.95;
+  }
+  :deep(.document-item .file-name) {
+    font-size: 0.9rem;
+  }
+  :deep(.document-item .page-count), :deep(.document-item .print-cost) {
+    font-size: 0.8rem;
+  }
+  :deep(.document-item .document-controls) {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+  :deep(.document-item .settings-grid) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  :deep(.document-item .setting-item .label) {
+    font-size: 0.8rem;
+  }
+}
+
+/* 更小的移动设备 (<= 480px) */
+@media (max-width: 480px) {
+  .content-wrapper { padding: 0 1rem; }
+  .faq-question { font-size: 1rem; }
+}
+
+
 </style>
+
