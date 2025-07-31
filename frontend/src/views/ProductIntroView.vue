@@ -554,12 +554,12 @@ onUnmounted(() => {
 /* 响应式布局 */
 @media (max-width: 982px) {
   .hero-split-layout {
-    flex-direction: column;
+    flex-direction: column-reverse;
     text-align: center;
     gap: 5rem;
   }
   .hero-right {
-    margin-top: 2rem;
+    margin-top: 1rem;
   }
   .hero-main-subtitle {
     margin-left: auto;
@@ -588,9 +588,9 @@ onUnmounted(() => {
   }
 
   /* 将标签的位置向内收，防止溢出 */
-  .tag-1 { top: 20%; left: 5%; }
-  .tag-2 { top: 45%; right: 5%; }
-  .tag-3 { bottom: 15%; left: 10%; }
+  .tag-1 { top: 20%; left: 10%; }
+  .tag-2 { top: 45%; right: 10%; }
+  .tag-3 { bottom: 15%; left: 15%; }
 }
 
 /* 【推荐补充】针对极小屏幕的优化 */
@@ -1039,7 +1039,7 @@ details[open] > summary.faq-question::after {
   .content-wrapper { padding: 0 1.5rem; }
   .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
 
-  .paper-sheet { width: 100%; }
+  .paper-sheet { width: 80%; }
   .keyword-tag { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
 
   .features-section, .testimonials-section, .faq-section, .cta-section { padding: 4rem 1.5rem; }

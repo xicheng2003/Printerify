@@ -1,136 +1,180 @@
-# Printerify - 现代化的自助打印解决方案
+# Printerify-为每一次打印赋能
 
-> 为每一次打印赋能。
+[![zh-CN](https://img.shields.io/badge/language-中文-blue.svg)](README.md)
 
-[![Django](https://img.shields.io/badge/Django-4.2-092E20?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
-[![Celery](https://img.shields.io/badge/Celery-5.2-3776AB?style=for-the-badge&logo=celery)](https://docs.celeryq.dev/en/stable/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+**Printerify** 是一个现代化的在线文档打印服务平台，旨在为用户提供流畅、便捷、高度可定制的打印体验。从上传文件到最终下单，每一步都经过精心设计，确保操作直观、响应迅速。
 
-**Printerify** 是一个功能完善的全栈Web应用，旨在提供一个无缝、高效的在线自助打印体验。用户可以轻松上传文件，自定义详细的打印规格，实时查看价格，并通过一个清晰的多步骤流程完成下单。
+[**线上访问地址 (Live Demo)**](https://print.morlight.top)
 
 ---
 
-### ✨ 核心功能
+## ✨ 主要特性 (Features)
 
-* **多文件上传与管理**: 支持一次性上传多个文档（PDF, Word, PPT等）。
+-   **🚀 异步处理**: 集成 Celery 和 Redis，实现订单处理、PDF 生成等耗时任务的异步化，极大提升了用户体验和系统响应速度。
+-   **📚 多文件与装订组**: 支持用户上传多个文档，并将其分组进行不同的装订设置，满足复杂的打印需求。
+-   **🎨 高度可定制化**: 提供丰富的打印选项，包括多种纸张尺寸 (A3, A4, B5)、单双面打印、彩色/黑白打印等。
+-   **📱 响应式设计**: 完美适配桌面和移动设备，无论在任何终端上都能获得一致的优质体验。
+-   **🌗 明暗主题**: 内置优雅的深色模式，并可根据系统设置自动切换，呵护您的双眼。
+-   **💰 实时价格计算**: 所有打印选项的更改都会实时反馈在价格上，清晰透明。
+-   **🔔 邮件通知**: 通过精心设计的邮件模板，及时向用户和管理员发送订单状态通知。
+-   **🧩 现代前端**: 采用 Vue.js 构建，拥有动态加载、全局 Loading 指示器、交互式提示等现代化的 UI/UX。
 
-* **实时计价**: 根据份数、色彩、单双面和装订方式，动态计算订单总价。
+## 🛠️ 技术栈 (Tech Stack)
 
-* **灵活的打印配置**:
-    * 对每个文件进行独立的打印设置。
-    * 通过拖拽轻松调整文件在组内的打印顺序。
-    * 通过拖拽合并不同的装订组。
+-   **后端 (Backend)**: Django, Django REST Framework
+-   **前端 (Frontend)**: Vue.js, Vuetify
+-   **异步任务队列 (Task Queue)**: Celery
+-   **消息代理 & 缓存 (Broker & Cache)**: Redis
+-   **数据库 (Database)**: PostgreSQL / MySQL / SQLite
+-   **部署 (Deployment)**: Docker, Gunicorn, Nginx
 
-* **响应式与移动端优先设计**:
-    * 界面在桌面和移动设备上均有良好表现。
-    * 配置项支持**折叠/展开**，极大优化了小屏幕上的操作空间和拖拽体验。
+## 项目目录结构
 
-* **清晰的下单流程**: 通过步骤条（Stepper）引导用户完成从配置、支付到获取取件码的全过程。
+```
+printerify/
+├── api/                  # Django App - 核心API逻辑
+│   ├── migrations/       # 数据库迁移文件
+│   ├── services/         # 服务层 (例如, 定价)
+│   ├── static/           # 静态文件
+│   ├── templates/        # 邮件模板
+│   ├── admin.py          # Django Admin 配置
+│   ├── models.py         # 数据库模型
+│   ├── pdf_generator.py  # PDF生成逻辑
+│   ├── serializers.py    # DRF 序列化器
+│   ├── tasks.py          # Celery 异步任务
+│   ├── urls.py           # API URL 配置
+│   └── views.py          # API 视图
+├── backend/              # Django 项目 - 核心配置
+│   ├── settings.py       # Django 设置
+│   ├── urls.py           # 项目根 URL 配置
+│   └── celery.py         # Celery 配置
+├── frontend/             # Vue.js 前端应用
+│   ├── public/           # 公共静态资源
+│   ├── src/              # 源代码
+│   │   ├── assets/       # CSS, 字体等资源
+│   │   ├── components/   # 可复用 Vue 组件
+│   │   ├── router/       # 路由配置
+│   │   ├── services/     # API 服务调用
+│   │   ├── stores/       # Pinia 状态管理
+│   │   ├── views/        # 页面级组件
+│   │   ├── App.vue       # 根组件
+│   │   └── main.js       # 入口文件
+│   ├── index.html        # HTML 入口
+│   ├── package.json      # npm 依赖
+│   └── vite.config.js    # Vite 配置
+├── docs/                 # 项目文档
+├── media/                # 用户上传的媒体文件
+├── .gitignore
+├── manage.py             # Django 管理脚本
+├── README.md             # 项目说明
+└── requirements.txt      # Python 依赖
+```
 
-* **异步任务处理**: 使用 Celery 在后台处理耗时的任务（如生成PDF订单摘要、发送邮件通知），确保前端操作流畅，无卡顿。
+## 🚀 快速开始 (Getting Started)
 
-* **增强的交互反馈**:
-    * **全局加载指示器**：在下单等耗时操作期间提供明确的“处理中”反馈。
-    * **总价更新动画**：价格变动时，总价会高亮或跳动，给用户即时确认。
+请按照以下步骤在本地运行本项目。
 
-* **订单状态查询**: 用户可通过手机号和取件码随时查询订单的最新状态。
+### 依赖环境 (Prerequisites)
 
----
+-   Python 3.8+
+-   Node.js 16+
+-   Redis
+-   PostgreSQL (或其他你选择的数据库)
 
-### 🛠️ 技术栈
-
-* **后端**:
-    * **框架**: Django & Django REST Framework
-    * **数据库**: PostgreSQL (生产环境), SQLite (开发环境)
-    * **异步任务**: Celery & Redis
-    * **PDF处理**: WeasyPrint
-
-* **前端**:
-    * **框架**: Vue.js 3 (组合式 API)
-    * **构建工具**: Vite
-    * **状态管理**: Pinia
-    * **路由**: Vue Router
-    * **拖拽**: vuedraggable
-
----
-
-### 🚀 本地部署与运行指南
-
-#### 1. 后端 (Django)
-
-**环境准备:**
-* Python 3.10+
-* Redis
-
-**安装与启动:**
+### 1. 克隆仓库
 
 ```bash
-# 1. 克隆项目到本地
-git clone [https://github.com/your-username/Printerify.git](https://github.com/your-username/Printerify.git)
-cd Printerify
+git clone https://github.com/xicheng2003/printerify.git
+cd printerify
+```
 
-# 2. 创建并激活 Python 虚拟环境
+### 2. 后端设置 (Backend Setup)
+
+```bash
+# 进入后端目录
+cd backend
+
+# 创建并激活虚拟环境
 python -m venv venv
-source venv/bin/activate  # on Windows, use `venv\Scripts\activate`
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-# 3. 安装后端依赖
+# 安装依赖
 pip install -r requirements.txt
 
-# 4. 执行数据库迁移
+# 创建 .env 文件并配置环境变量 (参考 .env.example)
+cp .env.example .env
+# 使用编辑器修改 .env 文件
+# nano .env
+
+# 数据库迁移
 python manage.py migrate
 
-# 5. 启动 Django 开发服务器 (一个终端)
+# 运行开发服务器
 python manage.py runserver
-
-# 6. 启动 Redis 服务器 (请确保已安装并运行)
-
-# 7. 启动 Celery Worker (需要新开一个终端)
-#    确保虚拟环境已激活
-celery -A backend worker -l info
-
-
 ```
 
-### 3. 前端设置
+### 3. 前端设置 (Frontend Setup)
 
 ```bash
-# 新开一个命令行终端，进入frontend目录
+# 进入前端目录
 cd frontend
 
-# 1. 安装前端依赖
+# 安装依赖
 npm install
 
-# 2. 运行前端开发服务器
+# 运行开发服务器
 npm run dev
-# 前端应用将运行在 http://localhost:5173 (或其他可用端口)
 ```
 
-现在，您可以打开浏览器访问 `http://localhost:5173` 开始使用Printerify了！
+### 4. 启动 Celery Worker
 
-## 📁 项目结构概览
+确保你的 Redis 服务正在运行，然后在后端目录下打开一个新的终端：
 
 ```bash
-Printerify/
-├── backend/         # Django 项目配置 (settings.py, urls.py)
-├── api/             # Django 应用，处理核心业务逻辑
-│   ├── models.py      # 数据库模型 (Order, Document等)
-│   ├── serializers.py # 数据序列化
-│   ├── views.py       # API 视图
-│   ├── tasks.py       # Celery 异步任务
-│   └── urls.py        # API 路由
-├── frontend/        # Vue.js 前端项目
-│   ├── src/
-│   │   ├── components/  # 可复用组件 (Stepper, DocumentItem等)
-│   │   ├── views/       # 页面级组件 (HomeView, QueryView)
-│   │   ├── stores/      # Pinia 全局状态管理
-│   │   ├── router/      # Vue Router 路由配置
-│   │   └── App.vue      # 应用主入口
-│   └── vite.config.js # Vite 配置
-├── media/           # 用户上传的文件存储目录
-└── manage.py        # Django 管理脚本
+# 激活虚拟环境
+source venv/bin/activate
+
+# 启动 Celery worker (请将 your_project_name 替换为你的 Django 项目名)
+celery -A your_project_name worker -l info
 ```
 
----
+## ⚙️ 环境变量 (Environment Variables)
 
-本项目采用 MIT License 授权。
+项目依赖于环境变量进行配置。请在后端根目录下创建一个 `.env` 文件，并至少包含以下内容：
+
+```env
+# Django
+SECRET_KEY='your-secret-key'
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+# Database
+DATABASE_URL='postgres://user:password@host:port/dbname'
+
+# Redis (注意：Broker 和 Backend 建议使用不同的 DB)
+REDIS_PASSWORD='your-redis-password'
+CELERY_BROKER_URL='redis://:your-redis-password@127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND='redis://:your-redis-password@127.0.0.1:6379/2'
+
+# Email
+EMAIL_HOST='smtp.example.com'
+EMAIL_PORT=587
+EMAIL_HOST_USER='your-email@example.com'
+EMAIL_HOST_PASSWORD='your-email-password'
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL='Printerify <noreply@example.com>'
+```
+
+## 🤝 贡献 (Contributing)
+
+欢迎任何形式的贡献！你可以通过以下方式参与：
+
+1.  Fork 本仓库
+2.  创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
+3.  提交你的更改 (`git commit -m 'feat: Add some AmazingFeature'`)
+4.  推送到分支 (`git push origin feature/AmazingFeature`)
+5.  发起一个 Pull Request
+
+## 📄 许可证 (License)
+
+本项目采用 MIT 许可证。
