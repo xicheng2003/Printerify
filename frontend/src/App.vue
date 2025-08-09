@@ -21,6 +21,7 @@
         </nav>
 
         <div class="header-controls">
+          <UserAuthStatus />
           <ThemeSwitcher />
           <button @click="toggleMobileMenu" class="mobile-menu-button">
             <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -65,6 +66,7 @@
 import { ref, watchEffect } from 'vue'; // 1. 引入 watchEffect
 import { RouterLink, RouterView } from 'vue-router';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import UserAuthStatus from '@/components/UserAuthStatus.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { useOrderStore } from '@/stores/order';
 import { useThemeStore } from '@/stores/theme';
@@ -75,7 +77,7 @@ const isMobileMenuOpen = ref(false);
 const orderStore = useOrderStore();
 const themeStore = useThemeStore(); // 2. 获取 themeStore 实例
 
-// 3. 新增一个副作用函数，用于动态修改网页“画布”的底色
+// 3. 新增一个副作用函数，用于动态修改网页"画布"的底色
 watchEffect(() => {
   // a. 定义两种背景色
   const softBackground = 'var(--color-background-soft)';

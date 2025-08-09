@@ -12,8 +12,57 @@ const apiClient = axios.create({
   baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
 });
 
+// 添加请求拦截器来自动添加认证token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器来处理认证错误
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // 认证失败，清除本地token
+      localStorage.removeItem('token');
+    }
+    return Promise.reject(error);
+  }
+);
+
 // 封装所有与后端交互的函数
 export default {
+  // 认证相关API
+  register(userData) {
+    return apiClient.post('/api/register/', userData);
+  },
+
+  login(credentials) {
+    return apiClient.post('/api/login/', credentials);
+  },
+
+  logout() {
+    return apiClient.post('/api/logout/');
+  },
+
+  getProfile() {
+    return apiClient.get('/api/profile/');
+  },
+
+  updateProfile(updateData) {
+    return apiClient.put('/api/profile/update/', updateData);
+  },
+
   /**
    * 上传文件（包括打印文档和付款截图），并支持进度回调
    * @param {File} file - 用户上传的文件对象
@@ -75,4 +124,19 @@ export default {
       },
     });
   },
+  
+  // 设置认证token
+  setAuthToken(token) {
+    apiClient.defaults.headers.common['Authorization'] = `Token ${token}`;
+  },
+  
+  // 移除认证token
+  removeAuthToken() {
+    delete apiClient.defaults.headers.common['Authorization'];
+  },
+  
+  // 获取当前token
+  getToken() {
+    return localStorage.getItem('token');
+  }
 };

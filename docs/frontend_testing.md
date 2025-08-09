@@ -67,6 +67,17 @@ The frontend tests are organized into the following directories:
 - `jsdom` - DOM implementation for testing
 - Mocks for API calls and browser APIs
 
+## Authentication Tests
+
+The authentication system includes the following test files:
+
+1. `src/components/AuthForm.test.js` - Tests for the authentication form component
+2. `src/components/UserProfile.test.js` - Tests for the user profile component
+3. `src/components/UserAuthStatus.test.js` - Tests for the user authentication status component
+4. `src/stores/user.test.js` - Tests for the user Pinia store
+5. `src/views/AuthView.test.js` - Tests for the authentication view
+6. `src/views/ProfileView.test.js` - Tests for the profile view
+
 ## Best Practices
 
 1. Keep tests focused and specific
@@ -76,3 +87,18 @@ The frontend tests are organized into the following directories:
 5. Use factories for complex test data creation
 6. Test edge cases and error conditions
 7. Clean up after tests
+
+## Running Specific Tests
+
+To run only authentication tests:
+
+```bash
+npm run test:run -- src/components/AuthForm.test.js
+npm run test:run -- src/stores/user.test.js
+```
+
+To run tests with coverage for authentication system:
+
+```bash
+npm run test:coverage -- src/components/AuthForm.test.js src/stores/user.test.js
+```

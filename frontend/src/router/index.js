@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ProductIntroView from '../views/ProductIntroView.vue'
+import AuthView from '../views/AuthView.vue'
+import ProfileView from '../views/ProfileView.vue'
+
 // 引入新页面组件
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,12 +27,25 @@ const router = createRouter({
       component: () => import('../views/QueryView.vue'),
       meta: { title: '订单查询' }
     },
-        // --- 新增的路由配置 ---
+    // --- 新增的路由配置 ---
     {
       path: '/terms',
       name: 'terms',
       component: () => import('../views/TermsView.vue'),
       meta: { title: '关于' }
+    },
+    // 认证路由
+    {
+      path: '/auth',
+      name: 'auth',
+      component: AuthView,
+      meta: { title: '用户认证' }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
+      meta: { title: '个人资料' }
     }
   ]
 })
