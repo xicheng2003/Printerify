@@ -15,7 +15,7 @@ from .tasks import process_order_creation_tasks
 # --- ▼▼▼ DocumentCreateSerializer 已修改 ▼▼▼ ---
 class DocumentCreateSerializer(serializers.Serializer):
     """
-    用于在创建订单时，接收单个文件信息的“子序列化器”。
+    用于在创建订单时，接收单个文件信息的"子序列化器"。
     【已更新】增加了 paper_size 并更新了 print_sided 的选项。
     """
     file_id = serializers.CharField()
@@ -30,7 +30,7 @@ class DocumentCreateSerializer(serializers.Serializer):
 
 class BindingGroupCreateSerializer(serializers.Serializer):
     """
-    用于在创建订单时，接收单个装订组信息的“子序列化器”。
+    用于在创建订单时，接收单个装订组信息的"子序列化器"。
     """
     binding_type = serializers.CharField()
     sequence_in_order = serializers.IntegerField()
