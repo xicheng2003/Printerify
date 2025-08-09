@@ -1,9 +1,6 @@
-// frontend/vite.config.js
-import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import os from 'node:os' // 导入Node.js的os模块
+import os from 'node:os'
 
 /**
  * 获取本机在局域网中的IPv4地址
@@ -42,7 +39,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': new URL('./src', import.meta.url).pathname
     }
   },
   // --- 添加下面的 server 配置 ---
@@ -59,7 +56,7 @@ export default defineConfig({
         // 这通常用于开发环境，生产环境可能不需要
         // 因为生产环境通常会将前后端部署在同一域名
         changeOrigin: true, // 需要虚拟主机站点
-        // rewrite: (path) => path.replace(/^\/api/, '') // 如果后端接口没有/api前缀，需要重写路径
+        // rewrite: (path) => path.replace(/^\\/api/, '') // 如果后端接口没有/api前缀，需要重写路径
         // 【新增】在这里添加日志记录功能
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
@@ -79,6 +76,26 @@ export default defineConfig({
         target: backendTarget,
         changeOrigin: true,
       }
+    }
+  },
+  // 测试配置
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**'],
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.d.ts',
+        '**/setup.js',
+        '**/main.js',
+        '**/router/**',
+        '**/App.vue'
+      ]
     }
   }
 })

@@ -1,0 +1,9 @@
+# Test runner configuration
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "api.tests.test_settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["api/tests"]
+pythonpath = ["."]

@@ -91,9 +91,6 @@ cd printerify
 ### 2. 后端设置 (Backend Setup)
 
 ```bash
-# 进入后端目录
-cd backend
-
 # 创建并激活虚拟环境
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
@@ -128,14 +125,31 @@ npm run dev
 
 ### 4. 启动 Celery Worker
 
-确保你的 Redis 服务正在运行，然后在后端目录下打开一个新的终端：
+确保你的 Redis 服务正在运行，然后在项目根目录下打开一个新的终端：
 
 ```bash
 # 激活虚拟环境
 source venv/bin/activate
 
-# 启动 Celery worker (请将 your_project_name 替换为你的 Django 项目名)
-celery -A your_project_name worker -l info
+# 启动 Celery worker
+celery -A backend worker -l info
+```
+
+### 5. 运行测试 (Running Tests)
+
+```bash
+# 运行所有后端测试
+python manage.py test api.tests
+
+# 运行所有前端测试
+cd frontend
+npm run test
+
+# 或使用测试脚本 (Linux/Mac)
+./run_tests.sh
+
+# 或使用测试脚本 (Windows)
+run_tests.bat
 ```
 
 ## ⚙️ 环境变量 (Environment Variables)

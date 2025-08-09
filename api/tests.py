@@ -1,3 +1,1 @@
-from django.test import TestCase
-
-# Create your tests here.
+# This file is no longer used. Tests are organized in the tests/ directory.
