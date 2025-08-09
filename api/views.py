@@ -4,13 +4,113 @@ import uuid
 from pathlib import Path
 from django.conf import settings # <-- 【新增】导入Django的settings
 from django.core.files.storage import FileSystemStorage
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status, generics, permissions
 from rest_framework.response import Response
-from .models import Order
-from .serializers import OrderCreateSerializer, OrderDetailSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import login, logout
+from django.contrib.auth.hashers import make_password
+from .models import Order, User
+from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 from .services import pricing
 
+# --- 用户认证视图 ---
+
+class UserRegistrationView(generics.CreateAPIView):
+    """
+    用户注册视图
+    """
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        # 创建Token
+        token, created = Token.objects.get_or_create(user=user)
+        
+        # 登录用户
+        login(request, user)
+        
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        }, status=status.HTTP_201_CREATED)
+
+
+class UserLoginView(generics.GenericAPIView):
+    """
+    用户登录视图
+    """
+    serializer_class = UserLoginSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        
+        # 登录用户
+        login(request, user)
+        
+        # 获取或创建Token
+        token, created = Token.objects.get_or_create(user=user)
+        
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def user_logout(request):
+    """
+    用户登出视图
+    """
+    try:
+        # 删除用户的Token
+        request.user.auth_token.delete()
+    except:
+        pass
+    
+    # 登出用户
+    logout(request)
+    
+    return Response({'detail': '成功登出'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def user_profile(request):
+    """
+    获取用户信息
+    """
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+@permission_classes([permissions.IsAuthenticated])
+def update_user_profile(request):
+    """
+    更新用户信息
+    """
+    serializer = UserSerializer(request.user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# --- 原有视图 ---
+
 class FileUploadView(generics.CreateAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def create(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
         if not file_obj:
@@ -34,7 +134,10 @@ class FileUploadView(generics.CreateAPIView):
             'original_filename': file_obj.name,
         }, status=status.HTTP_201_CREATED)
 
+
 class PriceEstimationView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def post(self, request, *args, **kwargs):
         # 注意：这里的 'file_path' 实际上是我们上面返回的 relative_path
         file_path_from_frontend = request.data.get('file_path')
@@ -76,9 +179,11 @@ class PriceEstimationView(generics.GenericAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
 # OrderViewSet 的代码保持不变
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all().order_by('-created_at')
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -89,18 +194,33 @@ class OrderViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         pickup_code = self.request.query_params.get('code')
         phone_number = self.request.query_params.get('phone')
+        
+        # 如果用户已认证，只返回该用户的订单
+        if self.request.user.is_authenticated:
+            queryset = queryset.filter(user=self.request.user)
+        
         if pickup_code:
-            queryset = queryset.filter(pickup_code=pickup_code)
+            queryset = queryset.filter(pickup_code=pick_code)
         if phone_number:
             queryset = queryset.filter(phone_number=phone_number)
         return queryset
-    
+        
+    def perform_create(self, serializer):
+        # 如果用户已认证，将订单与用户关联
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()
+
+
 # --- 【新增】付款凭证上传视图 ---
 class PaymentScreenshotUploadView(generics.CreateAPIView):
     """
     一个专门用于接收付款凭证截图的视图。
     它接收一个图片文件，将其保存到 'payments/' 目录，并返回一个唯一ID。
     """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def create(self, request, *args, **kwargs):
         screenshot_file = request.FILES.get('file')
         if not screenshot_file:

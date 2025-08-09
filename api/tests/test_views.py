@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 from decimal import Decimal
-from api.models import Order, BindingGroup, Document
+from api.models import Order, BindingGroup, Document, User
 
 
 class OrderAPITest(TestCase):
@@ -70,6 +70,16 @@ class FileUploadAPITest(TestCase):
             b"Test content for file upload",
             content_type="text/plain"
         )
+        
+        # 创建一个测试用户
+        user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpassword123'
+        )
+        
+        # 使用force_login来绕过认证
+        self.client.force_login(user)
         
         # 发送POST请求
         response = self.client.post(

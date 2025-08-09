@@ -2,13 +2,71 @@
 
 from rest_framework import serializers
 from django.db import transaction  # 导入数据库事务处理
-from .models import Order, BindingGroup, Document, generate_pickup_code
+from django.contrib.auth import authenticate
+from .models import Order, BindingGroup, Document, generate_pickup_code, User
 from .services import pricing  # 假设您的计费逻辑在 services/pricing.py 中
 from django.core.files import File # <-- 【新增】导入Django的File对象
 from pathlib import Path          # <-- 【新增】导入Path对象
 from django.conf import settings  # <-- 【新增】导入settings
 # 【新增】导入我们的Celery任务
 from .tasks import process_order_creation_tasks 
+
+
+# --- 用户认证序列化器 ---
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    用户信息序列化器
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
+        read_only_fields = ('id', 'date_joined')
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    用户注册序列化器
+    """
+    password = serializers.CharField(write_only=True, min_length=8)
+    password_confirm = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone_number', 'password', 'password_confirm')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError("两次输入的密码不一致")
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password_confirm')
+        user = User.objects.create_user(**validated_data)
+        return user
+
+
+class UserLoginSerializer(serializers.Serializer):
+    """
+    用户登录序列化器
+    """
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if not user:
+                raise serializers.ValidationError("用户名或密码错误")
+        else:
+            raise serializers.ValidationError("用户名和密码都是必填项")
+
+        attrs['user'] = user
+        return attrs
+
 
 # --- 嵌套序列化器：用于处理层级关系 ---
 
@@ -170,6 +228,7 @@ class BindingGroupDetailSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     groups = BindingGroupDetailSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
     
     class Meta:
         model = Order

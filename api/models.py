@@ -6,6 +6,7 @@ import string
 from django.db import models
 from django.db.models import Max
 from django.utils import timezone # 导入 timezone 模块
+from django.contrib.auth.models import AbstractUser
 
 # --- 核心业务逻辑函数 ---
 
@@ -75,6 +76,20 @@ def get_payment_screenshot_path(instance, filename):
     return f'payments/{current_date}/{pickup_code}/{filename}'
 
 
+# --- 用户模型 ---
+
+class User(AbstractUser):
+    """
+    自定义用户模型，添加手机号字段
+    """
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.username
+
+
 # --- 模型定义 ---
 
 class Order(models.Model):
@@ -84,6 +99,7 @@ class Order(models.Model):
         COMPLETED = 'completed', '已完成'
         CANCELLED = 'cancelled', '已取消'
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, help_text="关联用户")
     order_number = models.CharField(max_length=20, unique=True, default=generate_order_number, help_text="时间戳订单号")
     pickup_code = models.CharField(max_length=10, blank=True, help_text="循环取件码 (P-XXX)")
     pickup_code_num = models.IntegerField(default=0, help_text="用于排序的取件码数字部分")

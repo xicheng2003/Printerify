@@ -1,10 +1,8 @@
-# api/urls.py (最终修复版)
+# api/urls.py
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-# 【关键修复】在这里，把 PaymentScreenshotUploadView 添加到导入列表中
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView
+from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -16,9 +14,15 @@ urlpatterns = [
     # 将路由器的URL包含进来
     path('', include(router.urls)),
     
+    # 用户认证相关URL
+    path('register/', UserRegistrationView.as_view(), name='user-register'),
+    path('login/', UserLoginView.as_view(), name='user-login'),
+    path('logout/', user_logout, name='user-logout'),
+    path('profile/', user_profile, name='user-profile'),
+    path('profile/update/', update_user_profile, name='update-user-profile'),
+    
     # 手动添加我们自定义的API路径
     path('upload/', FileUploadView.as_view(), name='file-upload'),
     path('estimate-price/', PriceEstimationView.as_view(), name='estimate-price'),
-    # --- 【新增】为付款凭证上传添加URL ---
     path('upload-payment/', PaymentScreenshotUploadView.as_view(), name='payment-upload'),
 ]
