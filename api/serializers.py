@@ -20,8 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'date_joined')
-        read_only_fields = ('id', 'date_joined')
+        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -113,10 +113,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phone_number', None)
         screenshot_id = validated_data.pop('payment_screenshot_id', None)
         payment_method = validated_data.pop('payment_method', None)
+        
+        # 获取当前用户（如果已认证）
+        user = self.context['request'].user if self.context['request'].user.is_authenticated else None
 
         with transaction.atomic():
             pickup_code_str, pickup_code_num_val = generate_pickup_code()
             order = Order.objects.create(
+                user=user,  # 关联用户（如果已登录）
                 total_price=0,
                 phone_number=phone_number,
                 pickup_code=pickup_code_str,

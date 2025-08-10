@@ -9,22 +9,22 @@
           </svg>
         </div>
         <span class="username">{{ user.username }}</span>
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          stroke-width="2" 
-          stroke-linecap="round" 
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
           stroke-linejoin="round"
           :class="{ 'rotate': isMenuOpen }"
         >
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
-      
+
       <Transition name="slide-fade">
         <div v-if="isMenuOpen" class="dropdown-menu">
           <router-link to="/profile" class="menu-item" @click="closeMenu">
@@ -32,15 +32,7 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            个人资料
-          </router-link>
-          <router-link to="/orders" class="menu-item" @click="closeMenu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="10" cy="20.5" r="1"/>
-              <circle cx="18" cy="20.5" r="1"/>
-              <path d="M2.5 2.5h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6l1.6-8.4H7.1"/>
-            </svg>
-            我的订单
+            个人中心
           </router-link>
           <div class="menu-divider"></div>
           <button @click="handleLogout" class="menu-item logout-item">
@@ -54,7 +46,7 @@
         </div>
       </Transition>
     </div>
-    
+
     <div v-else class="auth-buttons">
       <router-link to="/auth/login" class="auth-button login-button">
         登录
@@ -230,14 +222,27 @@ function handleLogout() {
   transform: translateY(-10px);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
+  /* 在移动端隐藏登录注册按钮，因为它们现在在汉堡菜单中 */
   .auth-buttons {
-    gap: 0.25rem;
+    display: none;
   }
-  
+
+  /* 保持已登录用户菜单的显示 */
+  .user-menu {
+    display: block;
+  }
+}
+
+@media (min-width: 768px) {
+  .auth-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
   .auth-button {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
 }
 </style>

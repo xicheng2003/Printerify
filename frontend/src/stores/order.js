@@ -3,7 +3,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
+import apiService from '@/services/apiService';
 
 const BINDING_PRICE_CONFIG = {
     'none': 0.00,
@@ -20,6 +20,11 @@ export const useOrderStore = defineStore('order', () => {
     const paymentScreenshotFile = ref(null);
     const isLoading = ref(false);
 
+    // 新增：用户订单相关状态
+    const userOrders = ref([]);
+    const userOrdersLoading = ref(false);
+    const userOrdersError = ref(null);
+
     async function _fetchPriceForDocument(docId) {
         const doc = findDocumentById(docId);
         if (!doc) return;
@@ -27,16 +32,19 @@ export const useOrderStore = defineStore('order', () => {
         doc.isRecalculating = true; // 【核心修复】使用 isRecalculating
         doc.error = null;
         try {
-            const response = await axios.post('/api/estimate-price/', {
+            // 使用 apiService 的价格估算方法
+            const specifications = {
                 file_path: doc.serverId,
                 color_mode: doc.settings.colorMode,
                 print_sided: doc.settings.printSided,
-                paper_size: doc.settings.paperSize, // <--- 【在此处新增】
+                paper_size: doc.settings.paperSize,
                 copies: doc.settings.copies
-            }, { withCredentials: true });
+            };
+            const response = await apiService.getPriceQuote(null, specifications);
             doc.pageCount = response.data.page_count;
             doc.printCost = response.data.print_cost;
         } catch (error) {
+            console.error('Price estimation error:', error);
             doc.error = '计价失败';
         } finally {
             doc.isRecalculating = false; // 【核心修复】使用 isRecalculating
@@ -48,20 +56,16 @@ export const useOrderStore = defineStore('order', () => {
         if (!doc) return;
 
         try {
-            const formData = new FormData();
-            formData.append('file', doc.fileObject);
-            const response = await axios.post('/api/upload/', formData, {
-                onUploadProgress: progressEvent => {
-                    if (progressEvent.total) {
-                        doc.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    }
-                },
-                withCredentials: true
+            const response = await apiService.uploadPrintFile(doc.fileObject, (progressEvent) => {
+                if (progressEvent.total) {
+                    doc.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                }
             });
             doc.uploadProgress = 100;
             doc.serverId = response.data.file_id;
             await _fetchPriceForDocument(docId);
         } catch (error) {
+            console.error('File upload error:', error);
             doc.error = '上传失败';
         } finally {
             doc.isUploading = false;
@@ -137,6 +141,84 @@ export const useOrderStore = defineStore('order', () => {
         paymentScreenshotFile.value = null;
     }
 
+    // 新增：获取用户订单列表
+    async function fetchUserOrders() {
+        userOrdersLoading.value = true;
+        userOrdersError.value = null;
+
+        try {
+            const response = await apiService.getUserOrders();
+            userOrders.value = response.data;
+        } catch (error) {
+            userOrdersError.value = '获取订单列表失败';
+            console.error('Failed to fetch user orders:', error);
+        } finally {
+            userOrdersLoading.value = false;
+        }
+    }
+
+    // 新增：创建订单（集成用户认证）
+    async function createOrder(orderData) {
+        setLoading(true);
+
+        try {
+            // 构建完整的订单数据
+            const completeOrderData = {
+                phone_number: orderData.phone_number || phoneNumber.value,
+                payment_method: orderData.payment_method || paymentMethod.value,
+                groups: groups.value.map((group, groupIndex) => ({
+                    binding_type: group.bindingType,
+                    sequence_in_order: groupIndex,
+                    documents: group.documents.map((doc, docIndex) => ({
+                        file_id: doc.serverId,
+                        original_filename: doc.fileName,
+                        color_mode: doc.settings.colorMode,
+                        print_sided: doc.settings.printSided,
+                        paper_size: doc.settings.paperSize,
+                        copies: doc.settings.copies,
+                        sequence_in_group: docIndex
+                    }))
+                }))
+            };
+
+            // 如果有付款截图，先上传
+            if (paymentScreenshotFile.value) {
+                const screenshotResponse = await apiService.uploadPaymentScreenshot(paymentScreenshotFile.value);
+                completeOrderData.payment_screenshot_id = screenshotResponse.data.screenshot_id;
+            }
+
+            const response = await apiService.createOrder(completeOrderData);
+
+            // 订单创建成功后，刷新用户订单列表
+            await fetchUserOrders();
+
+            // 重置当前订单状态
+            resetStore();
+
+            return response.data;
+        } catch (error) {
+            console.error('Order creation failed:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // 新增：根据取件码查询订单
+    async function queryOrderByCode(pickupCode, phoneNumber) {
+        setLoading(true);
+
+        try {
+            const response = await apiService.queryOrder(phoneNumber, pickupCode);
+            return response.data;
+        } catch (error) {
+            console.error('Order query failed:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const totalCost = computed(() => {
         let total = 0.5;
         groups.value.forEach(group => {
@@ -159,9 +241,10 @@ export const useOrderStore = defineStore('order', () => {
 
     return {
         groups, phoneNumber, paymentMethod, paymentScreenshotFile,
-        isLoading,
-        setLoading,
-        addFiles, removeDocument, updateDocumentSettings, updateGroupBinding, resetStore, mergeGroups,
+        isLoading, userOrders, userOrdersLoading, userOrdersError,
+        setLoading, addFiles, removeDocument, updateDocumentSettings,
+        updateGroupBinding, resetStore, mergeGroups,
+        fetchUserOrders, createOrder, queryOrderByCode,
         totalCost, isReadyToSubmit
     };
 });

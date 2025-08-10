@@ -10,6 +10,7 @@ axios.defaults.withCredentials = true; // 允许跨域请求携带cookie
 // 创建一个axios实例，可以进行统一的配置
 const apiClient = axios.create({
   baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
+  withCredentials: true, // 确保每个请求都携带凭据
 });
 
 // 添加请求拦截器来自动添加认证token
@@ -40,6 +41,18 @@ apiClient.interceptors.response.use(
   }
 );
 
+// 初始化 CSRF token
+async function initializeCSRF() {
+  try {
+    await apiClient.get('/api/csrf/');
+  } catch (error) {
+    console.warn('Failed to get CSRF token:', error);
+  }
+}
+
+// 在模块加载时初始化 CSRF
+initializeCSRF();
+
 // 封装所有与后端交互的函数
 export default {
   // 认证相关API
@@ -64,37 +77,57 @@ export default {
   },
 
   /**
-   * 上传文件（包括打印文档和付款截图），并支持进度回调
+   * 上传打印文件
    * @param {File} file - 用户上传的文件对象
-   * @param {string} purpose - 文件用途, 'PRINT' 或 'PAYMENT'
    * @param {function} onUploadProgress - Axios的进度回调函数
    * @returns {Promise}
    */
-  uploadPrintFile(file, purpose, onUploadProgress) {
+  uploadPrintFile(file, onUploadProgress) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('purpose', purpose);
 
-    return apiClient.post('/api/files/', formData, {
+    return apiClient.post('/api/upload/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress, // 将回调函数传递给axios
     });
   },
 
   /**
+   * 上传付款截图
+   * @param {File} file - 用户上传的文件对象
+   * @returns {Promise}
+   */
+  uploadPaymentScreenshot(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return apiClient.post('/api/upload-payment/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  /**
    * 获取价格估算
-   * @param {File} file - 原始文件对象
+   * @param {File|null} file - 原始文件对象（可为null，如果使用file_path）
    * @param {object} specifications - 包含打印选项的对象
    * @returns {Promise}
    */
   getPriceQuote(file, specifications) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('specifications', JSON.stringify(specifications));
+    if (file) {
+      // 如果提供了文件，使用FormData上传
+      const formData = new FormData();
+      formData.append('file', file);
+      Object.keys(specifications).forEach(key => {
+        formData.append(key, specifications[key]);
+      });
 
-    return apiClient.post('/api/price-quote/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+      return apiClient.post('/api/estimate-price/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } else {
+      // 如果没有文件，直接发送JSON数据（用于已上传的文件）
+      return apiClient.post('/api/estimate-price/', specifications);
+    }
   },
 
   /**
@@ -124,17 +157,22 @@ export default {
       },
     });
   },
-  
+
+  // 获取当前用户订单列表
+  getUserOrders() {
+    return apiClient.get('/api/user-orders/');
+  },
+
   // 设置认证token
   setAuthToken(token) {
     apiClient.defaults.headers.common['Authorization'] = `Token ${token}`;
   },
-  
+
   // 移除认证token
   removeAuthToken() {
     delete apiClient.defaults.headers.common['Authorization'];
   },
-  
+
   // 获取当前token
   getToken() {
     return localStorage.getItem('token');

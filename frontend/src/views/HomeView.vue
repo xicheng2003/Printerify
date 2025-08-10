@@ -239,7 +239,7 @@
 <script setup>
 import { ref, computed } from 'vue'; //【修改】引入computed
 import { useOrderStore } from '@/stores/order';
-import axios from 'axios'; //【新增】我们在这里直接使用axios
+import apiService from '@/services/apiService'; //【修改】使用apiService而不是直接使用axios
 
 // 导入组件
 import Stepper from '@/components/Stepper.vue';
@@ -346,9 +346,7 @@ async function handleCreateOrder() {
 
   try {
     // 2. 发送创建订单的POST请求
-    const response = await axios.post('/api/orders/', payload, {
-      withCredentials: true,
-    });
+    const response = await apiService.createOrder(payload);
 
     // 3. 处理成功响应
     finalOrder.value = response.data; // 保存成功返回的订单数据

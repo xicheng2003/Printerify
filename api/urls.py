@@ -2,7 +2,7 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile
+from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -15,11 +15,13 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # 用户认证相关URL
+    path('csrf/', get_csrf_token, name='csrf-token'),
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('login/', UserLoginView.as_view(), name='user-login'),
     path('logout/', user_logout, name='user-logout'),
     path('profile/', user_profile, name='user-profile'),
     path('profile/update/', update_user_profile, name='update-user-profile'),
+    path('user-orders/', user_orders, name='user-orders'),
     
     # 手动添加我们自定义的API路径
     path('upload/', FileUploadView.as_view(), name='file-upload'),

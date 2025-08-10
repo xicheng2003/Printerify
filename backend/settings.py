@@ -158,6 +158,7 @@ if DEBUG:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://198.18.0.1:5173",
     ]
 else:
     # In production, ONLY allow your HTTPS frontend domain.
@@ -165,11 +166,21 @@ else:
         "https://print.morlight.top",
     ]
 
-# --- CSRF Configuration for HTTPS ---
-# This is crucial for POST requests (like file uploads) to work over HTTPS.
-CSRF_TRUSTED_ORIGINS = [
-    "https://print.morlight.top",
-]
+# --- CSRF Configuration ---
+# This is crucial for POST requests (like file uploads) to work.
+if DEBUG:
+    # In development, allow local frontend servers
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173", 
+        "http://198.18.0.1:5173",
+        "https://print.morlight.top",
+    ]
+else:
+    # In production, ONLY allow your HTTPS domain.
+    CSRF_TRUSTED_ORIGINS = [
+        "https://print.morlight.top",
+    ]
 
 # 【新增】允许跨域请求携带 Cookies 和身份凭证
 CORS_ALLOW_CREDENTIALS = True

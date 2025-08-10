@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Order, User
 from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 from .services import pricing
@@ -84,6 +86,15 @@ def user_logout(request):
 
 
 @api_view(['GET'])
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    """
+    获取CSRF token的端点
+    """
+    return Response({'csrfToken': get_token(request)})
+
+
+@api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_profile(request):
     """
@@ -106,10 +117,21 @@ def update_user_profile(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def user_orders(request):
+    """
+    获取当前用户的订单列表
+    """
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    serializer = OrderDetailSerializer(orders, many=True)
+    return Response(serializer.data)
+
+
 # --- 原有视图 ---
 
 class FileUploadView(generics.CreateAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # 允许任何用户上传文件
     
     def create(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
@@ -136,7 +158,7 @@ class FileUploadView(generics.CreateAPIView):
 
 
 class PriceEstimationView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # 允许任何用户获取价格估算
     
     def post(self, request, *args, **kwargs):
         # 注意：这里的 'file_path' 实际上是我们上面返回的 relative_path
@@ -183,7 +205,22 @@ class PriceEstimationView(generics.GenericAPIView):
 # OrderViewSet 的代码保持不变
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all().order_by('-created_at')
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        """
+        根据不同的操作设置不同的权限
+        """
+        if self.action == 'create':
+            # 创建订单：允许任何人
+            permission_classes = [permissions.AllowAny]
+        elif self.action in ['list', 'retrieve']:
+            # 查询订单：允许任何人（但get_queryset会控制具体可见的订单）
+            permission_classes = [permissions.AllowAny]
+        else:
+            # 其他操作（更新、删除）：需要认证
+            permission_classes = [permissions.IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -191,19 +228,30 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderDetailSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        pickup_code = self.request.query_params.get('code')
-        phone_number = self.request.query_params.get('phone')
-        
-        # 如果用户已认证，只返回该用户的订单
+        base_queryset = super().get_queryset()
+        # 统一使用前端传参的名称
+        pickup_code = self.request.query_params.get('pickup_code')
+        phone_number = self.request.query_params.get('phone_number')
+
+        # 已登录用户：只能看自己的订单，可再叠加查询条件
         if self.request.user.is_authenticated:
-            queryset = queryset.filter(user=self.request.user)
-        
-        if pickup_code:
-            queryset = queryset.filter(pickup_code=pick_code)
-        if phone_number:
-            queryset = queryset.filter(phone_number=phone_number)
-        return queryset
+            queryset = base_queryset.filter(user=self.request.user)
+            if pickup_code:
+                queryset = queryset.filter(pickup_code=pickup_code)
+            if phone_number:
+                queryset = queryset.filter(phone_number=phone_number)
+            return queryset
+
+        # 未登录用户：仅允许通过取件码或手机号查询；否则不返回任何结果
+        if pickup_code or phone_number:
+            queryset = base_queryset
+            if pickup_code:
+                queryset = queryset.filter(pickup_code=pickup_code)
+            if phone_number:
+                queryset = queryset.filter(phone_number=phone_number)
+            return queryset
+
+        return base_queryset.none()
         
     def perform_create(self, serializer):
         # 如果用户已认证，将订单与用户关联
@@ -219,7 +267,7 @@ class PaymentScreenshotUploadView(generics.CreateAPIView):
     一个专门用于接收付款凭证截图的视图。
     它接收一个图片文件，将其保存到 'payments/' 目录，并返回一个唯一ID。
     """
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # 允许任何用户上传付款截图
     
     def create(self, request, *args, **kwargs):
         screenshot_file = request.FILES.get('file')
