@@ -2,8 +2,8 @@
   <div class="auth-view">
     <div class="auth-container">
       <AuthForm 
-        :is-login="isLogin" 
-        @update:isLogin="isLogin = $event"
+        :is-login="isLoginView" 
+        @update:isLogin="toggleAuthMode"
         @auth-success="handleAuthSuccess"
       />
     </div>
@@ -12,11 +12,23 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AuthForm from '@/components/AuthForm.vue'
 
 const router = useRouter()
-const isLogin = ref(true)
+const route = useRoute()
+
+// 根据路由确定是登录还是注册视图
+const isLoginView = ref(route.name === 'login')
+
+function toggleAuthMode() {
+  // 切换登录/注册模式
+  if (isLoginView.value) {
+    router.push('/auth/register')
+  } else {
+    router.push('/auth/login')
+  }
+}
 
 function handleAuthSuccess() {
   // 认证成功后重定向到首页

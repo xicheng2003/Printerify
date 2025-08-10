@@ -36,10 +36,18 @@ const router = createRouter({
     },
     // 认证路由
     {
-      path: '/auth',
-      name: 'auth',
+      path: '/auth/login',
+      name: 'login',
       component: AuthView,
-      meta: { title: '用户认证' }
+      meta: { title: '用户登录' },
+      props: { isLogin: true }
+    },
+    {
+      path: '/auth/register',
+      name: 'register',
+      component: AuthView,
+      meta: { title: '用户注册' },
+      props: { isLogin: false }
     },
     {
       path: '/profile',

@@ -99,7 +99,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['auth-success'])
+const emit = defineEmits(['update:isLogin', 'auth-success'])
 
 const userStore = useUserStore()
 const loading = ref(false)
