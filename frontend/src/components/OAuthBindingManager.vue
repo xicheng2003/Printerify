@@ -1,7 +1,7 @@
 <template>
   <div class="oauth-binding-manager">
     <h3 class="binding-title">OAuth账户管理</h3>
-    
+
     <!-- 绑定状态显示 -->
     <div class="binding-status">
       <div class="status-item">
@@ -40,7 +40,7 @@
           </button>
         </div>
       </div>
-      
+
       <div class="status-item">
         <div class="status-icon">
           <svg v-if="bindings.google_id" class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -78,7 +78,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 绑定详情 -->
     <div v-if="bindings.bindings && bindings.bindings.length > 0" class="binding-details">
       <h4 class="details-title">绑定详情</h4>
@@ -96,7 +96,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 提示信息 -->
     <div class="binding-tips">
       <p class="tip-text">
@@ -112,6 +112,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import apiService from '@/services/apiService'
 
 const userStore = useUserStore()
 const loading = ref(false)
@@ -126,27 +127,59 @@ const bindings = ref({
 // 获取绑定状态
 const fetchBindings = async () => {
   try {
-    const response = await fetch('/api/oauth/bindings/', {
-      credentials: 'include'
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      bindings.value = data
-    }
+    const response = await apiService.getOAuthBindings()
+    bindings.value = response.data
   } catch (error) {
     console.error('获取OAuth绑定状态失败:', error)
   }
 }
 
 // 绑定GitHub
-const bindGitHub = () => {
-  window.location.href = '/api/oauth/github/'
+const bindGitHub = async () => {
+  if (!userStore.isAuthenticated) {
+    alert('请先登录后再绑定OAuth账户')
+    return
+  }
+
+  loading.value = true
+  try {
+    const response = await apiService.bindGitHubAccount()
+    // 跳转到OAuth授权页面
+    window.location.href = response.data.redirect_url
+  } catch (error) {
+    console.error('绑定GitHub失败:', error)
+    if (error.response?.data?.error) {
+      alert(`绑定失败: ${error.response.data.error}`)
+    } else {
+      alert('绑定失败，请稍后重试')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 // 绑定Google
-const bindGoogle = () => {
-  window.location.href = '/api/oauth/google/'
+const bindGoogle = async () => {
+  if (!userStore.isAuthenticated) {
+    alert('请先登录后再绑定OAuth账户')
+    return
+  }
+
+  loading.value = true
+  try {
+    const response = await apiService.bindGoogleAccount()
+    // 跳转到OAuth授权页面
+    window.location.href = response.data.redirect_url
+  } catch (error) {
+    console.error('绑定Google失败:', error)
+    if (error.response?.data?.error) {
+      alert(`绑定失败: ${error.response.data.error}`)
+    } else {
+      alert('绑定失败，请稍后重试')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 // 解绑账户
@@ -154,26 +187,21 @@ const unbindAccount = async (provider) => {
   if (!confirm(`确定要解绑${getProviderName(provider)}账户吗？`)) {
     return
   }
-  
+
   loading.value = true
   try {
-    const response = await fetch(`/api/oauth/bindings/${provider}/`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-    
-    if (response.ok) {
-      // 刷新绑定状态
-      await fetchBindings()
-      // 刷新用户信息
-      await userStore.fetchUserInfo()
-    } else {
-      const error = await response.json()
-      alert(`解绑失败: ${error.error || '未知错误'}`)
-    }
+    await apiService.unbindOAuthAccount(provider)
+    // 刷新绑定状态
+    await fetchBindings()
+    // 刷新用户信息
+    await userStore.fetchUserInfo()
   } catch (error) {
     console.error('解绑失败:', error)
-    alert('解绑失败，请稍后重试')
+    if (error.response?.data?.error) {
+      alert(`解绑失败: ${error.response.data.error}`)
+    } else {
+      alert('解绑失败，请稍后重试')
+    }
   } finally {
     loading.value = false
   }
@@ -201,8 +229,10 @@ const formatDate = (dateString) => {
   })
 }
 
-onMounted(() => {
-  fetchBindings()
+onMounted(async () => {
+  // 先初始化store，确保token被正确设置
+  await userStore.initializeStore()
+  await fetchBindings()
 })
 </script>
 
@@ -310,11 +340,11 @@ onMounted(() => {
   .status-item {
     @apply flex-col items-start space-y-3;
   }
-  
+
   .status-actions {
     @apply ml-0 w-full;
   }
-  
+
   .bind-btn,
   .unbind-btn {
     @apply w-full justify-center;

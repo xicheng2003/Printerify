@@ -9,6 +9,7 @@ from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -21,6 +22,40 @@ class OAuthService:
         self.github_client_secret = getattr(settings, 'GITHUB_CLIENT_SECRET', None)
         self.google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
         self.google_client_secret = getattr(settings, 'GOOGLE_CLIENT_SECRET', None)
+        
+        # 网络请求配置
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Printerify/1.0 (OAuth Service)'
+        })
+        
+        # 重试配置
+        self.max_retries = 3
+        self.retry_delay = 1  # 秒
+    
+    def _make_request_with_retry(self, method, url, **kwargs):
+        """带重试机制的HTTP请求"""
+        for attempt in range(self.max_retries):
+            try:
+                if method.lower() == 'get':
+                    response = self.session.get(url, timeout=30, **kwargs)
+                elif method.lower() == 'post':
+                    response = self.session.post(url, timeout=30, **kwargs)
+                else:
+                    raise ValueError(f"Unsupported HTTP method: {method}")
+                
+                return response
+                
+            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, 
+                    requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
+                logger.warning(f"Request attempt {attempt + 1} failed: {str(e)}")
+                
+                if attempt < self.max_retries - 1:
+                    time.sleep(self.retry_delay * (2 ** attempt))  # 指数退避
+                    continue
+                else:
+                    logger.error(f"All {self.max_retries} attempts failed for {url}")
+                    raise e
     
     def get_random_password(self, length=64):
         """生成随机密码"""
@@ -39,7 +74,7 @@ class OAuthService:
                 'redirect_uri': redirect_uri
             }
             
-            response = requests.post(token_url, data=token_data, headers={
+            response = self._make_request_with_retry('POST', token_url, data=token_data, headers={
                 'Accept': 'application/json'
             })
             
@@ -56,7 +91,7 @@ class OAuthService:
             
             # 2. 使用访问令牌获取用户信息
             user_url = 'https://api.github.com/user'
-            user_response = requests.get(user_url, headers={
+            user_response = self._make_request_with_retry('GET', user_url, headers={
                 'Authorization': f'token {access_token}',
                 'Accept': 'application/vnd.github.v3+json'
             })
@@ -67,21 +102,24 @@ class OAuthService:
             
             user_info = user_response.json()
             
-            # 3. 获取用户邮箱
-            emails_url = 'https://api.github.com/user/emails'
-            emails_response = requests.get(emails_url, headers={
-                'Authorization': f'token {access_token}',
-                'Accept': 'application/vnd.github.v3+json'
-            })
-            
+            # 3. 获取用户邮箱（可选，如果失败不影响主要流程）
             email = None
-            if emails_response.status_code == 200:
-                emails = emails_response.json()
-                # 查找主要邮箱
-                for email_info in emails:
-                    if email_info.get('primary') and email_info.get('verified'):
-                        email = email_info.get('email')
-                        break
+            try:
+                emails_url = 'https://api.github.com/user/emails'
+                emails_response = self._make_request_with_retry('GET', emails_url, headers={
+                    'Authorization': f'token {access_token}',
+                    'Accept': 'application/vnd.github.v3+json'
+                })
+                
+                if emails_response.status_code == 200:
+                    emails = emails_response.json()
+                    # 查找主要邮箱
+                    for email_info in emails:
+                        if email_info.get('primary') and email_info.get('verified'):
+                            email = email_info.get('email')
+                            break
+            except Exception as email_error:
+                logger.warning(f"Failed to get GitHub emails, continuing without email: {str(email_error)}")
             
             return {
                 'provider': 'github',
@@ -123,7 +161,7 @@ class OAuthService:
                 'redirect_uri': redirect_uri
             }
             
-            response = requests.post(token_url, data=token_data)
+            response = self._make_request_with_retry('POST', token_url, data=token_data)
             
             if response.status_code != 200:
                 logger.error(f"Google token request failed: {response.text}")
@@ -138,7 +176,7 @@ class OAuthService:
             
             # 2. 使用访问令牌获取用户信息
             user_url = 'https://www.googleapis.com/oauth2/v2/userinfo'
-            user_response = requests.get(user_url, headers={
+            user_response = self._make_request_with_retry('GET', user_url, headers={
                 'Authorization': f'Bearer {access_token}'
             })
             
@@ -151,19 +189,16 @@ class OAuthService:
             return {
                 'provider': 'google',
                 'id': str(user_info.get('id')),
-                'username': user_info.get('email').split('@')[0] if user_info.get('email') else None,
+                'username': user_info.get('email', '').split('@')[0] if user_info.get('email') else f"google_{user_info.get('id')}",
                 'email': user_info.get('email'),
                 'first_name': user_info.get('given_name', ''),
                 'last_name': user_info.get('family_name', ''),
                 'avatar_url': user_info.get('picture'),
                 'google_id': str(user_info.get('id')),
                 'extra_data': {
-                    'name': user_info.get('name'),
-                    'given_name': user_info.get('given_name'),
-                    'family_name': user_info.get('family_name'),
                     'locale': user_info.get('locale'),
                     'verified_email': user_info.get('verified_email'),
-                    'hd': user_info.get('hd')  # hosted domain
+                    'hd': user_info.get('hd')
                 }
             }
             

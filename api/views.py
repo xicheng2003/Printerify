@@ -395,9 +395,23 @@ class GitHubCallbackView(View):
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info(f"GitHub callback: User logged in: {user.username}")
             
-            # 重定向到前端回调页面 (前端运行在5173端口)
+            # 检查是否为绑定流程
+            is_binding = request.GET.get('bind') == 'true'
+            
+            # 生成认证token（用于前端API调用）
+            from rest_framework.authtoken.models import Token
+            token, created = Token.objects.get_or_create(user=user)
+            
+            # 所有OAuth回调都重定向到前端，让前端完成认证
             frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
             frontend_callback_url += f'?provider=github&success=true&username={user.username}'
+            
+            if is_binding:
+                frontend_callback_url += '&bind=true'
+            
+            # 将token作为临时参数传递（注意：这不是安全的做法，仅用于演示）
+            # 在生产环境中，应该使用更安全的方式
+            frontend_callback_url += f'&temp_token={token.key}'
             
             logger.info(f"GitHub callback: Redirecting to frontend: {frontend_callback_url}")
             return redirect(frontend_callback_url)
@@ -408,8 +422,20 @@ class GitHubCallbackView(View):
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             
+            # 提供更友好的错误信息
+            if "Failed to get user info from OAuth provider" in str(e):
+                friendly_error = "网络连接问题，请稍后重试"
+            elif "already used by user" in str(e):
+                friendly_error = "此OAuth账户已被其他用户使用"
+            elif "SSLError" in str(e) or "ConnectionError" in str(e):
+                friendly_error = "网络连接不稳定，请检查网络后重试"
+            elif "Timeout" in str(e):
+                friendly_error = "请求超时，请稍后重试"
+            else:
+                friendly_error = "GitHub认证过程中发生错误，请重试"
+            
             frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
-            frontend_callback_url += f'?provider=github&success=false&error={str(e)}'
+            frontend_callback_url += f'?provider=github&success=false&error={friendly_error}'
             return redirect(frontend_callback_url)
 
 class GoogleCallbackView(View):
@@ -452,9 +478,23 @@ class GoogleCallbackView(View):
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info(f"Google callback: User logged in: {user.username}")
             
-            # 重定向到前端回调页面 (前端运行在5173端口)
+            # 检查是否为绑定流程
+            is_binding = request.GET.get('bind') == 'true'
+            
+            # 生成认证token（用于前端API调用）
+            from rest_framework.authtoken.models import Token
+            token, created = Token.objects.get_or_create(user=user)
+            
+            # 所有OAuth回调都重定向到前端，让前端完成认证
             frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
             frontend_callback_url += f'?provider=google&success=true&username={user.username}'
+            
+            if is_binding:
+                frontend_callback_url += '&bind=true'
+            
+            # 将token作为临时参数传递（注意：这不是安全的做法，仅用于演示）
+            # 在生产环境中，应该使用更安全的方式
+            frontend_callback_url += f'&temp_token={token.key}'
             
             logger.info(f"Google callback: Redirecting to frontend: {frontend_callback_url}")
             return redirect(frontend_callback_url)
@@ -465,9 +505,57 @@ class GoogleCallbackView(View):
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             
+            # 提供更友好的错误信息
+            if "Failed to get user info from OAuth provider" in str(e):
+                friendly_error = "网络连接问题，请稍后重试"
+            elif "already used by user" in str(e):
+                friendly_error = "此OAuth账户已被其他用户使用"
+            elif "SSLError" in str(e) or "ConnectionError" in str(e):
+                friendly_error = "网络连接不稳定，请检查网络后重试"
+            elif "Timeout" in str(e):
+                friendly_error = "请求超时，请稍后重试"
+            else:
+                friendly_error = "Google认证过程中发生错误，请重试"
+            
             frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
-            frontend_callback_url += f'?provider=google&success=false&error={str(e)}'
+            frontend_callback_url += f'?provider=google&success=false&error={friendly_error}'
             return redirect(frontend_callback_url)
+
+class OAuthTokenValidationView(View):
+    """OAuth临时token验证视图"""
+    
+    def get(self, request):
+        """验证临时token并返回用户信息"""
+        try:
+            temp_token = request.GET.get('token')
+            if not temp_token:
+                return JsonResponse({'error': '临时token缺失'}, status=400)
+            
+            # 验证token
+            from rest_framework.authtoken.models import Token
+            try:
+                token = Token.objects.get(key=temp_token)
+                user = token.user
+                
+                # 序列化用户信息
+                from .serializers import UserSerializer
+                user_serializer = UserSerializer(user)
+                
+                response_data = {
+                    'user': user_serializer.data,
+                    'token': temp_token,
+                    'message': 'token验证成功'
+                }
+                
+                logger.info(f"临时token验证成功: {user.username}")
+                return JsonResponse(response_data)
+                
+            except Token.DoesNotExist:
+                return JsonResponse({'error': '无效的临时token'}, status=401)
+                
+        except Exception as e:
+            logger.error(f"临时token验证错误: {str(e)}")
+            return JsonResponse({'error': 'token验证失败'}, status=500)
 
 class OAuthCallbackView(View):
     """通用OAuth回调处理视图（已废弃，保留兼容性）"""
@@ -488,45 +576,58 @@ class OAuthCallbackView(View):
 class OAuthUserInfoView(View):
     """获取OAuth用户信息"""
     
-    @method_decorator(login_required)
     def get(self, request):
         """获取当前用户的OAuth信息"""
         try:
-            social_account = SocialAccount.objects.filter(user=request.user).first()
-            if social_account:
-                return JsonResponse({
-                    'provider': social_account.provider,
-                    'uid': social_account.uid,
-                    'extra_data': social_account.extra_data,
-                    'avatar_url': request.user.get_avatar_url(),
-                    'display_name': request.user.get_display_name(),
-                    'username': request.user.username,
-                    'email': request.user.email,
-                    'github_id': request.user.github_id,
-                    'google_id': request.user.google_id,
-                    'is_oauth_user': bool(request.user.github_id or request.user.google_id)
-                })
-            else:
-                return JsonResponse({'message': '用户未关联OAuth账户'})
+            # 检查用户是否已认证（支持session和token认证）
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': '用户未认证'}, status=401)
+            
+            # 获取用户信息
+            user_data = {
+                'username': request.user.username,
+                'email': request.user.email,
+                'github_id': request.user.github_id,
+                'google_id': request.user.google_id,
+                'avatar_url': request.user.get_avatar_url() if hasattr(request.user, 'get_avatar_url') else None,
+                'display_name': request.user.get_display_name() if hasattr(request.user, 'get_display_name') else request.user.username,
+                'is_oauth_user': bool(request.user.github_id or request.user.google_id)
+            }
+            
+            return JsonResponse(user_data)
+            
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
 class OAuthBindingView(View):
     """OAuth账户绑定管理视图"""
     
-    @method_decorator(login_required)
     def get(self, request):
         """获取用户的OAuth绑定状态"""
         try:
-            social_accounts = SocialAccount.objects.filter(user=request.user)
+            # 检查用户是否已认证（支持session和token认证）
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': '用户未认证'}, status=401)
+            
+            # 获取绑定状态
             bindings = []
             
-            for account in social_accounts:
+            # 检查GitHub绑定
+            if request.user.github_id:
                 bindings.append({
-                    'provider': account.provider,
-                    'uid': account.uid,
-                    'date_joined': account.date_joined.isoformat(),
-                    'extra_data': account.extra_data
+                    'provider': 'github',
+                    'uid': request.user.github_id,
+                    'date_joined': request.user.date_joined.isoformat(),
+                    'extra_data': {}
+                })
+            
+            # 检查Google绑定
+            if request.user.google_id:
+                bindings.append({
+                    'provider': 'google',
+                    'uid': request.user.google_id,
+                    'date_joined': request.user.date_joined.isoformat(),
+                    'extra_data': {}
                 })
             
             return JsonResponse({
@@ -540,10 +641,13 @@ class OAuthBindingView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     
-    @method_decorator(login_required)
     def post(self, request, provider):
         """绑定OAuth账户到当前用户"""
         try:
+            # 检查用户是否已认证（支持session和token认证）
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': '用户未认证'}, status=401)
+            
             if provider not in ['github', 'google']:
                 return JsonResponse({'error': '不支持的OAuth提供商'}, status=400)
             
@@ -570,10 +674,13 @@ class OAuthBindingView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     
-    @method_decorator(login_required)
     def delete(self, request, provider):
         """解绑OAuth账户"""
         try:
+            # 检查用户是否已认证（支持session和token认证）
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': '用户未认证'}, status=401)
+            
             if provider not in ['github', 'google']:
                 return JsonResponse({'error': '不支持的OAuth提供商'}, status=400)
             
@@ -585,15 +692,9 @@ class OAuthBindingView(View):
                 remaining_oauth += 1
             
             if remaining_oauth == 0:
-                return JsonResponse({'error': '至少需要保留一个OAuth账户绑定'}, status=400)
+                return JsonResponse({'error': '不能解绑最后一个OAuth账户'}, status=400)
             
-            # 删除SocialAccount
-            SocialAccount.objects.filter(
-                user=request.user,
-                provider=provider
-            ).delete()
-            
-            # 清除用户模型中的OAuth ID
+            # 解绑账户
             if provider == 'github':
                 request.user.github_id = None
             elif provider == 'google':
@@ -601,7 +702,7 @@ class OAuthBindingView(View):
             
             request.user.save()
             
-            return JsonResponse({'message': f'{provider}账户解绑成功'})
+            return JsonResponse({'message': f'{provider}账户已解绑'})
             
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)

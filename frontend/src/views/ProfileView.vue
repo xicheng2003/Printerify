@@ -7,9 +7,9 @@
       <div class="profile-card">
         <div class="profile-header">
           <div class="avatar">
-            <img 
-              v-if="userStore.userProfile?.avatar_url" 
-              :src="userStore.userProfile.avatar_url" 
+            <img
+              v-if="userStore.userProfile?.avatar_url"
+              :src="userStore.userProfile.avatar_url"
               :alt="userStore.userProfile?.username"
               class="avatar-image"
             />
@@ -286,6 +286,9 @@ const isOAuthUser = computed(() => {
 
 // 生命周期
 onMounted(async () => {
+  // 先初始化store，确保token被正确设置
+  await userStore.initializeStore()
+
   if (userStore.isAuthenticated) {
     await userStore.fetchProfile() // 先获取用户信息
     await fetchUserOrders()

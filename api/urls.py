@@ -2,7 +2,7 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView
+from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -30,6 +30,7 @@ urlpatterns = [
     path('oauth/google/callback/', GoogleCallbackView.as_view(), name='oauth_google_callback'),
     path('oauth/callback/', OAuthCallbackView.as_view(), name='oauth_callback'),
     path('oauth/userinfo/', OAuthUserInfoView.as_view(), name='oauth_userinfo'),
+    path('oauth/validate-token/', OAuthTokenValidationView.as_view(), name='oauth_validate_token'),
     path('oauth/bindings/', OAuthBindingView.as_view(), name='oauth_bindings'),
     path('oauth/bindings/<str:provider>/', OAuthBindingView.as_view(), name='oauth_unbind'),
     

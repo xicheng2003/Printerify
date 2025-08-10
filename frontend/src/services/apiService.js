@@ -160,7 +160,32 @@ export default {
 
   // 获取当前用户订单列表
   getUserOrders() {
-    return apiClient.get('/api/user-orders/');
+    return apiClient.get('/api/orders/');
+  },
+
+  // OAuth绑定相关方法
+  bindGitHubAccount() {
+    return apiClient.post('/api/oauth/bindings/github/');
+  },
+
+  bindGoogleAccount() {
+    return apiClient.post('/api/oauth/bindings/google/');
+  },
+
+  unbindOAuthAccount(provider) {
+    return apiClient.delete(`/api/oauth/bindings/${provider}/`);
+  },
+
+  getOAuthUserInfo() {
+    return apiClient.get('/api/oauth/userinfo/');
+  },
+
+  getOAuthBindings() {
+    return apiClient.get('/api/oauth/bindings/');
+  },
+
+  getUserProfile() {
+    return apiClient.get('/api/users/profile/');
   },
 
   // 设置认证token

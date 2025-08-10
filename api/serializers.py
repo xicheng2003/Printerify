@@ -51,18 +51,35 @@ class UserLoginSerializer(serializers.Serializer):
     用户登录序列化器
     """
     username = serializers.CharField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False)
+    oauth_provider = serializers.CharField(required=False)
 
     def validate(self, attrs):
         username = attrs.get('username')
         password = attrs.get('password')
+        oauth_provider = attrs.get('oauth_provider')
 
-        if username and password:
+        if oauth_provider:
+            # OAuth用户登录，不需要密码验证
+            try:
+                user = User.objects.get(username=username)
+                # 验证用户确实有对应的OAuth ID
+                if oauth_provider == 'github' and user.github_id:
+                    pass  # 验证通过
+                elif oauth_provider == 'google' and user.google_id:
+                    pass  # 验证通过
+                else:
+                    raise serializers.ValidationError("OAuth用户验证失败")
+            except User.DoesNotExist:
+                raise serializers.ValidationError("OAuth用户不存在")
+        else:
+            # 传统用户名密码登录
+            if not password:
+                raise serializers.ValidationError("密码是必填项")
+            
             user = authenticate(username=username, password=password)
             if not user:
                 raise serializers.ValidationError("用户名或密码错误")
-        else:
-            raise serializers.ValidationError("用户名和密码都是必填项")
 
         attrs['user'] = user
         return attrs

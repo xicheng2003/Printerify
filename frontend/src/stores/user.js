@@ -26,15 +26,19 @@ export const useUserStore = defineStore('user', () => {
     return oAuthProviders.value.length > 1
   })
 
-  // 初始化时尝试从localStorage恢复用户信息
-  if (token.value) {
-    apiService.setAuthToken(token.value)
-    // 自动获取用户信息
-    fetchProfile().catch(error => {
-      console.error('自动获取用户信息失败:', error)
-      // 如果获取失败，清除无效的token
-      setToken(null)
-    })
+  // 初始化函数
+  async function initializeStore() {
+    if (token.value) {
+      apiService.setAuthToken(token.value)
+      try {
+        // 自动获取用户信息
+        await fetchProfile()
+      } catch (error) {
+        console.error('自动获取用户信息失败:', error)
+        // 如果获取失败，清除无效的token
+        setToken(null)
+      }
+    }
   }
 
   function setToken(newToken) {
@@ -129,20 +133,29 @@ export const useUserStore = defineStore('user', () => {
     }
 
     try {
-      const response = await fetch('/api/oauth/userinfo/', {
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // 更新用户信息中的OAuth相关字段
-        if (user.value) {
-          user.value = { ...user.value, ...data }
-        }
-        return data
+      const response = await apiService.getOAuthUserInfo()
+      // 更新用户信息中的OAuth相关字段
+      if (user.value) {
+        user.value = { ...user.value, ...response.data }
       }
+      return response.data
     } catch (error) {
       console.error('获取OAuth用户信息失败:', error)
+      throw error
+    }
+  }
+
+  async function fetchUserInfo() {
+    if (!token.value) {
+      throw new Error('User not authenticated')
+    }
+
+    try {
+      const response = await apiService.getUserProfile()
+      user.value = response.data
+      return response.data
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
       throw error
     }
   }
@@ -151,7 +164,7 @@ export const useUserStore = defineStore('user', () => {
     // 同时获取用户资料和OAuth信息
     try {
       await Promise.all([
-        fetchProfile(),
+        fetchUserInfo(),
         fetchOAuthUserInfo()
       ])
     } catch (error) {
@@ -176,6 +189,8 @@ export const useUserStore = defineStore('user', () => {
     fetchProfile,
     updateProfile,
     fetchOAuthUserInfo,
-    refreshUserInfo
+    fetchUserInfo,
+    refreshUserInfo,
+    initializeStore
   }
 })

@@ -18,13 +18,13 @@
 
       <div v-else-if="success" class="success-state">
         <div class="success-icon">✅</div>
-        <h2>登录成功！</h2>
-        <p>欢迎回来，{{ userInfo.display_name || userInfo.username }}！</p>
+        <h2>{{ isBinding ? '账户绑定成功！' : '登录成功！' }}</h2>
+        <p>{{ isBinding ? '您的OAuth账户已成功绑定' : `欢迎回来，${userInfo.display_name || userInfo.username}！` }}</p>
         <div class="user-avatar" v-if="userInfo.avatar_url">
           <img :src="userInfo.avatar_url" :alt="userInfo.display_name || userInfo.username" />
         </div>
         <BaseButton @click="goToHome" class="home-btn">
-          前往首页
+          {{ isBinding ? '返回个人资料' : '前往首页' }}
         </BaseButton>
       </div>
     </div>
@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -53,10 +53,26 @@ export default {
     const route = useRoute()
     const userStore = useUserStore()
 
+    // 判断是否为账户绑定流程
+    const isBinding = computed(() => {
+      return route.query.bind === 'true'
+    })
+
+    // 清理URL中的敏感参数
+    const cleanUrl = () => {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('temp_token')
+      url.searchParams.delete('code')
+      url.searchParams.delete('state')
+
+      // 使用replaceState更新URL，不添加历史记录
+      window.history.replaceState({}, document.title, url.pathname + url.search)
+    }
+
     const processOAuthCallback = async () => {
       try {
         // 从URL参数获取OAuth处理结果
-        const { provider, success: oauthSuccess, username, error: oauthError } = route.query
+        const { success: oauthSuccess, error: oauthError, username, temp_token, provider } = route.query
 
         console.log('OAuth回调参数:', route.query)
 
@@ -64,38 +80,60 @@ export default {
           throw new Error(`OAuth错误: ${oauthError}`)
         }
 
-        if (oauthSuccess === 'true') {
-          // OAuth登录成功，获取用户信息
-          console.log('OAuth登录成功，获取用户信息...')
+        if (oauthSuccess === 'true' && username) {
+          // OAuth登录成功，检查是否有临时token
+          console.log('OAuth登录成功，检查认证token...')
 
-          const response = await fetch('/api/oauth/userinfo/', {
-            credentials: 'include'
-          })
+          if (temp_token) {
+            // 后端已经提供了token，使用token验证端点获取用户信息
+            console.log('使用后端提供的临时token进行验证')
 
-          if (response.ok) {
-            const data = await response.json()
-            userInfo.value = data
-            success.value = true
-            console.log('用户信息获取成功:', data)
+            try {
+              // 调用token验证端点
+              const response = await fetch(`/api/oauth/validate-token/?token=${temp_token}`)
 
-            // 直接更新用户store状态，而不是调用fetchProfile
-            if (userStore.user) {
-              // 如果用户store中已有用户信息，则更新
-              userStore.user = { ...userStore.user, ...data }
-            } else {
-              // 如果用户store中没有用户信息，则设置
-              userStore.user = data
+              if (response.ok) {
+                const data = await response.json()
+                console.log('token验证成功:', data)
+
+                // 设置认证token
+                userStore.setToken(data.token)
+
+                // 设置用户信息
+                userStore.user = data.user
+                userInfo.value = data.user
+                success.value = true
+
+                // 如果是账户绑定流程，刷新用户信息
+                if (isBinding.value) {
+                  try {
+                    await userStore.refreshUserInfo()
+                    console.log('账户绑定后用户信息已刷新')
+                  } catch (refreshError) {
+                    console.warn('刷新用户信息失败，但不影响绑定结果:', refreshError)
+                  }
+                }
+
+                console.log('用户store状态已更新，认证token已设置')
+
+                // 清理URL中的敏感参数
+                cleanUrl()
+              } else {
+                throw new Error('token验证失败')
+              }
+            } catch (tokenError) {
+              console.warn('token验证失败，尝试使用登录API:', tokenError)
+
+              // 回退到登录API
+              await callLoginAPI(username, provider || 'github')
             }
-
-            // 设置认证状态为已登录
-            userStore.setToken('oauth_authenticated')
-
-            console.log('用户store状态已更新')
           } else {
-            throw new Error('获取用户信息失败')
+            // 没有临时token，使用登录API
+            console.log('没有临时token，调用登录API...')
+            await callLoginAPI(username, provider || 'github')
           }
         } else {
-          throw new Error('OAuth登录失败')
+          throw new Error('OAuth登录失败或缺少用户名')
         }
 
       } catch (err) {
@@ -106,12 +144,90 @@ export default {
       }
     }
 
+    // 调用登录API的辅助函数
+    const callLoginAPI = async (username, provider) => {
+      try {
+        const loginResponse = await fetch('/api/login/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            oauth_provider: provider
+          })
+        })
+
+        if (loginResponse.ok) {
+          const loginData = await loginResponse.json()
+          console.log('登录API响应:', loginData)
+
+          // 设置真实的认证token
+          userStore.setToken(loginData.token)
+
+          // 设置用户信息
+          userStore.user = loginData.user
+
+          success.value = true
+          userInfo.value = loginData.user
+
+          // 如果是账户绑定流程，刷新用户信息
+          if (isBinding.value) {
+            try {
+              await userStore.refreshUserInfo()
+              console.log('账户绑定后用户信息已刷新')
+            } catch (refreshError) {
+              console.warn('刷新用户信息失败，但不影响绑定结果:', refreshError)
+            }
+          }
+
+          console.log('用户store状态已更新，认证token已设置')
+
+          // 清理URL中的敏感参数
+          cleanUrl()
+        } else {
+          throw new Error('登录API调用失败')
+        }
+      } catch (loginError) {
+        console.warn('登录API调用失败，尝试session认证:', loginError)
+
+        // 回退到session认证
+        const response = await fetch('/api/oauth/userinfo/', {
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          userInfo.value = data
+          success.value = true
+          console.log('用户信息获取成功（session认证）:', data)
+
+          // 设置认证状态为已登录（使用session认证）
+          userStore.setToken('session_authenticated')
+          userStore.user = data
+
+          console.log('用户store状态已更新（session认证）')
+
+          // 清理URL中的敏感参数
+          cleanUrl()
+        } else {
+          throw new Error('获取用户信息失败')
+        }
+      }
+    }
+
     const goToLogin = () => {
       router.push('/auth')
     }
 
     const goToHome = () => {
-      router.push('/')
+      if (isBinding.value) {
+        // 如果是账户绑定，跳转到个人资料页面
+        router.push('/profile')
+      } else {
+        // 如果是登录，跳转到首页
+        router.push('/')
+      }
     }
 
     onMounted(() => {
@@ -123,6 +239,7 @@ export default {
       error,
       success,
       userInfo,
+      isBinding,
       goToLogin,
       goToHome
     }
