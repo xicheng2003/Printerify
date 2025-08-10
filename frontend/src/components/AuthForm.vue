@@ -213,6 +213,9 @@
       <div class="decoration-dot"></div>
       <div class="decoration-dot"></div>
     </div>
+
+    <!-- OAuth登录选项 -->
+    <OAuthLogin />
   </div>
 </template>
 
@@ -220,6 +223,7 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import BaseButton from '@/components/BaseButton.vue'
+import OAuthLogin from './OAuthLogin.vue'
 
 const props = defineProps({
   isLogin: {

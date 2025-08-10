@@ -16,6 +16,25 @@ from .models import Order, User
 from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 from .services import pricing
 
+# OAuth认证相关视图
+from django.shortcuts import redirect
+from django.contrib.auth import login
+from django.http import JsonResponse
+from django.views import View
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView, OAuth2CallbackView
+from .services.oauth_service import OAuthService
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
+
 # --- 用户认证视图 ---
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -289,3 +308,300 @@ class PaymentScreenshotUploadView(generics.CreateAPIView):
         return Response({
             'screenshot_id': filename, # 返回保存后的文件名作为ID
         }, status=status.HTTP_201_CREATED)
+
+class GitHubLoginView(View):
+    """GitHub OAuth登录视图"""
+    
+    def get(self, request):
+        """重定向到GitHub OAuth授权页面"""
+        github_client_id = getattr(settings, 'GITHUB_CLIENT_ID', None)
+        if not github_client_id:
+            return JsonResponse({'error': 'GitHub OAuth未配置'}, status=500)
+        
+        # 构建GitHub OAuth授权URL
+        redirect_uri = request.build_absolute_uri('/api/oauth/github/callback/')
+        scope = 'user:email'
+        
+        github_auth_url = (
+            f'https://github.com/login/oauth/authorize?'
+            f'client_id={github_client_id}&'
+            f'redirect_uri={redirect_uri}&'
+            f'scope={scope}'
+        )
+        
+        return redirect(github_auth_url)
+
+class GoogleLoginView(View):
+    """Google OAuth登录视图"""
+    
+    def get(self, request):
+        """重定向到Google OAuth授权页面"""
+        google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
+        if not google_client_id:
+            return JsonResponse({'error': 'Google OAuth未配置'}, status=500)
+        
+        # 构建Google OAuth授权URL
+        redirect_uri = request.build_absolute_uri('/api/oauth/google/callback/')
+        scope = 'openid email profile'
+        
+        google_auth_url = (
+            f'https://accounts.google.com/o/oauth2/v2/auth?'
+            f'client_id={google_client_id}&'
+            f'redirect_uri={redirect_uri}&'
+            f'scope={scope}&'
+            f'response_type=code&'
+            f'access_type=offline'
+        )
+        
+        return redirect(google_auth_url)
+
+class GitHubCallbackView(View):
+    """GitHub OAuth回调处理视图"""
+    
+    def get(self, request):
+        """处理GitHub OAuth回调"""
+        try:
+            # 添加详细的日志记录
+            logger.info(f"GitHub callback received. GET params: {dict(request.GET)}")
+            logger.info(f"Request URL: {request.build_absolute_uri()}")
+            
+            code = request.GET.get('code')
+            state = request.GET.get('state')
+            error = request.GET.get('error')
+            
+            # 检查是否有OAuth错误
+            if error:
+                logger.error(f"GitHub OAuth error: {error}")
+                frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+                frontend_callback_url += f'?provider=github&success=false&error={error}'
+                return redirect(frontend_callback_url)
+            
+            if not code:
+                logger.error("GitHub callback: No authorization code received")
+                logger.error(f"Available GET parameters: {list(request.GET.keys())}")
+                return JsonResponse({'error': '授权码缺失'}, status=400)
+            
+            logger.info(f"GitHub callback: Authorization code received: {code[:10]}...")
+            
+            # 使用OAuth服务处理回调，传入request参数以支持账户绑定
+            oauth_service = OAuthService()
+            redirect_uri = request.build_absolute_uri('/api/oauth/github/callback/')
+            logger.info(f"GitHub callback: Using redirect_uri: {redirect_uri}")
+            
+            user, user_info = oauth_service.process_oauth_callback(code, 'github', redirect_uri, request)
+            logger.info(f"GitHub callback: User processed successfully: {user.username}")
+            
+            # 自动登录用户 - 明确指定认证后端
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            logger.info(f"GitHub callback: User logged in: {user.username}")
+            
+            # 重定向到前端回调页面 (前端运行在5173端口)
+            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url += f'?provider=github&success=true&username={user.username}'
+            
+            logger.info(f"GitHub callback: Redirecting to frontend: {frontend_callback_url}")
+            return redirect(frontend_callback_url)
+            
+        except Exception as e:
+            logger.error(f"GitHub OAuth callback error: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url += f'?provider=github&success=false&error={str(e)}'
+            return redirect(frontend_callback_url)
+
+class GoogleCallbackView(View):
+    """Google OAuth回调处理视图"""
+    
+    def get(self, request):
+        """处理Google OAuth回调"""
+        try:
+            # 添加详细的日志记录
+            logger.info(f"Google callback received. GET params: {dict(request.GET)}")
+            logger.info(f"Request URL: {request.build_absolute_uri()}")
+            
+            code = request.GET.get('code')
+            state = request.GET.get('state')
+            error = request.GET.get('error')
+            
+            # 检查是否有OAuth错误
+            if error:
+                logger.error(f"Google OAuth error: {error}")
+                frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+                frontend_callback_url += f'?provider=google&success=false&error={error}'
+                return redirect(frontend_callback_url)
+            
+            if not code:
+                logger.error("Google callback: No authorization code received")
+                logger.error(f"Available GET parameters: {list(request.GET.keys())}")
+                return JsonResponse({'error': '授权码缺失'}, status=400)
+            
+            logger.info(f"Google callback: Authorization code received: {code[:10]}...")
+            
+            # 使用OAuth服务处理回调，传入request参数以支持账户绑定
+            oauth_service = OAuthService()
+            redirect_uri = request.build_absolute_uri('/api/oauth/google/callback/')
+            logger.info(f"Google callback: Using redirect_uri: {redirect_uri}")
+            
+            user, user_info = oauth_service.process_oauth_callback(code, 'google', redirect_uri, request)
+            logger.info(f"Google callback: User processed successfully: {user.username}")
+            
+            # 自动登录用户 - 明确指定认证后端
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            logger.info(f"Google callback: User logged in: {user.username}")
+            
+            # 重定向到前端回调页面 (前端运行在5173端口)
+            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url += f'?provider=google&success=true&username={user.username}'
+            
+            logger.info(f"Google callback: Redirecting to frontend: {frontend_callback_url}")
+            return redirect(frontend_callback_url)
+            
+        except Exception as e:
+            logger.error(f"Google OAuth callback error: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url += f'?provider=google&success=false&error={str(e)}'
+            return redirect(frontend_callback_url)
+
+class OAuthCallbackView(View):
+    """通用OAuth回调处理视图（已废弃，保留兼容性）"""
+    
+    def get(self, request):
+        """处理OAuth回调"""
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        
+        if not code:
+            return JsonResponse({'error': '授权码缺失'}, status=400)
+        
+        # 这里可以添加状态验证逻辑
+        # 处理OAuth回调，创建或更新用户
+        
+        return JsonResponse({'message': 'OAuth认证成功'})
+
+class OAuthUserInfoView(View):
+    """获取OAuth用户信息"""
+    
+    @method_decorator(login_required)
+    def get(self, request):
+        """获取当前用户的OAuth信息"""
+        try:
+            social_account = SocialAccount.objects.filter(user=request.user).first()
+            if social_account:
+                return JsonResponse({
+                    'provider': social_account.provider,
+                    'uid': social_account.uid,
+                    'extra_data': social_account.extra_data,
+                    'avatar_url': request.user.get_avatar_url(),
+                    'display_name': request.user.get_display_name(),
+                    'username': request.user.username,
+                    'email': request.user.email,
+                    'github_id': request.user.github_id,
+                    'google_id': request.user.google_id,
+                    'is_oauth_user': bool(request.user.github_id or request.user.google_id)
+                })
+            else:
+                return JsonResponse({'message': '用户未关联OAuth账户'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+class OAuthBindingView(View):
+    """OAuth账户绑定管理视图"""
+    
+    @method_decorator(login_required)
+    def get(self, request):
+        """获取用户的OAuth绑定状态"""
+        try:
+            social_accounts = SocialAccount.objects.filter(user=request.user)
+            bindings = []
+            
+            for account in social_accounts:
+                bindings.append({
+                    'provider': account.provider,
+                    'uid': account.uid,
+                    'date_joined': account.date_joined.isoformat(),
+                    'extra_data': account.extra_data
+                })
+            
+            return JsonResponse({
+                'bindings': bindings,
+                'github_id': request.user.github_id,
+                'google_id': request.user.google_id,
+                'can_bind_github': not request.user.github_id,
+                'can_bind_google': not request.user.google_id
+            })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    @method_decorator(login_required)
+    def post(self, request, provider):
+        """绑定OAuth账户到当前用户"""
+        try:
+            if provider not in ['github', 'google']:
+                return JsonResponse({'error': '不支持的OAuth提供商'}, status=400)
+            
+            # 检查是否已经绑定
+            if provider == 'github' and request.user.github_id:
+                return JsonResponse({'error': 'GitHub账户已绑定'}, status=400)
+            elif provider == 'google' and request.user.google_id:
+                return JsonResponse({'error': 'Google账户已绑定'}, status=400)
+            
+            # 重定向到OAuth授权页面
+            if provider == 'github':
+                oauth_url = '/api/oauth/github/'
+            else:
+                oauth_url = '/api/oauth/google/'
+            
+            # 添加绑定标识到state参数
+            oauth_url += f'?bind=true&user_id={request.user.id}'
+            
+            return JsonResponse({
+                'redirect_url': oauth_url,
+                'message': f'正在跳转到{provider}授权页面...'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    @method_decorator(login_required)
+    def delete(self, request, provider):
+        """解绑OAuth账户"""
+        try:
+            if provider not in ['github', 'google']:
+                return JsonResponse({'error': '不支持的OAuth提供商'}, status=400)
+            
+            # 检查是否还有其他OAuth账户绑定
+            remaining_oauth = 0
+            if request.user.github_id and provider != 'github':
+                remaining_oauth += 1
+            if request.user.google_id and provider != 'google':
+                remaining_oauth += 1
+            
+            if remaining_oauth == 0:
+                return JsonResponse({'error': '至少需要保留一个OAuth账户绑定'}, status=400)
+            
+            # 删除SocialAccount
+            SocialAccount.objects.filter(
+                user=request.user,
+                provider=provider
+            ).delete()
+            
+            # 清除用户模型中的OAuth ID
+            if provider == 'github':
+                request.user.github_id = None
+            elif provider == 'google':
+                request.user.google_id = None
+            
+            request.user.save()
+            
+            return JsonResponse({'message': f'{provider}账户解绑成功'})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

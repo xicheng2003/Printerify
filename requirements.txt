@@ -81,3 +81,9 @@ webencodings==0.5.1
 zope.event==5.1
 zope.interface==7.2
 zopfli==0.2.3.post1
+
+# OAuth认证相关包
+django-allauth==65.10.0
+requests-oauthlib==2.0.0
+PyJWT==2.10.1
+cryptography==45.0.6

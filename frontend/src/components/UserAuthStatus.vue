@@ -8,7 +8,7 @@
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <span class="username">{{ user.username }}</span>
+        <span class="username">{{ user?.username || '用户' }}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"

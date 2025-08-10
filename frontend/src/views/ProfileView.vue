@@ -7,7 +7,13 @@
       <div class="profile-card">
         <div class="profile-header">
           <div class="avatar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <img 
+              v-if="userStore.userProfile?.avatar_url" 
+              :src="userStore.userProfile.avatar_url" 
+              :alt="userStore.userProfile?.username"
+              class="avatar-image"
+            />
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
@@ -17,6 +23,12 @@
             <p class="registration-date">
               注册于 {{ formatDate(userStore.userProfile?.created_at) }}
             </p>
+            <!-- OAuth状态指示器 -->
+            <div v-if="isOAuthUser" class="oauth-indicator">
+              <span class="oauth-badge">
+                🔐 OAuth用户
+              </span>
+            </div>
           </div>
         </div>
 
@@ -41,6 +53,17 @@
               <p class="detail-value">{{ formatDate(userStore.userProfile?.created_at) }}</p>
             </div>
           </div>
+          <!-- OAuth账户信息 -->
+          <div v-if="isOAuthUser" class="detail-row">
+            <div class="detail-item">
+              <label class="detail-label">GitHub ID</label>
+              <p class="detail-value">{{ userStore.userProfile?.github_id || '未绑定' }}</p>
+            </div>
+            <div class="detail-item">
+              <label class="detail-label">Google ID</label>
+              <p class="detail-value">{{ userStore.userProfile?.google_id || '未绑定' }}</p>
+            </div>
+          </div>
         </div>
 
         <!-- 编辑个人信息按钮 -->
@@ -49,6 +72,11 @@
             编辑个人信息
           </button>
         </div>
+      </div>
+
+      <!-- OAuth账户管理 -->
+      <div class="oauth-section">
+        <OAuthBindingManager />
       </div>
 
       <!-- 订单统计卡片 -->
@@ -217,6 +245,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import Modal from '../components/Modal.vue'
 import apiService from '../services/apiService'
+import OAuthBindingManager from '../components/OAuthBindingManager.vue'
 
 const userStore = useUserStore()
 
@@ -249,6 +278,10 @@ const orderStats = computed(() => {
     cancelled: orders.value.filter(o => o.status === 'cancelled').length
   }
   return stats
+})
+
+const isOAuthUser = computed(() => {
+  return userStore.userProfile?.github_id || userStore.userProfile?.google_id
 })
 
 // 生命周期
@@ -411,6 +444,13 @@ function getBindingTypeText(type) {
   color: white;
 }
 
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .profile-info {
   flex: 1;
 }
@@ -425,6 +465,19 @@ function getBindingTypeText(type) {
 .registration-date {
   color: var(--color-text-mute);
   margin: 0;
+}
+
+.oauth-indicator {
+  margin-top: 0.5rem;
+}
+
+.oauth-badge {
+  background-color: #e0f2fe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .profile-details {

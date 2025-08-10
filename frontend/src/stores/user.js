@@ -10,11 +10,31 @@ export const useUserStore = defineStore('user', () => {
   const isAuthenticated = computed(() => !!token.value)
   const userProfile = computed(() => user.value)
 
+  // OAuth相关计算属性
+  const isOAuthUser = computed(() => {
+    return user.value?.github_id || user.value?.google_id
+  })
+
+  const oAuthProviders = computed(() => {
+    const providers = []
+    if (user.value?.github_id) providers.push('github')
+    if (user.value?.google_id) providers.push('google')
+    return providers
+  })
+
+  const hasMultipleOAuthAccounts = computed(() => {
+    return oAuthProviders.value.length > 1
+  })
+
   // 初始化时尝试从localStorage恢复用户信息
   if (token.value) {
-    // 可以在这里添加自动刷新用户信息的逻辑
-    // 为了简化，我们暂时不自动获取用户信息
     apiService.setAuthToken(token.value)
+    // 自动获取用户信息
+    fetchProfile().catch(error => {
+      console.error('自动获取用户信息失败:', error)
+      // 如果获取失败，清除无效的token
+      setToken(null)
+    })
   }
 
   function setToken(newToken) {
@@ -33,10 +53,10 @@ export const useUserStore = defineStore('user', () => {
     try {
       const response = await apiService.register(userData)
       const { user: userDataResponse, token: userToken } = response.data
-      
+
       user.value = userDataResponse
       setToken(userToken)
-      
+
       return response.data
     } finally {
       loading.value = false
@@ -48,10 +68,10 @@ export const useUserStore = defineStore('user', () => {
     try {
       const response = await apiService.login(credentials)
       const { user: userDataResponse, token: userToken } = response.data
-      
+
       user.value = userDataResponse
       setToken(userToken)
-      
+
       return response.data
     } finally {
       loading.value = false
@@ -76,7 +96,7 @@ export const useUserStore = defineStore('user', () => {
     if (!token.value) {
       throw new Error('User not authenticated')
     }
-    
+
     loading.value = true
     try {
       const response = await apiService.getProfile()
@@ -91,7 +111,7 @@ export const useUserStore = defineStore('user', () => {
     if (!token.value) {
       throw new Error('User not authenticated')
     }
-    
+
     loading.value = true
     try {
       const response = await apiService.updateProfile(updateData)
@@ -102,17 +122,60 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // OAuth相关方法
+  async function fetchOAuthUserInfo() {
+    if (!token.value) {
+      throw new Error('User not authenticated')
+    }
+
+    try {
+      const response = await fetch('/api/oauth/userinfo/', {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // 更新用户信息中的OAuth相关字段
+        if (user.value) {
+          user.value = { ...user.value, ...data }
+        }
+        return data
+      }
+    } catch (error) {
+      console.error('获取OAuth用户信息失败:', error)
+      throw error
+    }
+  }
+
+  async function refreshUserInfo() {
+    // 同时获取用户资料和OAuth信息
+    try {
+      await Promise.all([
+        fetchProfile(),
+        fetchOAuthUserInfo()
+      ])
+    } catch (error) {
+      console.error('刷新用户信息失败:', error)
+      throw error
+    }
+  }
+
   return {
     user,
     token,
     loading,
     isAuthenticated,
     userProfile,
+    isOAuthUser,
+    oAuthProviders,
+    hasMultipleOAuthAccounts,
+    setToken,
     register,
     login,
     logout,
     fetchProfile,
     updateProfile,
-    setToken // 导出setToken方法
+    fetchOAuthUserInfo,
+    refreshUserInfo
   }
 })

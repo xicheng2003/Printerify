@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ProductIntroView from '../views/ProductIntroView.vue'
 import AuthView from '../views/AuthView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import OAuthCallbackView from '@/views/OAuthCallbackView.vue'
 
 // 引入新页面组件
 const router = createRouter({
@@ -54,6 +55,15 @@ const router = createRouter({
       name: 'profile',
       component: ProfileView,
       meta: { title: '个人资料' }
+    },
+    // OAuth回调页面
+    {
+      path: '/oauth/callback',
+      name: 'oauth-callback',
+      component: OAuthCallbackView,
+      meta: {
+        title: 'OAuth登录回调'
+      }
     }
   ]
 })

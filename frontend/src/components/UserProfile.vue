@@ -8,15 +8,15 @@
         </svg>
       </div>
       <div class="user-info">
-        <h2 class="username">{{ user.username }}</h2>
-        <p class="member-since">注册于 {{ formatDate(user.date_joined) }}</p>
+        <h2 class="username">{{ user?.username || '用户' }}</h2>
+        <p class="member-since">注册于 {{ user?.date_joined ? formatDate(user.date_joined) : '未知' }}</p>
       </div>
     </div>
 
     <div class="profile-details">
       <div class="detail-item">
         <label>用户名</label>
-        <p>{{ user.username }}</p>
+        <p>{{ user?.username || '用户' }}</p>
       </div>
 
       <div class="detail-item">
@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import BaseButton from '@/components/BaseButton.vue'
 import Modal from '@/components/Modal.vue'
@@ -124,6 +124,7 @@ const updateError = ref('')
 const user = computed(() => userStore.user)
 
 const fullName = computed(() => {
+  if (!user.value) return ''
   const first = user.value.first_name || ''
   const last = user.value.last_name || ''
   return first || last ? `${first} ${last}`.trim() : ''
@@ -165,11 +166,13 @@ function updateProfile() {
 
   // 准备更新数据
   const updateData = {}
-  Object.keys(editForm).forEach(key => {
-    if (editForm[key] !== user.value[key]) {
-      updateData[key] = editForm[key]
-    }
-  })
+  if (user.value) {
+    Object.keys(editForm).forEach(key => {
+      if (editForm[key] !== user.value[key]) {
+        updateData[key] = editForm[key]
+      }
+    })
+  }
 
   userStore.updateProfile(updateData)
     .then(() => {
@@ -185,6 +188,16 @@ function updateProfile() {
 
 // 当打开编辑模态框时，填充当前用户数据
 showEditModal.value = false // 初始化为关闭状态
+
+// 监听用户数据变化，当编辑模态框打开时填充用户数据
+watch(showEditModal, (isOpen) => {
+  if (isOpen && user.value) {
+    editForm.first_name = user.value.first_name || ''
+    editForm.last_name = user.value.last_name || ''
+    editForm.email = user.value.email || ''
+    editForm.phone_number = user.value.phone_number || ''
+  }
+})
 </script>
 
 <style scoped>
@@ -333,16 +346,16 @@ showEditModal.value = false // 初始化为关闭状态
   .user-profile-container {
     padding: 1.5rem;
   }
-  
+
   .profile-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .profile-actions {
     flex-direction: column;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
