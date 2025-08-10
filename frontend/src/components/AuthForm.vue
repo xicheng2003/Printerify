@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import BaseButton from '@/components/BaseButton.vue'
 
@@ -111,6 +111,11 @@ const formData = reactive({
   phone_number: '',
   password: '',
   password_confirm: ''
+})
+
+// 当isLogin属性改变时，重置错误信息
+watch(() => props.isLogin, () => {
+  error.value = ''
 })
 
 const isFormValid = computed(() => {

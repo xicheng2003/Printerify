@@ -11,19 +11,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AuthForm from '@/components/AuthForm.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-// 根据路由确定是登录还是注册视图
-const isLoginView = ref(route.name === 'login')
+// 根据当前路由动态计算是登录还是注册视图
+const isLoginView = computed(() => route.name === 'login')
 
 function toggleAuthMode() {
   // 切换登录/注册模式
-  if (isLoginView.value) {
+  if (route.name === 'login') {
     router.push('/auth/register')
   } else {
     router.push('/auth/login')
