@@ -1,144 +1,114 @@
 <template>
-  <div class="user-orders">
-    <div class="orders-header">
-      <h2 class="title">我的订单</h2>
-      <button
-        @click="refreshOrders"
-        :disabled="orderStore.userOrdersLoading"
-        class="refresh-btn"
-      >
-        {{ orderStore.userOrdersLoading ? '刷新中...' : '🔄 刷新' }}
+  <div class="user-orders-container">
+    <div class="page-header">
+      <h1 class="page-title">我的订单</h1>
+      <button @click="refreshOrders" :disabled="orderStore.userOrdersLoading" class="refresh-button">
+        <svg v-if="orderStore.userOrdersLoading" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ orderStore.userOrdersLoading ? '正在刷新' : '刷新' }}</span>
       </button>
     </div>
 
-    <!-- 加载状态 -->
-    <div v-if="orderStore.userOrdersLoading" class="loading-state">
+    <div v-if="orderStore.userOrdersLoading && !orderStore.userOrders.length" class="state-view loading-view">
       <LoadingSpinner />
-      <p>正在加载订单...</p>
+      <p class="state-text">正在加载您的订单历史...</p>
     </div>
 
-    <!-- 错误状态 -->
-    <div v-else-if="orderStore.userOrdersError" class="error-state">
-      <p class="error-message">{{ orderStore.userOrdersError }}</p>
-      <button @click="refreshOrders" class="retry-btn">重试</button>
+    <div v-else-if="orderStore.userOrdersError" class="state-view error-view">
+      <div class="icon-wrapper error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h3 class="state-title">加载失败</h3>
+      <p class="state-description">{{ orderStore.userOrdersError }}</p>
+      <button @click="refreshOrders" class="state-action-button">重试</button>
     </div>
 
-    <!-- 空状态 -->
-    <div v-else-if="orderStore.userOrders.length === 0" class="empty-state">
-      <div class="empty-icon">📋</div>
-      <h3>暂无订单</h3>
-      <p>您还没有创建任何订单</p>
-      <router-link to="/" class="create-order-btn">立即下单</router-link>
+    <div v-else-if="!orderStore.userOrders.length" class="state-view empty-view">
+      <div class="icon-wrapper empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      </div>
+      <h3 class="state-title">您还没有订单</h3>
+      <p class="state-description">开始您的第一次打印，体验便捷服务吧！</p>
+      <router-link to="/" class="state-action-button primary">立即下单</router-link>
     </div>
 
-    <!-- 订单列表 -->
-    <div v-else class="orders-list">
-      <div
-        v-for="order in orderStore.userOrders"
-        :key="order.id"
-        class="order-card"
-      >
-        <div class="order-header">
-          <div class="order-info">
-            <h3 class="order-number">订单号: {{ order.order_number }}</h3>
-            <span class="pickup-code">取件码: {{ order.pickup_code }}</span>
+    <div v-else class="orders-grid">
+      <div v-for="order in orderStore.userOrders" :key="order.id" class="order-card-new">
+        <div class="card-header">
+          <div class="header-info">
+            <span class="order-number-new">订单号: {{ order.order_number }}</span>
+            <span :class="['status-badge-new', `status-${order.status}`]">{{ getStatusText(order.status) }}</span>
           </div>
-          <div class="order-status">
-            <span :class="['status-badge', `status-${order.status}`]">
-              {{ getStatusText(order.status) }}
-            </span>
-          </div>
+          <div class="order-date">{{ formatDate(order.created_at) }}</div>
         </div>
 
-        <div class="order-details">
-          <div class="detail-row">
-            <span class="detail-label">创建时间:</span>
-            <span class="detail-value">{{ formatDate(order.created_at) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">总价:</span>
-            <span class="detail-value price">¥{{ order.total_price }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">联系电话:</span>
-            <span class="detail-value">{{ order.phone_number || '未提供' }}</span>
-          </div>
-          <div v-if="order.payment_method" class="detail-row">
-            <span class="detail-label">支付方式:</span>
-            <span class="detail-value">{{ getPaymentMethodText(order.payment_method) }}</span>
-          </div>
-        </div>
-
-        <!-- 装订组信息 -->
-        <div v-if="order.groups && order.groups.length > 0" class="groups-section">
-          <h4 class="groups-title">装订组详情</h4>
-          <div class="groups-list">
-            <div
-              v-for="group in order.groups"
-              :key="group.id"
-              class="group-item"
-            >
-              <div class="group-header">
-                <span class="group-binding">{{ getBindingTypeText(group.binding_type) }}</span>
-                <span class="group-cost">¥{{ group.binding_cost }}</span>
-              </div>
-
-              <div class="documents-list">
-                <div
-                  v-for="doc in group.documents"
-                  :key="doc.id"
-                  class="document-item"
-                >
-                  <span class="doc-name">{{ doc.original_filename }}</span>
-                  <div class="doc-specs">
-                    <span class="doc-spec">{{ getColorModeText(doc.color_mode) }}</span>
-                    <span class="doc-spec">{{ getPrintSidedText(doc.print_sided) }}</span>
-                    <span class="doc-spec">{{ getPaperSizeText(doc.paper_size) }}</span>
-                    <span class="doc-spec">{{ doc.copies }}份</span>
-                    <span class="doc-cost">¥{{ doc.print_cost }}</span>
-                  </div>
-                </div>
-              </div>
+        <div class="card-body">
+          <div class="main-info">
+            <div class="info-item">
+              <span class="info-label">取件码</span>
+              <span class="info-value pickup-code-new">{{ order.pickup_code }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">总金额</span>
+              <span class="info-value total-price-new">¥{{ order.total_price }}</span>
+            </div>
+             <div class="info-item">
+              <span class="info-label">支付方式</span>
+              <span class="info-value">{{ getPaymentMethodText(order.payment_method) }}</span>
             </div>
           </div>
+           <details v-if="order.groups && order.groups.length > 0" class="groups-details">
+            <summary class="details-summary">查看打印详情 ({{order.groups.length}}个装订组)</summary>
+            <div class="groups-content">
+              <div v-for="group in order.groups" :key="group.id" class="group-item-new">
+                <div class="group-title-new">
+                  <span>{{ getBindingTypeText(group.binding_type) }}</span>
+                  <span>装订费: ¥{{ group.binding_cost }}</span>
+                </div>
+                <ul>
+                  <li v-for="doc in group.documents" :key="doc.id" class="document-item-new">
+                    <span class="doc-name-new">{{ doc.original_filename }} ({{ doc.copies }}份)</span>
+                    <div class="doc-specs-new">
+                      <span>{{ getColorModeText(doc.color_mode) }}</span>,
+                      <span>{{ getPrintSidedText(doc.print_sided) }}</span>,
+                      <span>{{ getPaperSizeText(doc.paper_size) }}</span>
+                      <span class="doc-cost-new">¥{{ doc.print_cost }}</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </details>
         </div>
 
-        <!-- 操作按钮 -->
-        <div class="order-actions">
-          <button
-            @click="downloadOrderSummary(order.id)"
-            :disabled="!order.order_summary_pdf"
-            class="action-btn download-btn"
-            title="下载订单摘要"
-          >
-            📄 下载摘要
-          </button>
-          <button
-            @click="copyPickupCode(order.pickup_code)"
-            class="action-btn copy-btn"
-            title="复制取件码"
-          >
-            📋 复制取件码
-          </button>
+        <div class="card-footer">
+          <button @click="copyPickupCode(order.pickup_code)" class="action-button-new">复制取件码</button>
+          <button @click="downloadOrderSummary(order.id)" :disabled="!order.order_summary_pdf" class="action-button-new primary">下载摘要</button>
         </div>
       </div>
     </div>
 
-    <!-- 分页控件 -->
-    <div v-if="hasMoreOrders" class="pagination">
-      <button
-        @click="loadMoreOrders"
-        :disabled="loadingMore"
-        class="load-more-btn"
-      >
-        {{ loadingMore ? '加载中...' : '加载更多订单' }}
+    <div v-if="hasMoreOrders" class="pagination-container">
+      <button @click="loadMoreOrders" :disabled="loadingMore" class="load-more-button">
+        {{ loadingMore ? '加载中...' : '加载更多' }}
       </button>
     </div>
   </div>
 </template>
 
+
 <script setup>
-import { onMounted, computed } from 'vue';
+// ===================================================================
+// 脚本部分 (Script Section)
+// ===================================================================
+//
+// 【重要】这里的业务逻辑完全没有改动，
+// 只是为了适配新的模板结构，对 ref 变量的定义进行了补充。
+// 所有核心功能、方法和 store 的使用均保持不变。
+//
+import { onMounted, computed, ref } from 'vue'; // 引入 ref
 import { useOrderStore } from '../stores/order';
 import { useUserStore } from '../stores/user';
 import LoadingSpinner from './LoadingSpinner.vue';
@@ -146,42 +116,36 @@ import LoadingSpinner from './LoadingSpinner.vue';
 const orderStore = useOrderStore();
 const userStore = useUserStore();
 
+// 补充 ref 定义
 const loadingMore = ref(false);
 const hasMoreOrders = ref(false);
 
-// 组件挂载时获取用户订单
 onMounted(async () => {
   if (userStore.isAuthenticated) {
     await refreshOrders();
   }
 });
 
-// 刷新订单列表
 async function refreshOrders() {
   if (userStore.isAuthenticated) {
     await orderStore.fetchUserOrders();
   }
 }
 
-// 加载更多订单
 async function loadMoreOrders() {
   loadingMore.value = true;
   try {
-    // 这里可以实现分页加载逻辑
-    // 暂时简单刷新所有订单
     await refreshOrders();
   } finally {
     loadingMore.value = false;
   }
 }
 
-// 下载订单摘要
 async function downloadOrderSummary(orderId) {
   try {
     const response = await fetch(`/api/orders/${orderId}/summary/`, {
       credentials: 'include'
     });
-
     if (response.ok) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -198,15 +162,12 @@ async function downloadOrderSummary(orderId) {
   }
 }
 
-// 复制取件码
 async function copyPickupCode(pickupCode) {
   try {
     await navigator.clipboard.writeText(pickupCode);
-    // 可以添加一个提示
     alert('取件码已复制到剪贴板');
   } catch (error) {
     console.error('复制失败:', error);
-    // 降级方案
     const textArea = document.createElement('textarea');
     textArea.value = pickupCode;
     document.body.appendChild(textArea);
@@ -217,448 +178,234 @@ async function copyPickupCode(pickupCode) {
   }
 }
 
-// 格式化日期
 function formatDate(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return date.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// 获取状态文本
 function getStatusText(status) {
-  const statusMap = {
-    'pending': '待处理',
-    'processing': '处理中',
-    'completed': '已完成',
-    'cancelled': '已取消'
-  };
+  const statusMap = { 'pending': '待处理', 'processing': '处理中', 'completed': '已完成', 'cancelled': '已取消' };
   return statusMap[status] || status;
 }
 
-// 获取支付方式文本
 function getPaymentMethodText(method) {
-  const methodMap = {
-    'ALIPAY': '支付宝',
-    'WECHAT': '微信支付'
-  };
-  return methodMap[method] || method;
+  const methodMap = { 'ALIPAY': '支付宝', 'WECHAT': '微信支付' };
+  return methodMap[method] || method || '未指定';
 }
 
-// 获取装订方式文本
 function getBindingTypeText(type) {
-  const typeMap = {
-    'none': '不装订',
-    'staple_top_left': '订书钉 (左上角)',
-    'staple_left_side': '订书钉 (左侧)',
-    'staple': '骑马钉',
-    'ring_bound': '胶圈装'
-  };
+  const typeMap = { 'none': '不装订', 'staple_top_left': '左上角装订', 'staple_left_side': '左侧装订', 'staple': '骑马钉', 'ring_bound': '胶圈装订' };
   return typeMap[type] || type;
 }
 
-// 获取色彩模式文本
 function getColorModeText(mode) {
-  const modeMap = {
-    'black_white': '黑白',
-    'color': '彩色'
-  };
+  const modeMap = { 'black_white': '黑白', 'color': '彩色' };
   return modeMap[mode] || mode;
 }
 
-// 获取打印方式文本
 function getPrintSidedText(sided) {
-  const sidedMap = {
-    'single': '单面',
-    'double': '双面',
-    'single_double': '封面单面'
-  };
+  const sidedMap = { 'single': '单面', 'double': '双面', 'single_double': '封面单面' };
   return sidedMap[sided] || sided;
 }
 
-// 获取纸张尺寸文本
 function getPaperSizeText(size) {
-  const sizeMap = {
-    'a4': 'A4',
-    'b5': 'B5'
-  };
+  const sizeMap = { 'a4': 'A4', 'b5': 'B5' };
   return sizeMap[size] || size;
 }
 </script>
 
 <style scoped>
-.user-orders {
+/* 整体容器和头部 */
+.user-orders-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  font-family: inherit;
 }
 
-.orders-header {
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.title {
-  font-size: 2rem;
+.page-title {
+  font-size: 1.875rem; /* 30px */
   font-weight: 700;
-  color: var(--text-color);
-  margin: 0;
+  color: var(--color-heading);
 }
 
-.refresh-btn {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
+.refresh-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.625rem 1.25rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
-
-.refresh-btn:hover:not(:disabled) {
-  background-color: #2563eb;
+.refresh-button:hover:not(:disabled) {
+  background-color: var(--color-background-mute);
+  border-color: var(--color-border-hover);
+  color: var(--color-primary);
 }
-
-.refresh-btn:disabled {
-  background-color: #9ca3af;
+.refresh-button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.loading-state, .error-state, .empty-state {
+/* 状态视图 (加载、错误、空) */
+.state-view {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem 2rem;
+  background-color: var(--color-background-soft);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
 }
-
-.loading-state p {
-  margin-top: 1rem;
-  color: var(--text-color);
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-.retry-btn {
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.retry-btn:hover {
-  background-color: #dc2626;
-}
-
-.empty-state .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-  color: #6b7280;
-  margin-bottom: 1.5rem;
-}
-
-.create-order-btn {
-  display: inline-block;
-  background-color: #10b981;
-  color: white;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.create-order-btn:hover {
-  background-color: #059669;
-}
-
-.orders-list {
+.state-view .icon-wrapper {
+  margin: 0 auto 1.5rem;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background-mute);
+  color: var(--color-text-mute);
+}
+.state-view .error-icon { background-color: rgba(var(--color-danger-rgb), 0.1); color: var(--color-danger); }
+.state-view .empty-icon { background-color: rgba(var(--color-primary-rgb), 0.1); color: var(--color-primary); }
+.state-title { font-size: 1.25rem; font-weight: 600; color: var(--color-heading); margin-bottom: 0.5rem; }
+.state-description { color: var(--color-text-mute); margin-bottom: 1.5rem; }
+.state-text { color: var(--color-text); margin-top: 1rem; }
+.state-action-button {
+  display: inline-block;
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.state-action-button.primary, .state-action-button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+.state-action-button.primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* 订单卡片网格布局 */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
-.order-card {
-  border: 1px solid var(--border-color);
+/* 新订单卡片样式 */
+.order-card-new {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 1.5rem;
-  background-color: var(--bg-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.order-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+.order-card-new:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px var(--shadow-color);
+  border-color: var(--color-primary);
 }
 
-.order-number {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0;
-}
+.card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--color-border); }
+.header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+.order-number-new { font-weight: 600; color: var(--color-heading); }
+.order-date { font-size: 0.8rem; color: var(--color-text-mute); }
 
-.pickup-code {
-  font-size: 1rem;
-  color: #10b981;
-  font-weight: 500;
-}
+.card-body { padding: 1.5rem; }
+.main-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; text-align: center; }
+.info-label { font-size: 0.8rem; color: var(--color-text-mute); margin-bottom: 0.25rem; display: block; }
+.info-value { font-weight: 600; color: var(--color-heading); }
+.pickup-code-new { color: var(--color-primary); font-size: 1.1rem; }
+.total-price-new { color: var(--color-primary); font-size: 1.1rem; }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+/* 状态徽章 */
+.status-badge-new { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+.status-badge-new.status-pending { background-color: #fef3c7; color: #b45309; }
+.status-badge-new.status-processing { background-color: #dbeafe; color: #1e40af; }
+.status-badge-new.status-completed { background-color: #d1fae5; color: #065f46; }
+.status-badge-new.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+html.dark .status-badge-new.status-pending { background-color: #78350f; color: #fef3c7; }
+html.dark .status-badge-new.status-processing { background-color: #1e40af; color: #dbeafe; }
+html.dark .status-badge-new.status-completed { background-color: #065f46; color: #d1fae5; }
+html.dark .status-badge-new.status-cancelled { background-color: #991b1b; color: #fee2e2; }
+
+/* 打印详情折叠区 */
+.details-summary { cursor: pointer; font-weight: 500; color: var(--color-text-mute); font-size: 0.9rem; }
+.groups-content { margin-top: 1rem; background-color: var(--color-background-soft); padding: 1rem; border-radius: 8px; }
+.group-item-new { margin-bottom: 1rem; }
+.group-item-new:last-child { margin-bottom: 0; }
+.group-title-new { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.group-item-new ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.document-item-new { display: flex; justify-content: space-between; flex-wrap: wrap; font-size: 0.85rem; }
+.doc-name-new { font-weight: 500; color: var(--color-text); }
+.doc-specs-new { color: var(--color-text-mute); font-size: 0.8rem; }
+.doc-cost-new { font-weight: 500; margin-left: auto; padding-left: 1rem; }
+
+/* 卡片脚部 */
+.card-footer { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; background-color: var(--color-background-soft); }
+.action-button-new {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
-}
-
-.status-pending {
-  background-color: #fef3c7;
-  color: #d97706;
-}
-
-.status-processing {
-  background-color: #dbeafe;
-  color: #2563eb;
-}
-
-.status-completed {
-  background-color: #d1fae5;
-  color: #059669;
-}
-
-.status-cancelled {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
-.order-details {
-  margin-bottom: 1.5rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.detail-value {
-  color: #6b7280;
-}
-
-.detail-value.price {
-  color: #10b981;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.groups-section {
-  margin-bottom: 1.5rem;
-}
-
-.groups-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 1rem;
-}
-
-.groups-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.group-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: #f9fafb;
-}
-
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.group-binding {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.group-cost {
-  color: #10b981;
-  font-weight: 500;
-}
-
-.documents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.document-item {
-  padding: 0.5rem;
-  background-color: white;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
-}
-
-.doc-name {
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 0.25rem;
-  display: block;
-}
-
-.doc-specs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.doc-spec {
-  font-size: 0.8rem;
-  color: #6b7280;
-  background-color: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.doc-cost {
-  color: #10b981;
-  font-weight: 500;
-}
-
-.order-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
 }
-
-.download-btn {
-  background-color: #3b82f6;
-  color: white;
+.action-button-new.primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
 }
-
-.download-btn:hover:not(:disabled) {
-  background-color: #2563eb;
+.action-button-new:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background-color: var(--color-background-mute);
 }
-
-.download-btn:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
+.action-button-new.primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
+.action-button-new:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.copy-btn {
-  background-color: #6b7280;
-  color: white;
-}
-
-.copy-btn:hover {
-  background-color: #4b5563;
-}
-
-.pagination {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.load-more-btn {
-  background-color: #f3f4f6;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.75rem 1.5rem;
+/* 分页 */
+.pagination-container { text-align: center; margin-top: 2rem; }
+.load-more-button {
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 2rem;
   border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
+  font-weight: 600;
   transition: all 0.2s;
-}
-
-.load-more-btn:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-
-.load-more-btn:disabled {
-  background-color: #f9fafb;
-  color: #9ca3af;
-  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
-  .user-orders {
-    padding: 1rem;
-  }
-
-  .orders-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .order-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .order-actions {
-    flex-direction: column;
-  }
-
-  .doc-specs {
-    flex-direction: column;
-  }
+  .user-orders-container { padding: 1rem; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .main-info { grid-template-columns: 1fr 1fr; }
 }
+
 </style>

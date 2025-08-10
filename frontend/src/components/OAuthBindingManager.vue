@@ -1,119 +1,116 @@
 <template>
-  <div class="oauth-binding-manager">
-    <h3 class="binding-title">OAuth账户管理</h3>
+  <div class="oauth-binding-manager rounded-xl border border-[var(--color-border)] bg-[var(--color-background-soft)] p-6 shadow-sm transition-colors duration-300 md:p-8">
 
-    <!-- 绑定状态显示 -->
-    <div class="binding-status">
-      <div class="status-item">
-        <div class="status-icon">
-          <svg v-if="bindings.github_id" class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-          </svg>
-          <svg v-else class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path>
-          </svg>
-        </div>
-        <div class="status-info">
-          <span class="status-label">GitHub</span>
-          <span v-if="bindings.github_id" class="status-text text-green-600">已绑定</span>
-          <span v-else class="status-text text-gray-500">未绑定</span>
-        </div>
-        <div class="status-actions">
-          <button
-            v-if="!bindings.github_id"
-            @click="bindGitHub"
-            class="bind-btn github-btn"
-            :disabled="loading"
-          >
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"></path>
-            </svg>
-            绑定GitHub
-          </button>
-          <button
-            v-else
-            @click="unbindAccount('github')"
-            class="unbind-btn"
-            :disabled="loading"
-          >
-            解绑
-          </button>
-        </div>
-      </div>
+    <h3 class="text-xl font-bold text-[var(--color-heading)] md:text-2xl">
+      第三方账户绑定
+    </h3>
+    <p class="mb-6 text-sm text-[var(--color-text-mute)]">
+      绑定后，您可以使用第三方账户快速登录，无需记住密码。
+    </p>
 
-      <div class="status-item">
-        <div class="status-icon">
-          <svg v-if="bindings.google_id" class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+    <div class="space-y-4">
+      <div class="flex flex-col items-start gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4 transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-md sm:flex-row sm:items-center">
+        <div class="flex flex-1 items-center gap-4">
+          <svg class="h-8 w-8 text-[var(--color-heading)]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.492.5.092.682-.217.682-.483 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
           </svg>
-          <svg v-else class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path>
-          </svg>
-        </div>
-        <div class="status-info">
-          <span class="status-label">Google</span>
-          <span v-if="bindings.google_id" class="status-text text-green-600">已绑定</span>
-          <span v-else class="status-text text-gray-500">未绑定</span>
-        </div>
-        <div class="status-actions">
-          <button
-            v-if="!bindings.google_id"
-            @click="bindGoogle"
-            class="bind-btn google-btn"
-            :disabled="loading"
-          >
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M15.545 12.045a3.5 3.5 0 01-3.5 3.5h-8a3.5 3.5 0 01-3.5-3.5v-8a3.5 3.5 0 013.5-3.5h8a3.5 3.5 0 013.5 3.5v8z"></path>
-            </svg>
-            绑定Google
-          </button>
-          <button
-            v-else
-            @click="unbindAccount('google')"
-            class="unbind-btn"
-            :disabled="loading"
-          >
-            解绑
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 绑定详情 -->
-    <div v-if="bindings.bindings && bindings.bindings.length > 0" class="binding-details">
-      <h4 class="details-title">绑定详情</h4>
-      <div class="details-list">
-        <div
-          v-for="binding in bindings.bindings"
-          :key="`${binding.provider}-${binding.uid}`"
-          class="detail-item"
-        >
-          <div class="detail-info">
-            <span class="detail-provider">{{ getProviderName(binding.provider) }}</span>
-            <span class="detail-uid">ID: {{ binding.uid }}</span>
-            <span class="detail-date">绑定时间: {{ formatDate(binding.date_joined) }}</span>
+          <div>
+            <p class="font-semibold text-[var(--color-heading)]">GitHub</p>
+            <span v-if="bindings.github_id" class="inline-flex items-center rounded-full bg-[var(--color-success)]/10 px-2 py-1 text-xs font-medium text-[var(--color-success)]">已绑定</span>
+            <span v-else class="inline-flex items-center rounded-full bg-[var(--color-background-mute)] px-2 py-1 text-xs font-medium text-[var(--color-text-mute)]">未绑定</span>
           </div>
         </div>
+        <div class="w-full sm:w-auto">
+          <BaseButton v-if="!bindings.github_id" @click="bindGitHub" :loading="loading" :disabled="loading">
+            立即绑定
+          </BaseButton>
+          <button v-else @click="promptUnbind('github')" :disabled="loading" class="unbind-button">
+            解除绑定
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-start gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4 transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-md sm:flex-row sm:items-center">
+        <div class="flex flex-1 items-center gap-4">
+          <svg class="h-8 w-8" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"></path><path fill="#34A853" d="M24 46c5.94 0 10.92-1.96 14.56-5.3l-7.11-5.52c-1.96 1.32-4.48 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.5v5.7C8.14 40.73 15.58 46 24 46z"></path><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.5C2.82 17.45 2 20.58 2 24s.82 6.55 2.5 9.88l7.19-5.7z"></path><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.58 2 8.14 7.27 4.5 14.12l7.19 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"></path>
+          </svg>
+          <div>
+            <p class="font-semibold text-[var(--color-heading)]">Google</p>
+            <span v-if="bindings.google_id" class="inline-flex items-center rounded-full bg-[var(--color-success)]/10 px-2 py-1 text-xs font-medium text-[var(--color-success)]">已绑定</span>
+            <span v-else class="inline-flex items-center rounded-full bg-[var(--color-background-mute)] px-2 py-1 text-xs font-medium text-[var(--color-text-mute)]">未绑定</span>
+          </div>
+        </div>
+        <div class="w-full sm:w-auto">
+           <BaseButton v-if="!bindings.google_id" @click="bindGoogle" :loading="loading" :disabled="loading">
+            立即绑定
+          </BaseButton>
+           <button v-else @click="promptUnbind('google')" :disabled="loading" class="unbind-button">
+            解除绑定
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- 提示信息 -->
-    <div class="binding-tips">
-      <p class="tip-text">
-        💡 绑定OAuth账户后，您可以使用多种方式登录，无需记住额外密码。
-      </p>
-      <p class="tip-text">
-        🔒 您的账户信息由OAuth提供商安全保护，我们不会获取您的密码。
+    <div v-if="bindings.bindings && bindings.bindings.length > 0" class="mt-8">
+      <h4 class="mb-4 text-lg font-bold text-[var(--color-heading)]">绑定记录</h4>
+      <div class="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4">
+        <div v-for="binding in bindings.bindings" :key="`${binding.provider}-${binding.uid}`" class="flex flex-col rounded-md p-3 transition-colors duration-300 hover:bg-[var(--color-background-mute)] md:flex-row md:items-center md:justify-between">
+          <div class="flex items-center gap-3">
+            <span class="font-semibold text-[var(--color-heading)]">{{ getProviderName(binding.provider) }}</span>
+            <span class="text-xs text-[var(--color-text-mute)]">ID: {{ binding.uid }}</span>
+          </div>
+          <span class="mt-1 text-xs text-[var(--color-text-mute)] md:mt-0">
+            绑定于 {{ formatDate(binding.date_joined) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 rounded-lg bg-[var(--color-background-mute)]/50 p-4">
+      <p class="text-sm text-[var(--color-text-mute)]">
+        💡 您的账户信息由 OAuth 提供商安全保护，我们不会获取或存储您的密码。
       </p>
     </div>
+
   </div>
+
+  <Modal :show="showConfirmModal" @close="showConfirmModal = false">
+    <template #header>
+      <h3 class="text-lg font-semibold text-[var(--color-heading)]">确认解绑</h3>
+    </template>
+    <template #body>
+      <p class="text-[var(--color-text)]">
+        您确定要解绑您的 {{ getProviderName(providerToUnbind) }} 账户吗？
+      </p>
+      <p class="mt-2 text-sm text-[var(--color-text-mute)]">
+        解绑后，您将无法再使用此账户进行登录。此操作不可撤销。
+      </p>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <button @click="showConfirmModal = false" class="rounded-lg border border-[var(--color-border)] bg-transparent px-4 py-2 font-semibold text-[var(--color-text)] transition-colors hover:bg-[var(--color-background-mute)]">
+          取消
+        </button>
+        <button @click="handleConfirmUnbind" :disabled="loading" class="flex items-center justify-center rounded-lg border border-transparent bg-[var(--color-danger)] px-4 py-2 font-semibold text-white transition-colors hover:bg-[var(--color-danger-hover)] disabled:opacity-50">
+          <div v-if="loading" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+          确认解绑
+        </button>
+      </div>
+    </template>
+  </Modal>
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import apiService from '@/services/apiService'
+// 【新增】导入所需组件
+import BaseButton from '@/components/BaseButton.vue'
+import Modal from '@/components/Modal.vue'
 
+// --- State ---
 const userStore = useUserStore()
 const loading = ref(false)
 const bindings = ref({
@@ -123,6 +120,11 @@ const bindings = ref({
   can_bind_google: true,
   bindings: []
 })
+// 【新增】模态框控制状态
+const showConfirmModal = ref(false)
+const providerToUnbind = ref(null)
+
+// --- Methods ---
 
 // 获取绑定状态
 const fetchBindings = async () => {
@@ -137,6 +139,7 @@ const fetchBindings = async () => {
 // 绑定GitHub
 const bindGitHub = async () => {
   if (!userStore.isAuthenticated) {
+    // 实际项目中可能会使用更优雅的提示组件
     alert('请先登录后再绑定OAuth账户')
     return
   }
@@ -144,15 +147,10 @@ const bindGitHub = async () => {
   loading.value = true
   try {
     const response = await apiService.bindGitHubAccount()
-    // 跳转到OAuth授权页面
     window.location.href = response.data.redirect_url
   } catch (error) {
     console.error('绑定GitHub失败:', error)
-    if (error.response?.data?.error) {
-      alert(`绑定失败: ${error.response.data.error}`)
-    } else {
-      alert('绑定失败，请稍后重试')
-    }
+    alert(error.response?.data?.error || '绑定失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -168,40 +166,41 @@ const bindGoogle = async () => {
   loading.value = true
   try {
     const response = await apiService.bindGoogleAccount()
-    // 跳转到OAuth授权页面
     window.location.href = response.data.redirect_url
   } catch (error) {
     console.error('绑定Google失败:', error)
-    if (error.response?.data?.error) {
-      alert(`绑定失败: ${error.response.data.error}`)
-    } else {
-      alert('绑定失败，请稍后重试')
-    }
+    alert(error.response?.data?.error || '绑定失败，请稍后重试')
   } finally {
     loading.value = false
   }
 }
 
-// 解绑账户
-const unbindAccount = async (provider) => {
-  if (!confirm(`确定要解绑${getProviderName(provider)}账户吗？`)) {
-    return
-  }
+// 【新增】触发解绑确认弹窗
+const promptUnbind = (provider) => {
+  providerToUnbind.value = provider
+  showConfirmModal.value = true
+}
 
+// 【新增】处理确认解绑逻辑
+const handleConfirmUnbind = async () => {
+  if (!providerToUnbind.value) return
+  await unbindAccount(providerToUnbind.value)
+  showConfirmModal.value = false
+  providerToUnbind.value = null
+}
+
+// 解绑账户 - 【修改】移除了 confirm()
+const unbindAccount = async (provider) => {
   loading.value = true
   try {
     await apiService.unbindOAuthAccount(provider)
-    // 刷新绑定状态
     await fetchBindings()
-    // 刷新用户信息
-    await userStore.fetchUserInfo()
+    if (userStore.fetchUserInfo) {
+      await userStore.fetchUserInfo()
+    }
   } catch (error) {
     console.error('解绑失败:', error)
-    if (error.response?.data?.error) {
-      alert(`解绑失败: ${error.response.data.error}`)
-    } else {
-      alert('解绑失败，请稍后重试')
-    }
+    alert(error.response?.data?.error || '解绑失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -209,6 +208,7 @@ const unbindAccount = async (provider) => {
 
 // 获取提供商名称
 const getProviderName = (provider) => {
+  if (!provider) return ''
   const names = {
     github: 'GitHub',
     google: 'Google'
@@ -224,130 +224,55 @@ const formatDate = (dateString) => {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
 
+// --- Lifecycle Hooks ---
 onMounted(async () => {
-  // 先初始化store，确保token被正确设置
-  await userStore.initializeStore()
+  if (userStore.initializeStore) {
+    await userStore.initializeStore()
+  }
   await fetchBindings()
 })
 </script>
 
 <style scoped>
-.oauth-binding-manager {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6;
+/* 【新增】解绑按钮的专属样式
+  使其与 BaseButton 风格统一（圆角、字体粗细），但颜色明确表示为危险操作。
+*/
+.unbind-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--color-danger);
+  transition: all 0.2s ease-in-out;
 }
 
-.binding-title {
-  @apply text-xl font-semibold text-gray-900 dark:text-white mb-6;
+.unbind-button:hover:not(:disabled) {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-text-on-danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
 }
 
-.binding-status {
-  @apply space-y-4 mb-6;
+.unbind-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.status-item {
-  @apply flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg;
-}
-
-.status-icon {
-  @apply mr-4;
-}
-
-.status-info {
-  @apply flex-1;
-}
-
-.status-label {
-  @apply block font-medium text-gray-900 dark:text-white;
-}
-
-.status-text {
-  @apply block text-sm;
-}
-
-.status-actions {
-  @apply ml-4;
-}
-
-.bind-btn {
-  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-colors duration-200;
-}
-
-.github-btn {
-  @apply bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500;
-}
-
-.google-btn {
-  @apply bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-}
-
-.unbind-btn {
-  @apply inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200;
-}
-
-.binding-details {
-  @apply mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg;
-}
-
-.details-title {
-  @apply text-lg font-medium text-gray-900 dark:text-white mb-3;
-}
-
-.details-list {
-  @apply space-y-2;
-}
-
-.detail-item {
-  @apply p-3 bg-white dark:bg-gray-600 rounded border border-gray-200 dark:border-gray-600;
-}
-
-.detail-info {
-  @apply flex flex-col space-y-1;
-}
-
-.detail-provider {
-  @apply font-medium text-gray-900 dark:text-white;
-}
-
-.detail-uid {
-  @apply text-sm text-gray-600 dark:text-gray-300;
-}
-
-.detail-date {
-  @apply text-sm text-gray-500 dark:text-gray-400;
-}
-
-.binding-tips {
-  @apply mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg;
-}
-
-.tip-text {
-  @apply text-sm text-blue-800 dark:text-blue-200 mb-2 last:mb-0;
-}
-
-/* 禁用状态 */
-.bind-btn:disabled,
-.unbind-btn:disabled {
-  @apply opacity-50 cursor-not-allowed;
-}
-
-/* 响应式设计 */
-@media (max-width: 640px) {
-  .status-item {
-    @apply flex-col items-start space-y-3;
-  }
-
-  .status-actions {
-    @apply ml-0 w-full;
-  }
-
-  .bind-btn,
-  .unbind-btn {
-    @apply w-full justify-center;
+/* 适配移动端，让按钮宽度100% */
+@media (min-width: 640px) {
+  .unbind-button {
+    width: auto;
   }
 }
 </style>
