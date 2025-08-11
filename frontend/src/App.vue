@@ -21,7 +21,7 @@
         </nav>
 
         <div class="header-controls">
-          <UserAuthStatus />
+          <UserAuthStatus class="desktop-user-info" />
           <ThemeSwitcher />
           <button @click="toggleMobileMenu" class="mobile-menu-button">
             <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,7 +97,6 @@
 
     <footer class="app-footer">
       <div class="container">
-        <p>Made with ❤️ by Xicheng2003</p>
         <p>&copy; 2025 Printerify. All Rights Reserved.</p>
       </div>
     </footer>
@@ -465,6 +464,11 @@ function handleMobileLogout() {
   }
   .mobile-menu-button {
     display: flex;
+  }
+
+  /* 隐藏桌面端用户信息组件 */
+  .desktop-user-info {
+    display: none;
   }
 
   /* --- 移动端导航栏优化 --- */
