@@ -83,7 +83,9 @@ export const useUserStore = defineStore('user', () => {
       return response.data
     } catch (error) {
       console.error('注册失败:', error)
-      throw error
+      // 使用友好的错误提示
+      const errorMessage = error.friendlyMessage || error.message || '注册失败，请重试'
+      throw new Error(errorMessage)
     } finally {
       loading.value = false
     }
@@ -101,7 +103,9 @@ export const useUserStore = defineStore('user', () => {
       return response.data
     } catch (error) {
       console.error('登录失败:', error)
-      throw error
+      // 使用友好的错误提示
+      const errorMessage = error.friendlyMessage || error.message || '登录失败，请重试'
+      throw new Error(errorMessage)
     } finally {
       loading.value = false
     }

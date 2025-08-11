@@ -35,35 +35,94 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      switch (error.response.status) {
+      const { status, data } = error.response;
+
+      switch (status) {
+        case 400:
+          // 处理验证错误，提供友好的中文提示
+          const friendlyError = formatValidationErrors(data);
+          error.friendlyMessage = friendlyError;
+          console.warn('请求验证失败:', friendlyError);
+          break;
         case 401:
           // 认证失败，清除本地token
           localStorage.removeItem('token');
-          // 可以在这里触发全局的登出事件
+          error.friendlyMessage = '登录已过期，请重新登录';
           window.dispatchEvent(new CustomEvent('auth:unauthorized'));
           break;
         case 403:
-          console.warn('权限不足:', error.response.data);
+          error.friendlyMessage = '权限不足，无法执行此操作';
+          console.warn('权限不足:', data);
           break;
         case 404:
-          console.warn('请求的资源不存在:', error.response.data);
+          error.friendlyMessage = '请求的资源不存在';
+          console.warn('请求的资源不存在:', data);
           break;
         case 500:
-          console.error('服务器内部错误:', error.response.data);
+          error.friendlyMessage = '服务器内部错误，请稍后重试';
+          console.error('服务器内部错误:', data);
           break;
         default:
-          console.error('请求失败:', error.response.data);
+          error.friendlyMessage = '请求失败，请稍后重试';
+          console.error('请求失败:', data);
       }
     } else if (error.request) {
       // 请求已发出但没有收到响应
+      error.friendlyMessage = '网络连接失败，请检查网络后重试';
       console.error('网络错误，请检查网络连接');
     } else {
       // 请求配置出错
+      error.friendlyMessage = '请求配置错误，请检查输入';
       console.error('请求配置错误:', error.message);
     }
     return Promise.reject(error);
   }
 );
+
+// 格式化验证错误的函数
+function formatValidationErrors(errorData) {
+  if (typeof errorData === 'string') {
+    return errorData;
+  }
+
+  if (typeof errorData === 'object' && errorData !== null) {
+    const errorMessages = [];
+
+    // 处理字段验证错误
+    for (const [field, errors] of Object.entries(errorData)) {
+      if (Array.isArray(errors)) {
+        // 将字段名转换为中文
+        const fieldName = getFieldDisplayName(field);
+        errors.forEach(error => {
+          errorMessages.push(`${fieldName}: ${error}`);
+        });
+      } else if (typeof errors === 'string') {
+        errorMessages.push(errors);
+      }
+    }
+
+    return errorMessages.length > 0 ? errorMessages.join('; ') : '输入数据验证失败';
+  }
+
+  return '请求数据格式错误';
+}
+
+// 字段名中英文映射
+function getFieldDisplayName(field) {
+  const fieldMap = {
+    'username': '用户名',
+    'email': '邮箱',
+    'password': '密码',
+    'password_confirm': '确认密码',
+    'phone_number': '手机号',
+    'first_name': '姓',
+    'last_name': '名',
+    'non_field_errors': '通用错误',
+    'detail': '错误详情'
+  };
+
+  return fieldMap[field] || field;
+}
 
 // 初始化 CSRF token
 async function initializeCSRF() {

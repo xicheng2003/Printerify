@@ -46,8 +46,19 @@ class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        # 添加调试日志
+        logger.info(f"Registration request received: {request.data}")
+        logger.info(f"Request content type: {request.content_type}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        
+        # 检查序列化器验证结果
+        if not serializer.is_valid():
+            logger.error(f"Serializer validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info("Serializer validation passed, creating user...")
         user = serializer.save()
         
         # 创建Token
@@ -56,6 +67,8 @@ class UserRegistrationView(generics.CreateAPIView):
         # 登录用户，指定使用默认的ModelBackend
         from django.contrib.auth import authenticate
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        
+        logger.info(f"User created successfully: {user.username}")
         
         return Response({
             'user': UserSerializer(user).data,

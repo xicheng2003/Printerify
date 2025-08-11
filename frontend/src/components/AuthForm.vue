@@ -21,6 +21,8 @@
       </div>
     </div>
 
+
+
     <form @submit.prevent="handleSubmit" class="auth-form">
       <!-- 用户名字段 -->
       <div class="form-group">
@@ -184,17 +186,15 @@
           </svg>
           {{ isLogin ? '立即登录' : '创建账户' }}
         </template>
+
       </BaseButton>
 
-      <!-- 错误信息 -->
-      <div v-if="error" class="error-message">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
-        </svg>
-        {{ error }}
-      </div>
+      <!-- 错误提示组件 -->
+      <ErrorDisplay
+        :error="error"
+        :dismissible="true"
+        @dismiss="error = ''"
+      />
 
       <!-- 切换登录/注册 -->
       <div class="auth-toggle">
@@ -225,6 +225,7 @@ import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import BaseButton from '@/components/BaseButton.vue'
 import OAuthLogin from './OAuthLogin.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 
 const props = defineProps({
   isLogin: {
@@ -320,7 +321,23 @@ async function handleSubmit() {
 
     emit('auth-success')
   } catch (err) {
-    error.value = err.response?.data?.detail || err.message || '操作失败，请重试'
+    // 使用友好的错误提示
+    error.value = err.message || '操作失败，请重试'
+
+    // 如果是用户名重复错误，提供特殊提示
+    if (err.message && err.message.includes('用户名')) {
+      error.value = '用户名已被使用，请选择其他用户名'
+    }
+
+    // 如果是邮箱重复错误，提供特殊提示
+    if (err.message && err.message.includes('邮箱')) {
+      error.value = '该邮箱已被注册，请使用其他邮箱或尝试登录'
+    }
+
+    // 如果是密码错误，提供特殊提示
+    if (err.message && err.message.includes('密码')) {
+      error.value = '密码格式不正确，请确保密码至少8位'
+    }
   } finally {
     loading.value = false
   }
@@ -536,19 +553,7 @@ async function handleSubmit() {
   box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
 }
 
-/* 错误信息 */
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, var(--color-danger), rgba(220, 53, 69, 0.9));
-  color: white;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-  animation: slideIn 0.3s ease-out;
-}
+/* 错误信息样式已移至ErrorDisplay组件 */
 
 @keyframes slideIn {
   from {
