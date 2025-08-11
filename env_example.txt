@@ -1,0 +1,33 @@
+# Django 核心配置
+SECRET_KEY=django-insecure-your-secret-key-here-change-in-production
+DEBUG=True
+
+# 数据库配置
+USE_POSTGRES=False
+
+# 如果使用PostgreSQL，取消注释并设置以下变量
+# USE_POSTGRES=True
+# POSTGRES_DB=printerify
+# POSTGRES_USER=your_db_user
+# POSTGRES_PASSWORD=your_db_password
+# POSTGRES_HOST=localhost
+# POSTGRES_PORT=5432
+
+# 邮件配置
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+EMAIL_HOST=localhost
+EMAIL_PORT=25
+EMAIL_USE_TLS=False
+EMAIL_USE_SSL=False
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+DEFAULT_FROM_EMAIL=
+
+# Redis配置
+REDIS_PASSWORD=
+
+# OAuth配置（可选）
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
