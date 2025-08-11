@@ -21,6 +21,7 @@
         </nav>
 
         <div class="header-controls">
+          <UserAuthStatus class="desktop-user-info" />
           <ThemeSwitcher />
           <button @click="toggleMobileMenu" class="mobile-menu-button">
             <svg v-if="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -39,6 +40,52 @@
             <RouterLink to="/order" @click="closeMobileMenu">自助打印</RouterLink>
             <RouterLink to="/query" @click="closeMobileMenu">订单查询</RouterLink>
             <RouterLink to="/terms" @click="closeMobileMenu">关于</RouterLink>
+
+            <!-- 移动端登录注册选项 -->
+            <div class="mobile-auth-section">
+              <div v-if="userStore.isAuthenticated" class="mobile-user-menu">
+                <div class="mobile-user-info">
+                  <div class="mobile-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <span class="mobile-username">{{ userStore.user?.username }}</span>
+                </div>
+                <RouterLink to="/profile" @click="closeMobileMenu" class="mobile-menu-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  个人中心
+                </RouterLink>
+                <button @click="handleMobileLogout" class="mobile-menu-item mobile-logout">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  退出登录
+                </button>
+              </div>
+              <div v-else class="mobile-auth-buttons">
+                <RouterLink to="/auth/login" @click="closeMobileMenu" class="mobile-auth-button mobile-login">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-4l-3-3 3-3m-3 3h9"></path>
+                  </svg>
+                  登录
+                </RouterLink>
+                <RouterLink to="/auth/register" @click="closeMobileMenu" class="mobile-auth-button mobile-register">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <path d="M20 8v6M23 11l-3 3-3-3"></path>
+                  </svg>
+                  注册
+                </RouterLink>
+              </div>
+            </div>
           </nav>
         </div>
       </Transition>
@@ -50,7 +97,6 @@
 
     <footer class="app-footer">
       <div class="container">
-        <p>Made with ❤️ by Xicheng2003</p>
         <p>&copy; 2025 Printerify. All Rights Reserved.</p>
       </div>
     </footer>
@@ -62,20 +108,20 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'; // 1. 引入 watchEffect
-import { RouterLink, RouterView } from 'vue-router';
+import { ref, watchEffect, onMounted, onUnmounted } from 'vue'; // 1. 引入 watchEffect
+import { RouterLink, RouterView, useRouter } from 'vue-router';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import UserAuthStatus from '@/components/UserAuthStatus.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { useOrderStore } from '@/stores/order';
-import { useThemeStore } from '@/stores/theme';
-// ▼▼▼【核心修改】在这里导入我们新创建的页脚组件 ▼▼▼
-import TheFooter from './components/TheFooter.vue';
+import { useUserStore } from '@/stores/user';
 
 const isMobileMenuOpen = ref(false);
 const orderStore = useOrderStore();
-const themeStore = useThemeStore(); // 2. 获取 themeStore 实例
+const userStore = useUserStore();
+const router = useRouter();
 
-// 3. 新增一个副作用函数，用于动态修改网页“画布”的底色
+// 3. 新增一个副作用函数，用于动态修改网页"画布"的底色
 watchEffect(() => {
   // a. 定义两种背景色
   const softBackground = 'var(--color-background-soft)';
@@ -93,12 +139,51 @@ watchEffect(() => {
   }
 });
 
+// 全局认证事件监听器
+function handleAuthUnauthorized() {
+  console.log('检测到认证失效，清除用户状态');
+  userStore.logout();
+  // 如果当前页面需要认证，重定向到登录页
+  if (router.currentRoute.value.meta.requiresAuth) {
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } });
+  }
+}
+
+// 定期检查用户状态
+let statusCheckInterval;
+
+onMounted(() => {
+  // 监听认证失效事件
+  window.addEventListener('auth:unauthorized', handleAuthUnauthorized);
+
+  // 每5分钟检查一次用户状态
+  statusCheckInterval = setInterval(() => {
+    if (userStore.isAuthenticated) {
+      userStore.checkAndRefreshUserStatus();
+    }
+  }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+  // 清理事件监听器和定时器
+  window.removeEventListener('auth:unauthorized', handleAuthUnauthorized);
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
+  }
+});
+
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 }
 
 function closeMobileMenu() {
   isMobileMenuOpen.value = false;
+}
+
+function handleMobileLogout() {
+  userStore.logout();
+  closeMobileMenu();
+  router.push('/');
 }
 </script>
 
@@ -250,6 +335,119 @@ function closeMobileMenu() {
   font-weight: 600;
 }
 
+/* 移动端认证区域样式 */
+.mobile-auth-section {
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-background-mute);
+  margin: 0 1rem 0.5rem 1rem;
+  border-radius: 12px;
+}
+
+.mobile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: white;
+  flex-shrink: 0;
+}
+
+.mobile-username {
+  font-weight: 600;
+  color: var(--color-heading);
+  font-size: 1rem;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-align: left;
+}
+
+.mobile-menu-item:hover {
+  background-color: var(--color-background-mute);
+  color: var(--color-primary);
+}
+
+.mobile-logout {
+  color: var(--color-danger);
+}
+
+.mobile-logout:hover {
+  background-color: var(--color-background-mute);
+  color: var(--color-danger-hover);
+}
+
+.mobile-auth-buttons {
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.mobile-login {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.mobile-login:hover {
+  background-color: var(--color-background-mute);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.mobile-register {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 37, 99, 235), 0.3);
+}
+
+.mobile-register:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(var(--color-primary-rgb, 37, 99, 235), 0.4);
+}
+
 .dropdown-fade-enter-active,
 .dropdown-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -266,6 +464,11 @@ function closeMobileMenu() {
   }
   .mobile-menu-button {
     display: flex;
+  }
+
+  /* 隐藏桌面端用户信息组件 */
+  .desktop-user-info {
+    display: none;
   }
 
   /* --- 移动端导航栏优化 --- */

@@ -6,7 +6,14 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
-from .models import Order, BindingGroup, Document
+from .models import Order, BindingGroup, Document, User
+
+# 注册用户模型
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'phone_number', 'is_staff', 'is_active', 'date_joined')
+    list_filter = ('is_staff', 'is_active', 'date_joined')
+    search_fields = ('username', 'email', 'phone_number')
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):

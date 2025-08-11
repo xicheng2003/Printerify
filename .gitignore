@@ -17,3 +17,23 @@ db.sqlite3
 # IDE / Editor specific
 .idea/
 .vscode/
+
+# Project improvement plans
+IMPROVEMENTS_TODO.md
+
+# Test coverage reports
+htmlcov/
+.coverage
+coverage.xml
+
+# Test cache
+.pytest_cache/
+
+# Test database
+test_*.db
+
+# Gemini context file
+GEMINI.md
+
+# Documentation
+GEMINI.md

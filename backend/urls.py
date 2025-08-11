@@ -26,7 +26,12 @@ urlpatterns = [
     # 将所有对 'api/' 路径的请求，都转发到 api.urls 文件中去处理
     # 我们之前的测试API可以删掉了
     path('api/', include('api.urls')), 
+    # OAuth认证URL
+    path('accounts/', include('allauth.urls')),
+    path('auth/', include('allauth.account.urls')),
+    path('social/', include('allauth.socialaccount.urls')),
 ]
 # 只在DEBUG模式下，才让Django处理media文件的URL
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

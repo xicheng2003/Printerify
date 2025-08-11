@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import apiService from '@/services/apiService';
 
 const emit = defineEmits(['upload-success']);
 
@@ -45,14 +45,8 @@ async function handleFileChange(event) {
   uploadState.value = 'loading';
   uploadedFileName.value = file.name;
 
-  const formData = new FormData();
-  formData.append('file', file);
-
   try {
-    const response = await axios.post('/api/upload-payment/', formData, {
-      withCredentials: true,
-    });
-
+    const response = await apiService.uploadPaymentScreenshot(file);
     uploadState.value = 'success';
     emit('upload-success', response.data.screenshot_id);
 

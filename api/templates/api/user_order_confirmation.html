@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单确认 - Printerify</title>
+    <style>
+        /* General Reset & Body Style */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f4f7f6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
+        /* Main Container */
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .header-table {
+            width: auto;
+            margin: 0 auto;
+        }
+        .header-table td {
+            vertical-align: middle;
+        }
+        .header h1 {
+            color: #212529;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            padding-left: 12px;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 30px 40px;
+            color: #495057;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .content p {
+            margin: 0 0 25px 0;
+        }
+
+        /* Success Message */
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 0 0 25px 0; /* Changed margin */
+            text-align: center;
+        }
+        .success-message h2 {
+            color: #155724;
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        .success-message p {
+            color: #155724;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Pickup Code Highlight */
+        .pickup-code-highlight {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 0 0 25px 0; /* Changed margin */
+        }
+        .pickup-code-highlight .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .pickup-code-highlight .code {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        /* Order Details Table */
+        .order-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        .order-details th, .order-details td {
+            padding: 12px 0;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        .order-details th {
+            color: #6c757d;
+            font-weight: 500;
+            width: 120px;
+        }
+        .order-details td {
+            color: #212529;
+            font-weight: 600;
+        }
+        .order-details tr:last-child th,
+        .order-details tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Important Notes - Converted to paragraph style */
+        .important-notes {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffeaa7;
+            padding: 20px;
+            margin: 25px 0;
+            line-height: 1.7;
+        }
+        .important-notes p {
+            color: #856404;
+            margin: 0;
+            font-size: 15px;
+        }
+        .important-notes a {
+            color: #856404;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 12px;
+            color: #adb5bd;
+            background-color: #f8f9fa;
+        }
+         .footer p {
+            margin: 5px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <table class="header-table" role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>
+                        <img src="https://print.morlight.top/printerify.png" width="64" height="64" alt="Printerify Logo" style="display: block; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                    <td>
+                        <h1>Printerify</h1>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="content">
+            <div class="success-message">
+                <h2>🎉 订单已成功提交！</h2>
+                <p>我们已收到您的打印订单，并会尽快为您处理。</p>
+            </div>
+
+            <p>亲爱的 {% if order.user %}{{ order.user.get_display_name }}{% else %}用户{% endif %}，您好！</p>
+            <p>感谢您选择 Printerify。这是您的订单确认详情，请您核对。我们建议您妥善保存此邮件以备将来查询。</p>
+            
+            <div class="pickup-code-highlight">
+                <div class="label">您的专属取件码</div>
+                <div class="code">{{ order.pickup_code }}</div>
+            </div>
+
+            <table class="order-details" role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>订单号</th>
+                    <td>{{ order.order_number }}</td>
+                </tr>
+                <tr>
+                    <th>取件码</th>
+                    <td><strong>{{ order.pickup_code }}</strong></td>
+                </tr>
+                <tr>
+                    <th>订单总价</th>
+                    <td><strong>¥{{ order.total_price }}</strong></td>
+                </tr>
+                <tr>
+                    <th>支付方式</th>
+                    <td>{{ order.payment_method|default:"待确认" }}</td>
+                </tr>
+                <tr>
+                    <th>下单时间</th>
+                    <td>{{ order.created_at|date:"Y年m月d日 H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>联系电话</th>
+                    <td>{{ order.phone_number }}</td>
+                </tr>
+            </table>
+
+            <div class="important-notes">
+                <p>
+                    <strong>重要提醒：</strong>取件码 <strong>{{ order.pickup_code }}</strong> 是您领取打印文件的唯一凭证，请务必妥善保管。您可以通过访问 <a href="https://print.morlight.top/query">订单详情页面</a> 随时查看订单的最新状态。取件时，请向工作人员出示您的取件码并核对订单信息。如果您的订单需要加急处理或有任何疑问，请随时联系我们的客服。
+                </p>
+            </div>
+
+            <p style="margin-top: 30px; text-align: center; color: #6c757d;">
+                再次感谢您的信任与支持！
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; {% now "Y" %} Printerify. All rights reserved.</p>
+            <p>此邮件由系统自动发送，请勿直接回复。</p>
+        </div>
+    </div>
+</body>
+</html>

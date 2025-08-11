@@ -62,7 +62,9 @@ if DEBUG:
         'www.print.morlight.top', 
         ip_address, 
         'localhost', 
-        '127.0.0.1'
+        '198.18.0.1',
+        '127.0.0.1',
+        'testserver'  # 用于测试
     ]
 else:
     # In production, ONLY allow your specific domain.
@@ -79,10 +81,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'api',
     'django_filters',
     'django_extensions',
+    # OAuth认证相关应用
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -94,6 +103,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # OAuth中间件
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -137,6 +148,9 @@ TIME_ZONE = 'Asia/Shanghai'
 USE_I18N = True
 USE_TZ = True
 
+# Custom User Model
+AUTH_USER_MODEL = 'api.User'
+
 
 # Static and Media files
 STATIC_URL = 'static/'
@@ -154,6 +168,7 @@ if DEBUG:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://198.18.0.1:5173"
     ]
 else:
     # In production, ONLY allow your HTTPS frontend domain.
@@ -161,11 +176,21 @@ else:
         "https://print.morlight.top",
     ]
 
-# --- CSRF Configuration for HTTPS ---
-# This is crucial for POST requests (like file uploads) to work over HTTPS.
-CSRF_TRUSTED_ORIGINS = [
-    "https://print.morlight.top",
-]
+# --- CSRF Configuration ---
+# This is crucial for POST requests (like file uploads) to work.
+if DEBUG:
+    # In development, allow local frontend servers
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173", 
+        "http://198.18.0.1:5173",
+        "https://print.morlight.top",
+    ]
+else:
+    # In production, ONLY allow your HTTPS domain.
+    CSRF_TRUSTED_ORIGINS = [
+        "https://print.morlight.top",
+    ]
 
 # 【新增】允许跨域请求携带 Cookies 和身份凭证
 CORS_ALLOW_CREDENTIALS = True
@@ -226,3 +251,117 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE # 使用Django的时区
+
+# REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
+# OAuth认证配置
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# OAuth提供商配置
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        'SCOPE': [
+            'user',
+            'repo',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'offline',
+        }
+    },
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+# 登录设置
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# 账户设置
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+
+# OAuth环境变量配置
+GITHUB_CLIENT_ID = config('GITHUB_CLIENT_ID', default=None)
+GITHUB_CLIENT_SECRET = config('GITHUB_CLIENT_SECRET', default=None)
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default=None)
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default=None)
+
+# --- 日志配置 ---
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'django.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'api.views': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'api.services.oauth_service': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

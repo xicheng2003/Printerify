@@ -1,7 +1,7 @@
 <script setup>
 // --- 脚本部分无需任何修改，保持原样即可 ---
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import apiService from '@/services/apiService';
 
 const queryPhoneNumber = ref('');
 const queryPickupCode = ref('');
@@ -34,20 +34,11 @@ async function performQuery() {
   errorMessage.value = '';
 
   try {
-    const response = await axios.get('/api/orders/', {
-      params: {
-        phone: queryPhoneNumber.value,
-        code: queryPickupCode.value,
-      },
-      withCredentials: true,
-    });
+    const response = await apiService.queryOrder(queryPhoneNumber.value, queryPickupCode.value);
 
     if (response.data && response.data.length > 0) {
-      const orderId = response.data[0].id;
-      const detailedResponse = await axios.get(`/api/orders/${orderId}/`, {
-        withCredentials: true,
-      });
-      searchResult.value = detailedResponse.data;
+      // 如果返回多个订单，取第一个
+      searchResult.value = response.data[0];
     } else {
       searchResult.value = null;
     }

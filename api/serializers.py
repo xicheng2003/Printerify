@@ -2,7 +2,8 @@
 
 from rest_framework import serializers
 from django.db import transaction  # 导入数据库事务处理
-from .models import Order, BindingGroup, Document, generate_pickup_code
+from django.contrib.auth import authenticate
+from .models import Order, BindingGroup, Document, generate_pickup_code, User
 from .services import pricing  # 假设您的计费逻辑在 services/pricing.py 中
 from django.core.files import File # <-- 【新增】导入Django的File对象
 from pathlib import Path          # <-- 【新增】导入Path对象
@@ -10,12 +11,86 @@ from django.conf import settings  # <-- 【新增】导入settings
 # 【新增】导入我们的Celery任务
 from .tasks import process_order_creation_tasks 
 
+
+# --- 用户认证序列化器 ---
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    用户信息序列化器
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    用户注册序列化器
+    """
+    password = serializers.CharField(write_only=True, min_length=8)
+    password_confirm = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone_number', 'password', 'password_confirm')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError("两次输入的密码不一致")
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password_confirm')
+        user = User.objects.create_user(**validated_data)
+        return user
+
+
+class UserLoginSerializer(serializers.Serializer):
+    """
+    用户登录序列化器
+    """
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True, required=False)
+    oauth_provider = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+        oauth_provider = attrs.get('oauth_provider')
+
+        if oauth_provider:
+            # OAuth用户登录，不需要密码验证
+            try:
+                user = User.objects.get(username=username)
+                # 验证用户确实有对应的OAuth ID
+                if oauth_provider == 'github' and user.github_id:
+                    pass  # 验证通过
+                elif oauth_provider == 'google' and user.google_id:
+                    pass  # 验证通过
+                else:
+                    raise serializers.ValidationError("OAuth用户验证失败")
+            except User.DoesNotExist:
+                raise serializers.ValidationError("OAuth用户不存在")
+        else:
+            # 传统用户名密码登录
+            if not password:
+                raise serializers.ValidationError("密码是必填项")
+            
+            user = authenticate(username=username, password=password)
+            if not user:
+                raise serializers.ValidationError("用户名或密码错误")
+
+        attrs['user'] = user
+        return attrs
+
+
 # --- 嵌套序列化器：用于处理层级关系 ---
 
 # --- ▼▼▼ DocumentCreateSerializer 已修改 ▼▼▼ ---
 class DocumentCreateSerializer(serializers.Serializer):
     """
-    用于在创建订单时，接收单个文件信息的“子序列化器”。
+    用于在创建订单时，接收单个文件信息的"子序列化器"。
     【已更新】增加了 paper_size 并更新了 print_sided 的选项。
     """
     file_id = serializers.CharField()
@@ -30,7 +105,7 @@ class DocumentCreateSerializer(serializers.Serializer):
 
 class BindingGroupCreateSerializer(serializers.Serializer):
     """
-    用于在创建订单时，接收单个装订组信息的“子序列化器”。
+    用于在创建订单时，接收单个装订组信息的"子序列化器"。
     """
     binding_type = serializers.CharField()
     sequence_in_order = serializers.IntegerField()
@@ -55,10 +130,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phone_number', None)
         screenshot_id = validated_data.pop('payment_screenshot_id', None)
         payment_method = validated_data.pop('payment_method', None)
+        
+        # 获取当前用户（如果已认证）
+        user = self.context['request'].user if self.context['request'].user.is_authenticated else None
 
         with transaction.atomic():
             pickup_code_str, pickup_code_num_val = generate_pickup_code()
             order = Order.objects.create(
+                user=user,  # 关联用户（如果已登录）
                 total_price=0,
                 phone_number=phone_number,
                 pickup_code=pickup_code_str,
@@ -170,6 +249,7 @@ class BindingGroupDetailSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     groups = BindingGroupDetailSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
     
     class Meta:
         model = Order
