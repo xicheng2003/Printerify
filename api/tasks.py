@@ -28,7 +28,8 @@ def process_order_creation_tasks(self, order_id):
         except Exception as e:
             print(f"!!! PDF生成失败，订单ID: {order.order_number}, 错误: {e}")
 
-        # 任务二：发送邮件提醒 (逻辑不变)
+        # 任务二：发送邮件提醒
+        # 2.1 发送管理员邮件提醒 (逻辑不变)
         try:
             admin_email = config('ADMIN_EMAIL', default=None)
             if admin_email:
@@ -44,7 +45,28 @@ def process_order_creation_tasks(self, order_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"!!! 邮件发送失败: {e}")
+            print(f"!!! 管理员邮件发送失败: {e}")
+
+        # 2.2 发送用户订单确认邮件
+        try:
+            if order.user and order.user.email:
+                context = { 'order': order }
+                html_message = render_to_string('api/user_order_confirmation.html', context)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    f'订单确认 - 取件码: {order.pickup_code} | Printerify',
+                    plain_message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [order.user.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                print(f"✓ 用户订单确认邮件已发送至: {order.user.email}")
+            else:
+                print(f"! 订单 {order.order_number} 未关联用户或无邮箱地址，跳过用户邮件发送")
+        except Exception as e:
+            print(f"!!! 用户订单确认邮件发送失败: {e}")
+            # 用户邮件发送失败不影响其他任务，只记录错误
 
         return f"Order {order_id} post-processing finished."
 
