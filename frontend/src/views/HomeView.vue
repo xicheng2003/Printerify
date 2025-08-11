@@ -365,13 +365,13 @@ function dismissBanner() {
 
 function goToLogin() {
   // 跳转到登录页面
-  router.push('/auth');
+  router.push('/auth/login');
   dismissBanner();
 }
 
 function goToRegister() {
   // 跳转到注册页面
-  router.push('/auth?mode=register');
+  router.push('/auth/register');
   dismissBanner();
 }
 
