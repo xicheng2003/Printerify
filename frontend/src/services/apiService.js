@@ -11,6 +11,7 @@ axios.defaults.withCredentials = true; // 允许跨域请求携带cookie
 const apiClient = axios.create({
   baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
   withCredentials: true, // 确保每个请求都携带凭据
+  timeout: 10000, // 10秒超时
 });
 
 // 添加请求拦截器来自动添加认证token
@@ -33,9 +34,32 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // 认证失败，清除本地token
-      localStorage.removeItem('token');
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          // 认证失败，清除本地token
+          localStorage.removeItem('token');
+          // 可以在这里触发全局的登出事件
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+          break;
+        case 403:
+          console.warn('权限不足:', error.response.data);
+          break;
+        case 404:
+          console.warn('请求的资源不存在:', error.response.data);
+          break;
+        case 500:
+          console.error('服务器内部错误:', error.response.data);
+          break;
+        default:
+          console.error('请求失败:', error.response.data);
+      }
+    } else if (error.request) {
+      // 请求已发出但没有收到响应
+      console.error('网络错误，请检查网络连接');
+    } else {
+      // 请求配置出错
+      console.error('请求配置错误:', error.message);
     }
     return Promise.reject(error);
   }
@@ -201,5 +225,15 @@ export default {
   // 获取当前token
   getToken() {
     return localStorage.getItem('token');
+  },
+
+  // 检查token是否有效
+  async validateToken() {
+    try {
+      const response = await this.getProfile();
+      return response.status === 200;
+    } catch {
+      return false;
+    }
   }
 };

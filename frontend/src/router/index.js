@@ -4,6 +4,7 @@ import ProductIntroView from '../views/ProductIntroView.vue'
 import AuthView from '../views/AuthView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import OAuthCallbackView from '@/views/OAuthCallbackView.vue'
+import { useUserStore } from '@/stores/user'
 
 // 引入新页面组件
 const router = createRouter({
@@ -54,7 +55,10 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
-      meta: { title: '个人资料' }
+      meta: {
+        title: '个人资料',
+        requiresAuth: true // 需要登录
+      }
     },
     // OAuth回调页面
     {
@@ -68,10 +72,37 @@ const router = createRouter({
   ]
 })
 
-// 这是一个导航守卫，可以自动更新浏览器标签页的标题
-router.beforeEach((to, from, next) => {
+// 路由守卫：检查认证状态
+router.beforeEach(async (to, from, next) => {
   const pageTitle = to.meta.title ? `${to.meta.title} - 自助打印服务` : '自助打印服务';
   document.title = pageTitle;
+
+  // 检查是否需要认证
+  if (to.meta.requiresAuth) {
+    const userStore = useUserStore();
+
+    // 如果用户未认证，尝试从本地存储恢复状态
+    if (!userStore.isAuthenticated) {
+      try {
+        await userStore.initializeStore();
+      } catch (error) {
+        console.warn('Failed to initialize user store:', error);
+      }
+    }
+
+    // 如果仍然未认证，重定向到登录页
+    if (!userStore.isAuthenticated) {
+      next({ name: 'login', query: { redirect: to.fullPath } });
+      return;
+    }
+  }
+
+  // 如果已登录用户访问登录/注册页，重定向到首页
+  if ((to.name === 'login' || to.name === 'register') && useUserStore().isAuthenticated) {
+    next({ name: 'intro' });
+    return;
+  }
+
   next();
 });
 

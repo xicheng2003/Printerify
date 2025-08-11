@@ -5,10 +5,16 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { useUserStore } from '@/stores/user'
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
+
+// 在应用挂载前初始化用户状态
+const userStore = useUserStore()
+await userStore.initializeStore()
 
 app.mount('#app')

@@ -222,6 +222,7 @@
 <script setup>
 import { ref, computed, reactive, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useRouter, useRoute } from 'vue-router'
 import BaseButton from '@/components/BaseButton.vue'
 import OAuthLogin from './OAuthLogin.vue'
 
@@ -235,6 +236,8 @@ const props = defineProps({
 const emit = defineEmits(['update:isLogin', 'auth-success'])
 
 const userStore = useUserStore()
+const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
 const error = ref('')
 const showPassword = ref(false)
@@ -310,6 +313,10 @@ async function handleSubmit() {
     Object.keys(formData).forEach(key => {
       formData[key] = ''
     })
+
+    // 处理登录成功后的重定向
+    const redirectPath = route.query.redirect || '/'
+    router.push(redirectPath)
 
     emit('auth-success')
   } catch (err) {

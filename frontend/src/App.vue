@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'; // 1. 引入 watchEffect
+import { ref, watchEffect, onMounted, onUnmounted } from 'vue'; // 1. 引入 watchEffect
 import { RouterLink, RouterView, useRouter } from 'vue-router';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import UserAuthStatus from '@/components/UserAuthStatus.vue';
@@ -137,6 +137,39 @@ watchEffect(() => {
   const appContainer = document.getElementById('app-container');
   if (appContainer) {
     appContainer.style.backgroundColor = mainBackground;
+  }
+});
+
+// 全局认证事件监听器
+function handleAuthUnauthorized() {
+  console.log('检测到认证失效，清除用户状态');
+  userStore.logout();
+  // 如果当前页面需要认证，重定向到登录页
+  if (router.currentRoute.value.meta.requiresAuth) {
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } });
+  }
+}
+
+// 定期检查用户状态
+let statusCheckInterval;
+
+onMounted(() => {
+  // 监听认证失效事件
+  window.addEventListener('auth:unauthorized', handleAuthUnauthorized);
+
+  // 每5分钟检查一次用户状态
+  statusCheckInterval = setInterval(() => {
+    if (userStore.isAuthenticated) {
+      userStore.checkAndRefreshUserStatus();
+    }
+  }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+  // 清理事件监听器和定时器
+  window.removeEventListener('auth:unauthorized', handleAuthUnauthorized);
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
   }
 });
 
