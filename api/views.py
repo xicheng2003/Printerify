@@ -286,28 +286,53 @@ class PaymentScreenshotUploadView(generics.CreateAPIView):
     一个专门用于接收付款凭证截图的视图。
     它接收一个图片文件，将其保存到 'payments/' 目录，并返回一个唯一ID。
     """
-    permission_classes = [permissions.AllowAny]  # 允许任何用户上传付款截图
+    permission_classes = [permissions.AllowAny]  # 允许任何用户上传付款截图，包括未登录用户
     
     def create(self, request, *args, **kwargs):
-        screenshot_file = request.FILES.get('file')
-        if not screenshot_file:
-            return Response({'error': '没有提供文件'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            screenshot_file = request.FILES.get('file')
+            if not screenshot_file:
+                return Response({'error': '没有提供文件'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 为了安全和区分，我们为支付凭证创建一个独立的存储实例
-        # 这会将其保存在 'media/payments/' 目录下
-        fs = FileSystemStorage(location=Path(settings.MEDIA_ROOT) / 'payments')
-        
-        # 使用UUID生成唯一文件名
-        file_extension = Path(screenshot_file.name).suffix
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        
-        # 保存文件
-        filename = fs.save(unique_filename, screenshot_file)
-        
-        # 返回给前端需要的数据
-        return Response({
-            'screenshot_id': filename, # 返回保存后的文件名作为ID
-        }, status=status.HTTP_201_CREATED)
+            # 检查文件类型
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png']
+            if screenshot_file.content_type not in allowed_types:
+                return Response({
+                    'error': '不支持的文件类型，请上传JPEG或PNG格式的图片'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # 检查文件大小（限制为5MB）
+            if screenshot_file.size > 5 * 1024 * 1024:
+                return Response({
+                    'error': '文件大小不能超过5MB'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # 为了安全和区分，我们为支付凭证创建一个独立的存储实例
+            # 这会将其保存在 'media/payments/' 目录下
+            fs = FileSystemStorage(location=Path(settings.MEDIA_ROOT) / 'payments')
+            
+            # 使用UUID生成唯一文件名
+            file_extension = Path(screenshot_file.name).suffix
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            
+            # 保存文件
+            filename = fs.save(unique_filename, screenshot_file)
+            
+            # 记录上传日志
+            user_info = f"user_{request.user.id}" if request.user.is_authenticated else "anonymous"
+            logger.info(f"Payment screenshot uploaded: {filename} by {user_info}")
+            
+            # 返回给前端需要的数据
+            return Response({
+                'screenshot_id': filename, # 返回保存后的文件名作为ID
+                'message': '付款截图上传成功'
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Payment screenshot upload error: {str(e)}")
+            return Response({
+                'error': '上传过程中发生错误，请稍后重试'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GitHubLoginView(View):
     """GitHub OAuth登录视图"""

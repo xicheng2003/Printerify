@@ -101,7 +101,7 @@ export default {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiClient.post('/api/upload-payment/', formData, {
+    return apiClient.post('/api/upload-screenshot/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
