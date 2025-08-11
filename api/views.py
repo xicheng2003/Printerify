@@ -53,8 +53,9 @@ class UserRegistrationView(generics.CreateAPIView):
         # 创建Token
         token, created = Token.objects.get_or_create(user=user)
         
-        # 登录用户
-        login(request, user)
+        # 登录用户，指定使用默认的ModelBackend
+        from django.contrib.auth import authenticate
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         
         return Response({
             'user': UserSerializer(user).data,
@@ -74,8 +75,8 @@ class UserLoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         
-        # 登录用户
-        login(request, user)
+        # 登录用户，指定使用默认的ModelBackend
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         
         # 获取或创建Token
         token, created = Token.objects.get_or_create(user=user)
