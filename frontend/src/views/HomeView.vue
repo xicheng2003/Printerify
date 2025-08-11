@@ -7,6 +7,59 @@
       </div>
     </Teleport>
 
+    <!-- 登录引导横幅 - 仅对未登录用户显示 -->
+    <transition name="slide-down" appear>
+      <div v-if="!userStore.isAuthenticated && showLoginGuideBanner" class="login-guide-banner">
+        <div class="banner-content">
+          <div class="banner-left">
+            <div class="banner-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10,17 15,12 10,7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+            </div>
+            <div class="banner-text">
+              <h3 class="banner-title">登录体验更多功能</h3>
+              <p class="banner-subtitle">保存订单历史 • 专属优惠券 • 快速下单</p>
+            </div>
+          </div>
+          <div class="banner-actions">
+            <button @click="goToLogin" class="banner-login-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10,17 15,12 10,7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              立即登录
+            </button>
+            <button @click="goToRegister" class="banner-register-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+              免费注册
+            </button>
+            <button @click="remindLater" class="banner-remind-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12,6 12,12 16,14"></polyline>
+              </svg>
+              稍后提醒
+            </button>
+          </div>
+          <button @click="dismissBanner" class="banner-close-btn" title="关闭提示">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </transition>
+
     <section class="hero-section">
       <h2 class="animated-hero-title">简单、快速、可靠</h2>
       <p>Printerify，为每一次打印赋能。</p>
@@ -50,7 +103,7 @@
                     <strong>装订组使用技巧：</strong>
                     <ul>
                       <li>
-                        <strong>合并装订：</strong>新上传时，每个文件都是独立的“装订组”。如需将多个文件装订在一起，请按住组标题旁的 <span>⠿</span> 拖拽，并覆盖到另一组上即可合并。
+                        <strong>合并装订：</strong>新上传时，每个文件都是独立的"装订组"。如需将多个文件装订在一起，请按住组标题旁的 <span>⠿</span> 拖拽，并覆盖到另一组上即可合并。
                       </li>
                       <li>
                         <strong>调整顺序：</strong>当您为合并后的组选择了任意一项装订服务后，组内文件的从上到下顺序即为最终的打印和装订顺序。您可以按住单个文件左侧的 <span>⠿</span> 上下拖拽，自由调整它们的打印顺序。
@@ -159,17 +212,17 @@
         <div class="terms-text">
             <p><strong>最后更新日期：2025年7月14日</strong></p>
             <h4>引言与协议接受</h4>
-            <p>欢迎使用 Printerify（以下简称“本服务”）。本服务条款构成您（以下简称“用户”）与 Printerify（以下简称“我们”）之间具有法律约束力的协议。在访问或使用本服务之前，请您务必仔细阅读并充分理解本条款的全部内容。您通过访问服务页面、上传文件、下单或任何其他方式使用本服务，即表示您已阅读、理解并同意接受本条款所有内容的约束。若您不同意本条款的任何内容，请立即停止使用本服务。</p>
+            <p>欢迎使用 Printerify（以下简称"本服务"）。本服务条款构成您（以下简称"用户"）与 Printerify（以下简称"我们"）之间具有法律约束力的协议。在访问或使用本服务之前，请您务必仔细阅读并充分理解本条款的全部内容。您通过访问服务页面、上传文件、下单或任何其他方式使用本服务，即表示您已阅读、理解并同意接受本条款所有内容的约束。若您不同意本条款的任何内容，请立即停止使用本服务。</p>
             <h4>服务描述</h4>
             <p>Printerify 为您提供一个便捷的在线平台，允许您上传需要打印的数字文件，自定义打印规格（如纸张类型、尺寸、颜色等），提交订单，并通过指定的支付方式完成付款。订单完成后，您将获得一个唯一的取件码，凭此码在指定地点领取您的实体打印成品。我们致力于提供高质量的打印服务，但 Printerify 保留根据运营需求随时修改、暂停或永久终止部分或全部服务的权利。若发生此类变动，我们将尽力通过网站公告等形式提前通知用户。</p>
             <h4>用户行为与内容规范</h4>
-            <p>用户承诺在使用本服务时，将严格遵守所有适用的法律法规。您对通过本服务上传、提交或分享的所有文件、数据及信息（以下统称为“用户内容”）负有完全的法律责任。您必须保证，您所上传的用户内容拥有合法的知识产权，或已获得相关权利人的充分授权，不会侵犯任何第三方的版权、商标权、专利权、肖像权、隐私权或其他合法权益。严禁用户利用本服务上传、打印或传播任何包含非法、淫秽色情、暴力、恐怖、赌博、诽谤、骚扰、种族歧视或任何其他违反法律、道德及社会公序良俗的内容。Printerify 有权单方面判断用户内容是否违反本条款，并无需通知即可拒绝打印、删除相关内容，并视情节严重程度，暂停或永久终止向该用户提供服务。</p>
+            <p>用户承诺在使用本服务时，将严格遵守所有适用的法律法规。您对通过本服务上传、提交或分享的所有文件、数据及信息（以下统称为"用户内容"）负有完全的法律责任。您必须保证，您所上传的用户内容拥有合法的知识产权，或已获得相关权利人的充分授权，不会侵犯任何第三方的版权、商标权、专利权、肖像权、隐私权或其他合法权益。严禁用户利用本服务上传、打印或传播任何包含非法、淫秽色情、暴力、恐怖、赌博、诽谤、骚扰、种族歧视或任何其他违反法律、道德及社会公序良俗的内容。Printerify 有权单方面判断用户内容是否违反本条款，并无需通知即可拒绝打印、删除相关内容，并视情节严重程度，暂停或永久终止向该用户提供服务。</p>
             <h4>订单、支付与交付</h4>
             <p>本服务的订单流程、具体价格计算方式以及可接受的支付渠道均以网站页面实时显示为准。您在提交订单前，请仔细核对订单详情，包括打印规格、数量和总金额。订单一旦提交，即表示您确认了订单内容。Printerify 将根据您上传的支付凭证来核实付款状态，并在确认付款后开始处理您的订单。我们会尽力确保打印质量，但由于设备、耗材及文件本身等因素，打印成品可能存在合理的色彩、尺寸误差，此不属于质量问题。若因 Printerify 的设备或操作失误导致严重的打印质量问题，我们将根据具体情况为您提供重印或退款服务。订单完成后生成的取件码是您领取打印成品的唯一凭证，请务必妥善保管，因您个人保管不善导致的任何损失，由您自行承担。</p>
             <h4>知识产权</h4>
             <p>Printerify 尊重并保护知识产权。您上传至本服务的用户内容的知识产权，仍归您或原始权利人所有。您仅授予我们一项非独家的、为履行打印订单之目的所必需的权利，来使用、复制和处理您的用户内容。订单履行完毕后，此授权自动终止。与此同时，Printerify 网站本身所包含的所有内容，包括但不限于Logo、商标、文字、图形、界面设计、代码、算法和软件的知识产权，均归我们所有，受相关法律保护。未经我们书面许可，任何个人或组织不得以任何形式进行复制、修改、传播或用于任何商业目的。</p>
             <h4>免责声明与责任限制</h4>
-            <p>在适用法律允许的最大范围内，本服务及其所有内容均是“按现状”和“按可用状态”提供的，Printerify 不作任何形式的明示或暗示的保证，包括但不限于服务的稳定性、可靠性、准确性或特定用途的适用性。对于因不可抗力、第三方服务（如网络中断）、系统维护或用户自身原因（如上传了格式错误、内容有误、分辨率过低的文件）导致的任何服务中断或打印质量问题，我们不承担责任。在任何情况下，我们因履行本条款而产生的全部赔偿责任，累计总额不应超过您为引起该责任的特定订单所支付的费用总额。</p>
+            <p>在适用法律允许的最大范围内，本服务及其所有内容均是"按现状"和"按可用状态"提供的，Printerify 不作任何形式的明示或暗示的保证，包括但不限于服务的稳定性、可靠性、准确性或特定用途的适用性。对于因不可抗力、第三方服务（如网络中断）、系统维护或用户自身原因（如上传了格式错误、内容有误、分辨率过低的文件）导致的任何服务中断或打印质量问题，我们不承担责任。在任何情况下，我们因履行本条款而产生的全部赔偿责任，累计总额不应超过您为引起该责任的特定订单所支付的费用总额。</p>
             <h4>协议的终止</h4>
             <p>如果用户违反本服务条款中的任何规定，Printerify 有权随时单方面中断或终止向该用户提供服务，而无需事先通知。用户也可以随时停止使用本服务，以终止本协议。协议终止后，我们不再有义务为用户提供任何服务，但用户在使用服务期间应尽的义务（如保密、知识产权、赔偿等）不因协议终止而免除。</p>
             <h4>条款的修订</h4>
@@ -186,7 +239,7 @@
         <div class="terms-text">
             <p><strong>最后更新日期：2025年7月14日</strong></p>
             <h4>引言</h4>
-            <p>Printerify（以下简称“我们”）深知个人信息对您的重要性，并承诺将依据法律法规，采取严格的安全保护措施，全力保护您的个人信息及隐私安全。本隐私协议旨在向您清晰地说明，在您使用我们的在线打印服务过程中，Printerify 如何收集、使用、存储、共享和保护您的个人信息，以及您所享有的相关权利。请您在使用本服务前，仔细阅读并确认您已经充分理解本协议所写明的内容。</p>
+            <p>Printerify（以下简称"我们"）深知个人信息对您的重要性，并承诺将依据法律法规，采取严格的安全保护措施，全力保护您的个人信息及隐私安全。本隐私协议旨在向您清晰地说明，在您使用我们的在线打印服务过程中，Printerify 如何收集、使用、存储、共享和保护您的个人信息，以及您所享有的相关权利。请您在使用本服务前，仔细阅读并确认您已经充分理解本协议所写明的内容。</p>
             <h4>我们收集的信息类型</h4>
             <p>为了向您提供完整、优质的打印服务，Printerify 会根据合法、正当、必要的原则，收集以下与您相关的信息。首先，是您为履行订单而主动提供的个人身份与联络信息，主要指您的手机号码，我们将用其与您进行订单相关的沟通。其次，是您为实现打印目的而上传的用户内容，即您希望打印的数字文件（如PDF、Word文档、图片等）。再次，当您选择特定支付方式时，我们可能会收集您上传的支付凭证截图，用以核实您的付款状态。最后，为了维护和改进我们的服务，Printerify 可能会自动收集一些技术与日志信息，例如您的IP地址、浏览器类型、操作系统、访问服务的日期与时间，以及您的操作记录等。这些信息通常是匿名的，无法直接关联到您的个人身份。</p>
             <h4>我们如何使用您的信息</h4>
@@ -233,13 +286,15 @@
         </div>
       </template>
     </Modal>
-</Teleport>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'; //【修改】引入computed
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'; //【修改】引入computed, watch, onUnmounted
+import { useRouter } from 'vue-router'; // 导入路由
 import { useOrderStore } from '@/stores/order';
 import apiService from '@/services/apiService'; //【修改】使用apiService而不是直接使用axios
+import { useUserStore } from '@/stores/user'; // 导入用户状态管理
 
 // 导入组件
 import Stepper from '@/components/Stepper.vue';
@@ -249,8 +304,10 @@ import BaseButton from '@/components/BaseButton.vue';
 import Modal from '@/components/Modal.vue';
 import OrderConfiguration from '@/components/OrderConfiguration.vue';
 
-// --- 使用 Pinia Store ---
+// --- 使用 Pinia Store 和 Router ---
 const orderStore = useOrderStore();
+const userStore = useUserStore(); // 使用用户状态管理
+const router = useRouter(); // 使用路由
 const screenshotId = ref(null); // <-- 【新增】用于存储凭证ID的状态
 
 // --- UI 控制相关的本地状态 ---
@@ -270,6 +327,63 @@ const isBindingHelpVisible = ref(true); // 默认显示
 
 function dismissBindingHelp() {
   isBindingHelpVisible.value = false;
+}
+
+// 登录引导横幅相关状态
+const showLoginGuideBanner = ref(true); // 默认显示
+
+// 页面初始化时检查用户是否之前关闭过横幅
+onMounted(() => {
+  // 移除本地存储检查，让横幅每次都能显示
+  // const hideBanner = localStorage.getItem('hideLoginGuideBanner');
+  // if (hideBanner === 'true') {
+  //   showLoginGuideBanner.value = false;
+  // }
+});
+
+// 监听用户登录状态变化
+const unwatchAuth = watch(() => userStore.isAuthenticated, (isAuth) => {
+  if (isAuth) {
+    // 用户登录成功后自动隐藏横幅
+    showLoginGuideBanner.value = false;
+  } else {
+    // 用户登出后重新显示横幅
+    showLoginGuideBanner.value = true;
+  }
+});
+
+// 组件卸载时清理监听器
+onUnmounted(() => {
+  unwatchAuth();
+});
+
+function dismissBanner() {
+  showLoginGuideBanner.value = false;
+  // 不再保存到本地存储，让横幅在下次访问时重新显示
+  // localStorage.setItem('hideLoginGuideBanner', 'true');
+}
+
+function goToLogin() {
+  // 跳转到登录页面
+  router.push('/auth');
+  dismissBanner();
+}
+
+function goToRegister() {
+  // 跳转到注册页面
+  router.push('/auth?mode=register');
+  dismissBanner();
+}
+
+function remindLater() {
+  // 稍后提醒逻辑，隐藏横幅一段时间后重新显示
+  showLoginGuideBanner.value = false;
+  // 设置一个较短的延迟时间，比如5分钟后重新显示
+  setTimeout(() => {
+    if (!userStore.isAuthenticated) {
+      showLoginGuideBanner.value = true;
+    }
+  }, 5 * 60 * 1000); // 5分钟
 }
 // ▲▲▲ 新增代码结束 ▲▲▲
 
@@ -947,6 +1061,280 @@ html.dark .payment-button-image {
   transform: translateY(-10px);
 }
 /* ▲▲▲ 新增样式结束 ▲▲▲ */
+
+/* ===================================================================
+   登录引导横幅样式
+   =================================================================== */
+.login-guide-banner {
+  background: linear-gradient(135deg, 
+    rgba(248, 250, 252, 0.95) 0%, 
+    rgba(241, 245, 249, 0.9) 100%);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.banner-text {
+  color: var(--color-heading);
+}
+
+.banner-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.banner-subtitle {
+  font-size: 0.9rem;
+  margin: 0;
+  color: var(--color-text-mute);
+  line-height: 1.4;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.banner-login-btn,
+.banner-register-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.banner-login-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.banner-login-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.banner-register-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.banner-register-btn:hover {
+  background: rgba(59, 130, 246, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.banner-remind-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--color-text-mute);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.banner-remind-btn:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.3);
+  transform: translateY(-1px);
+}
+
+.banner-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(148, 163, 184, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-mute);
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.banner-close-btn:hover {
+  background: rgba(148, 163, 184, 0.2);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* 横幅动画 */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .banner-content {
+    padding: 1.25rem 1.5rem;
+    gap: 1rem;
+  }
+  
+  .banner-title {
+    font-size: 1.125rem;
+  }
+  
+  .banner-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner-content {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem 1.25rem 1rem;
+    gap: 1.25rem;
+  }
+  
+  .banner-left {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .banner-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .banner-close-btn {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .banner-title {
+    font-size: 1.1rem;
+  }
+  
+  .banner-subtitle {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-guide-banner {
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+  }
+  
+  .banner-content {
+    padding: 1rem 1rem 0.75rem;
+  }
+  
+  .banner-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .banner-login-btn,
+  .banner-register-btn,
+  .banner-remind-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1rem;
+  }
+  
+  .banner-left {
+    gap: 0.75rem;
+  }
+  
+  .banner-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .banner-title {
+    font-size: 1rem;
+  }
+  
+  .banner-subtitle {
+    font-size: 0.75rem;
+  }
+}
+
+/* 暗色模式适配 */
+html.dark .login-guide-banner {
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.95) 0%, 
+    rgba(51, 65, 85, 0.9) 100%);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+/* ===================================================================
+   登录引导横幅样式结束
+   =================================================================== */
 
 /* ---【优化方案】基于 CSS 变量的真正无缝循环动画 --- */
 

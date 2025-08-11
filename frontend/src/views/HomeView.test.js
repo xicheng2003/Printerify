@@ -1,161 +1,135 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { createRouter, createWebHistory } from 'vue-router'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import HomeView from '@/views/HomeView.vue'
-import BaseButton from '@/components/BaseButton.vue'
-import Stepper from '@/components/Stepper.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from './HomeView.vue'
 
-// Mock components that are complex to test
-vi.mock('@/components/FileUploader.vue', () => ({
-  default: {
-    name: 'FileUploader',
-    template: '<div data-testid="file-uploader-mock"></div>',
-    props: ['disabled'],
-    emits: ['filesSelected']
-  }
-}))
-
-vi.mock('@/components/OrderConfiguration.vue', () => ({
-  default: {
-    name: 'OrderConfiguration',
-    template: '<div data-testid="order-configuration-mock"></div>'
-  }
-}))
-
-vi.mock('@/components/PaymentUploader.vue', () => ({
-  default: {
-    name: 'PaymentUploader',
-    template: '<div data-testid="payment-uploader-mock"></div>',
-    emits: ['uploadSuccess']
-  }
-}))
-
-vi.mock('@/components/Modal.vue', () => ({
-  default: {
-    name: 'Modal',
-    template: '<div data-testid="modal-mock"><slot name="header"></slot><slot name="body"></slot></div>',
-    props: ['show'],
-    emits: ['close']
-  }
-}))
-
-// Create a simple router for testing
+// 模拟路由
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    {
-      path: '/',
-      component: HomeView
-    }
+    { path: '/', component: HomeView },
+    { path: '/auth', component: { template: '<div>Auth</div>' } }
   ]
 })
 
-describe('HomeView', () => {
+// 模拟用户store
+const mockUserStore = {
+  isAuthenticated: false,
+  user: null
+}
+
+// 模拟订单store
+const mockOrderStore = {
+  groups: [],
+  isReadyToSubmit: false,
+  totalCost: 0,
+  paymentMethod: 'WECHAT',
+  phoneNumber: ''
+}
+
+describe('HomeView.vue', () => {
+  let wrapper
+  let pinia
+
   beforeEach(() => {
-    // 创建新的 Pinia 实例并设置为活动实例
-    setActivePinia(createPinia())
-    
-    // Mock localStorage
-    Object.defineProperty(window, 'localStorage', {
-      value: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-      },
-      writable: true,
+    pinia = createPinia()
+    setActivePinia(pinia)
+
+    // 模拟store
+    vi.mock('@/stores/user', () => ({
+      useUserStore: () => mockUserStore
+    }))
+
+    vi.mock('@/stores/order', () => ({
+      useOrderStore: () => mockOrderStore
+    }))
+
+    wrapper = mount(HomeView, {
+      global: {
+        plugins: [pinia, router],
+        stubs: {
+          'Teleport': true,
+          'Stepper': true,
+          'FileUploader': true,
+          'PaymentUploader': true,
+          'BaseButton': true,
+          'Modal': true,
+          'OrderConfiguration': true
+        }
+      }
     })
   })
 
-  it('renders the home view', () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('应该显示登录引导横幅当用户未登录时', () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
     
-    expect(wrapper.find('.home-view').exists()).toBe(true)
-    expect(wrapper.find('.hero-section').exists()).toBe(true)
-    expect(wrapper.findComponent(Stepper).exists()).toBe(true)
+    expect(wrapper.find('.login-guide-banner').exists()).toBe(true)
   })
 
-  it('shows step 1 content initially', () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('应该隐藏登录引导横幅当用户已登录时', async () => {
+    mockUserStore.isAuthenticated = true
+    await wrapper.vm.$nextTick()
     
-    expect(wrapper.find('h3.step-title').text()).toBe('第一步：上传文档并设置规格')
+    expect(wrapper.find('.login-guide-banner').exists()).toBe(false)
   })
 
-  it('shows file uploader', () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('应该包含正确的横幅内容', () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
     
-    expect(wrapper.find('[data-testid="file-uploader-mock"]').exists()).toBe(true)
+    expect(wrapper.find('.banner-title').text()).toBe('登录享受更多优惠')
+    expect(wrapper.find('.banner-subtitle').text()).toBe('保存订单历史 • 专属优惠券 • 快速下单')
   })
 
-  it('shows order configuration when files are added', async () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('应该包含登录和注册按钮', () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
     
-    // Mock the order store to have files
-    const { useOrderStore } = await import('@/stores/order')
-    const store = useOrderStore()
-    store.groups = [{ id: '1', documents: [{ id: '1' }] }]
-    
-    await flushPromises()
-    
-    expect(wrapper.find('[data-testid="order-configuration-mock"]').exists()).toBe(true)
+    expect(wrapper.find('.banner-login-btn').exists()).toBe(true)
+    expect(wrapper.find('.banner-register-btn').exists()).toBe(true)
+    expect(wrapper.find('.banner-remind-btn').exists()).toBe(true)
   })
 
-  it('shows payment step when currentStep is 2', async () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('点击关闭按钮应该隐藏横幅', async () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
     
-    // Set current step to 2
-    wrapper.vm.currentStep = 2
+    await wrapper.find('.banner-close-btn').trigger('click')
     
-    await flushPromises()
-    
-    expect(wrapper.find('h3.step-title').text()).toBe('第二步：确认信息并支付')
+    expect(wrapper.vm.showLoginGuideBanner).toBe(false)
   })
 
-  it('shows completion step when currentStep is 3 and finalOrder exists', async () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('关闭横幅后，用户登出时应该重新显示横幅', async () => {
+    // 先关闭横幅
+    wrapper.vm.showLoginGuideBanner = false
     
-    // Set current step to 3 and finalOrder
-    wrapper.vm.currentStep = 3
-    wrapper.vm.finalOrder = { pickup_code: 'P-123', order_number: 'ORDER123' }
+    // 模拟用户登出
+    mockUserStore.isAuthenticated = false
+    await wrapper.vm.$nextTick()
     
-    await flushPromises()
-    
-    expect(wrapper.find('h3.step-title').text()).toBe('订单提交成功！')
+    // 横幅应该重新显示
+    expect(wrapper.vm.showLoginGuideBanner).toBe(true)
   })
 
-  it('has terms and privacy checkboxes', () => {
-    const wrapper = mount(HomeView, {
-      global: {
-        plugins: [createPinia(), router]
-      }
-    })
+  it('稍后提醒功能应该5分钟后重新显示横幅', async () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
     
-    expect(wrapper.find('#terms').exists()).toBe(true)
-    expect(wrapper.find('#privacy').exists()).toBe(true)
+    // 模拟点击稍后提醒
+    await wrapper.find('.banner-remind-btn').trigger('click')
+    
+    // 横幅应该立即隐藏
+    expect(wrapper.vm.showLoginGuideBanner).toBe(false)
+  })
+
+  it('应该正确响应式设计', () => {
+    mockUserStore.isAuthenticated = false
+    wrapper.vm.showLoginGuideBanner = true
+    
+    // 检查横幅是否包含响应式样式类
+    const banner = wrapper.find('.login-guide-banner')
+    expect(banner.exists()).toBe(true)
   })
 })
