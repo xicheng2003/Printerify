@@ -66,9 +66,15 @@ if DEBUG:
         '127.0.0.1',
         'testserver'  # 用于测试
     ]
+    
+    # 开发环境前端域名
+    FRONTEND_URL = 'http://127.0.0.1:5173'
 else:
     # In production, ONLY allow your specific domain.
     ALLOWED_HOSTS = ['print.morlight.top']
+    
+    # 生产环境前端域名
+    FRONTEND_URL = 'https://print.morlight.top'
 
 
 # Application definition

@@ -411,7 +411,7 @@ class GitHubCallbackView(View):
             # 检查是否有OAuth错误
             if error:
                 logger.error(f"GitHub OAuth error: {error}")
-                frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+                frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
                 frontend_callback_url += f'?provider=github&success=false&error={error}'
                 return redirect(frontend_callback_url)
             
@@ -442,7 +442,7 @@ class GitHubCallbackView(View):
             token, created = Token.objects.get_or_create(user=user)
             
             # 所有OAuth回调都重定向到前端，让前端完成认证
-            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
             frontend_callback_url += f'?provider=github&success=true&username={user.username}'
             
             if is_binding:
@@ -473,7 +473,7 @@ class GitHubCallbackView(View):
             else:
                 friendly_error = "GitHub认证过程中发生错误，请重试"
             
-            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
             frontend_callback_url += f'?provider=github&success=false&error={friendly_error}'
             return redirect(frontend_callback_url)
 
@@ -494,7 +494,7 @@ class GoogleCallbackView(View):
             # 检查是否有OAuth错误
             if error:
                 logger.error(f"Google OAuth error: {error}")
-                frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+                frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
                 frontend_callback_url += f'?provider=google&success=false&error={error}'
                 return redirect(frontend_callback_url)
             
@@ -525,7 +525,7 @@ class GoogleCallbackView(View):
             token, created = Token.objects.get_or_create(user=user)
             
             # 所有OAuth回调都重定向到前端，让前端完成认证
-            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
             frontend_callback_url += f'?provider=google&success=true&username={user.username}'
             
             if is_binding:
@@ -556,7 +556,7 @@ class GoogleCallbackView(View):
             else:
                 friendly_error = "Google认证过程中发生错误，请重试"
             
-            frontend_callback_url = 'http://127.0.0.1:5173/oauth/callback'
+            frontend_callback_url = f'{settings.FRONTEND_URL}/oauth/callback'
             frontend_callback_url += f'?provider=google&success=false&error={friendly_error}'
             return redirect(frontend_callback_url)
 

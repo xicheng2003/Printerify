@@ -17,18 +17,23 @@
 -   **🌗 明暗主题**: 内置优雅的深色模式，并可根据系统设置自动切换，呵护您的双眼。
 -   **💰 实时价格计算**: 所有打印选项的更改都会实时反馈在价格上，清晰透明。
 -   **🔔 邮件通知**: 通过精心设计的邮件模板，及时向用户和管理员发送订单状态通知。
--   **🧩 现代前端**: 采用 Vue.js 构建，拥有动态加载、全局 Loading 指示器、交互式提示等现代化的 UI/UX。
+-   **🔐 OAuth 认证**: 支持多种第三方登录方式，提供安全便捷的用户认证体验。
+-   **📄 多格式支持**: 支持 PDF、Word、图片等多种文档格式的上传和处理。
+-   **🧩 现代前端**: 采用 Vue 3 + Tailwind CSS 构建，拥有动态加载、全局 Loading 指示器、交互式提示等现代化的 UI/UX。
 
 ## 🛠️ 技术栈 (Tech Stack)
 
--   **后端 (Backend)**: Django, Django REST Framework
--   **前端 (Frontend)**: Vue.js, Vuetify
--   **异步任务队列 (Task Queue)**: Celery
--   **消息代理 & 缓存 (Broker & Cache)**: Redis
+-   **后端 (Backend)**: Django 5.2+, Django REST Framework 3.16+
+-   **前端 (Frontend)**: Vue 3.5+, Tailwind CSS 3.4+, Vite 7.0+
+-   **状态管理**: Pinia 3.0+
+-   **异步任务队列 (Task Queue)**: Celery 5.5+
+-   **消息代理 & 缓存 (Broker & Cache)**: Redis 5.2+
 -   **数据库 (Database)**: PostgreSQL / MySQL / SQLite
 -   **部署 (Deployment)**: Docker, Gunicorn, Nginx
+-   **测试框架**: pytest, vitest
+-   **代码质量**: ESLint, Prettier, Black
 
-## 项目目录结构
+## 📁 项目目录结构
 
 ```
 printerify/
@@ -48,7 +53,7 @@ printerify/
 │   ├── settings.py       # Django 设置
 │   ├── urls.py           # 项目根 URL 配置
 │   └── celery.py         # Celery 配置
-├── frontend/             # Vue.js 前端应用
+├── frontend/             # Vue 3 前端应用
 │   ├── public/           # 公共静态资源
 │   ├── src/              # 源代码
 │   │   ├── assets/       # CSS, 字体等资源
@@ -61,13 +66,33 @@ printerify/
 │   │   └── main.js       # 入口文件
 │   ├── index.html        # HTML 入口
 │   ├── package.json      # npm 依赖
-│   └── vite.config.js    # Vite 配置
+│   ├── vite.config.js    # Vite 配置
+│   ├── tailwind.config.js # Tailwind CSS 配置
+│   └── postcss.config.js # PostCSS 配置
 ├── docs/                 # 项目文档
+│   ├── implementation-guides/  # 实施指南和部署文档
+│   ├── fix-summaries/          # 问题修复总结和解决方案
+│   ├── troubleshooting/        # 故障排除指南
+│   ├── debug-scripts/          # 调试脚本
+│   ├── oauth_setup.md          # OAuth 设置指南
+│   ├── frontend_testing.md     # 前端测试指南
+│   ├── backend_testing.md      # 后端测试指南
+│   ├── Privacy Policy.md       # 隐私政策
+│   └── Terms of Service.md     # 服务条款
+├── scripts/              # 实用脚本和工具
+│   ├── test_*.py         # 测试脚本
+│   ├── check_*.py        # 检查脚本
+│   └── setup_env.py      # 环境设置脚本
 ├── media/                # 用户上传的媒体文件
+├── temp_uploads/         # 临时上传目录
 ├── .gitignore
 ├── manage.py             # Django 管理脚本
 ├── README.md             # 项目说明
-└── requirements.txt      # Python 依赖
+├── PROJECT_ORGANIZATION.md # 项目组织说明
+├── requirements.txt      # Python 依赖
+├── pyproject.toml        # 项目配置
+├── run_tests.sh          # Linux/Mac 测试脚本
+└── run_tests.bat         # Windows 测试脚本
 ```
 
 ## 🚀 快速开始 (Getting Started)
@@ -77,9 +102,9 @@ printerify/
 ### 依赖环境 (Prerequisites)
 
 -   Python 3.8+
--   Node.js 16+
--   Redis
--   PostgreSQL (或其他你选择的数据库)
+-   Node.js 18+
+-   Redis 5.0+
+-   PostgreSQL 12+ (或其他你选择的数据库)
 
 ### 1. 克隆仓库
 
@@ -98,13 +123,16 @@ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 # 安装依赖
 pip install -r requirements.txt
 
-# 创建 .env 文件并配置环境变量 (参考 .env.example)
-cp .env.example .env
+# 创建 .env 文件并配置环境变量 (参考 env_example.txt)
+cp env_example.txt .env
 # 使用编辑器修改 .env 文件
 # nano .env
 
 # 数据库迁移
 python manage.py migrate
+
+# 创建超级用户 (可选)
+python manage.py createsuperuser
 
 # 运行开发服务器
 python manage.py runserver
@@ -121,6 +149,13 @@ npm install
 
 # 运行开发服务器
 npm run dev
+
+# 构建生产版本
+npm run build
+
+# 代码格式化和检查
+npm run format
+npm run lint
 ```
 
 ### 4. 启动 Celery Worker
@@ -133,6 +168,9 @@ source venv/bin/activate
 
 # 启动 Celery worker
 celery -A backend worker -l info
+
+# 启动 Celery beat (如果需要定时任务)
+celery -A backend beat -l info
 ```
 
 ### 5. 运行测试 (Running Tests)
@@ -141,15 +179,19 @@ celery -A backend worker -l info
 # 运行所有后端测试
 python manage.py test api.tests
 
-# 运行所有前端测试
+# 运行特定测试
+python -m pytest api/tests/ -v
+
+# 运行前端测试
 cd frontend
 npm run test
 
-# 或使用测试脚本 (Linux/Mac)
-./run_tests.sh
+# 运行测试并生成覆盖率报告
+npm run test:run
 
-# 或使用测试脚本 (Windows)
-run_tests.bat
+# 或使用测试脚本
+./run_tests.sh          # Linux/Mac
+run_tests.bat           # Windows
 ```
 
 ## ⚙️ 环境变量 (Environment Variables)
@@ -164,6 +206,8 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 
 # Database
 DATABASE_URL='postgres://user:password@host:port/dbname'
+# 或者使用 SQLite (开发环境)
+# DATABASE_URL='sqlite:///db.sqlite3'
 
 # Redis (注意：Broker 和 Backend 建议使用不同的 DB)
 REDIS_PASSWORD='your-redis-password'
@@ -177,7 +221,37 @@ EMAIL_HOST_USER='your-email@example.com'
 EMAIL_HOST_PASSWORD='your-email-password'
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL='Printerify <noreply@example.com>'
+
+# OAuth 设置 (如果使用第三方登录)
+GOOGLE_CLIENT_ID='your-google-client-id'
+GOOGLE_CLIENT_SECRET='your-google-client-secret'
+GITHUB_CLIENT_ID='your-github-client-id'
+GITHUB_CLIENT_SECRET='your-github-client-secret'
 ```
+
+## 📚 文档导航
+
+项目文档已按功能分类组织，便于查找：
+
+- **📖 实施指南**: `docs/implementation-guides/` - 部署和功能实施指南
+- **🔧 修复总结**: `docs/fix-summaries/` - 问题修复和解决方案
+- **🚨 故障排除**: `docs/troubleshooting/` - 常见问题解决方法
+- **🧪 测试指南**: `docs/frontend_testing.md`, `docs/backend_testing.md`
+- **🔐 OAuth 设置**: `docs/oauth_setup.md` - 第三方登录配置
+
+## 🧪 开发工具
+
+### 代码质量
+- **ESLint**: JavaScript/TypeScript 代码检查
+- **Prettier**: 代码格式化
+- **Black**: Python 代码格式化
+- **pytest**: Python 测试框架
+- **vitest**: Vue 组件测试
+
+### 调试工具
+- **Vue DevTools**: Vue 应用调试
+- **Django Debug Toolbar**: Django 调试
+- **Celery Flower**: 异步任务监控
 
 ## 🤝 贡献 (Contributing)
 
@@ -189,6 +263,28 @@ DEFAULT_FROM_EMAIL='Printerify <noreply@example.com>'
 4.  推送到分支 (`git push origin feature/AmazingFeature`)
 5.  发起一个 Pull Request
 
+### 贡献指南
+- 遵循项目的代码规范
+- 为新功能添加相应的测试
+- 更新相关文档
+- 确保所有测试通过
+
+## 🐛 问题反馈
+
+如果你遇到问题或有改进建议，请：
+
+1. 查看 `docs/troubleshooting/` 目录中的故障排除指南
+2. 检查 `docs/fix-summaries/` 目录中是否有类似问题的解决方案
+3. 在 GitHub Issues 中搜索相关问题
+4. 创建新的 Issue 并详细描述问题
+
 ## 📄 许可证 (License)
 
 本项目采用 MIT 许可证。
+
+## 🔗 相关链接
+
+- [项目主页](https://print.morlight.top)
+- [API 文档](https://print.morlight.top/api/docs/)
+- [问题反馈](https://github.com/xicheng2003/printerify/issues)
+- [项目组织说明](PROJECT_ORGANIZATION.md)

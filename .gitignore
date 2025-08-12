@@ -32,8 +32,10 @@ coverage.xml
 # Test database
 test_*.db
 
-# Gemini context file
-GEMINI.md
+# Temporary files
+temp_uploads/
+*.tmp
 
-# Documentation
-GEMINI.md
+# Log files
+*.log
+django.log
