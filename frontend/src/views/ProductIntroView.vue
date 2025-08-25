@@ -428,59 +428,34 @@
     </section>
 
     <section class="faq-section" aria-labelledby="faq-title">
-      <div class="content-wrapper">
-        <h2 id="faq-title" class="section-title">常见问题解答</h2>
-        <div class="faq-container" role="list">
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">Printerify 支持哪些文件格式？</summary>
-            <div class="faq-answer" id="faq-1-answer" role="region">
-              <p>Printerify 支持主流的文档格式，包括 PDF, DOC, DOCX, PPT, PPTX, JPG, PNG 等。为了获得最佳打印效果，我们强烈推荐您上传 PDF 文件。</p>
+    <div class="content-wrapper">
+      <h2 id="faq-title" class="section-title">常见问题解答</h2>
+      <div class="faq-container">
+        <div v-for="(faq, index) in faqs" :key="index" class="faq-item" :class="{ 'is-open': activeFaqIndex === index }">
+          <h3 class="faq-question-wrapper">
+            <button
+              class="faq-question"
+              @click="toggleFaq(index)"
+              :aria-expanded="activeFaqIndex === index"
+              :aria-controls="`faq-answer-${index}`"
+            >
+              <span class="question-text">{{ faq.question }}</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div
+            :id="`faq-answer-${index}`"
+            class="faq-answer-container"
+            :aria-hidden="activeFaqIndex !== index"
+          >
+            <div class="faq-answer-wrapper">
+                <div v-html="faq.answer" class="faq-answer"></div>
             </div>
-          </details>
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">使用 Printerify 如何收取费用？</summary>
-            <div class="faq-answer" id="faq-2-answer" role="region">
-              <p>Printerify 的收费标准主要根据订单的页数、纸张类型和其他附加服务来计算。具体计费规则说明可在自助打印下单页面点击查看。在下单过程中，您也可以在确认订单前查看详细的费用明细。</p>
-            </div>
-          </details>
-
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">在 Printerify 打印需要多长时间？</summary>
-            <div class="faq-answer" id="faq-3-answer" role="region">
-              <p>生产时间取决于您的订单复杂程度和当前排队情况，通常在8小时内完成。具体订单状态可在订单查询页面查看。</p>
-            </div>
-          </details>
-
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">Printerify 有哪些打印规格可供选择？</summary>
-            <div class="faq-answer" id="faq-4-answer" role="region">
-              <p>Printerify 提供多种打印规格选项，包括纸张大小（如 A4、B5）、单/双面（单面打印或双面打印）等，请以实际下单页面提供的选项为准。您可以在下单时根据需要选择合适的打印规格。</p>
-            </div>
-          </details>
-
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">如果我对打印质量不满意怎么办？</summary>
-            <div class="faq-answer" id="faq-5-answer" role="region">
-              <p>Printerify 对打印质量有严格的把控。如果您收到的成品有任何质量问题（如错印、装订错误等），请立即联系我们的客服，我们将为您免费重印或进行退款处理。</p>
-            </div>
-          </details>
-
-          <details class="faq-item" role="listitem">
-            <summary class="faq-question" aria-expanded="false">如何获取 Printerify 的服务支持？</summary>
-            <div class="faq-answer" id="faq-6-answer" role="region">
-              <p>如果您在使用 Printerify 的过程中遇到任何问题或需要帮助，请随时联系我们的客服团队。</p>
-              <p>您可以通过以下方式获取支持：</p>
-              <ul>
-                <li>访问我们的产品页面，查阅常见问题解答和使用指南。</li>
-                <li>通过在线聊天工具（微信群或QQ群）与我们的客服代表实时沟通。</li>
-                <li>用户群的加入方式可以发送邮件至 xicheng.lin@foxmail.com，我们会尽快邀请您加入。</li>
-                <li>其他事宜也可发送电子邮件至 xicheng.lin@foxmail.com，我们会尽快回复您。</li>
-              </ul>
-            </div>
-          </details>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
 
 
@@ -798,6 +773,51 @@ onUnmounted(() => {
     statsObserver = null;
   }
 });
+
+// ==================== FAQ Section State ====================
+const faqs = ref([
+  {
+    question: 'Printerify 支持哪些文件格式？',
+    answer: '<p>Printerify 支持主流的文档格式，包括 PDF, DOC, DOCX, PPT, PPTX, JPG, PNG 等。为了获得最佳打印效果，我们强烈推荐您上传 PDF 文件。</p>'
+  },
+  {
+    question: '使用 Printerify 如何收取费用？',
+    answer: '<p>Printerify 的收费标准主要根据订单的页数、纸张类型和其他附加服务来计算。具体计费规则说明可在自助打印下单页面点击查看。在下单过程中，您也可以在确认订单前查看详细的费用明细。</p>'
+  },
+  {
+    question: '在 Printerify 打印需要多长时间？',
+    answer: '<p>生产时间取决于您的订单复杂程度和当前排队情况，通常在8小时内完成。具体订单状态可在订单查询页面查看。</p>'
+  },
+  {
+    question: 'Printerify 有哪些打印规格可供选择？',
+    answer: '<p>Printerify 提供多种打印规格选项，包括纸张大小（如 A4、B5）、单/双面（单面打印或双面打印）等，请以实际下单页面提供的选项为准。您可以在下单时根据需要选择合适的打印规格。</p>'
+  },
+  {
+    question: '如果我对打印质量不满意怎么办？',
+    answer: '<p>Printerify 对打印质量有严格的把控。如果您收到的成品有任何质量问题（如错印、装订错误等），请立即联系我们的客服，我们将为您免费重印或进行退款处理。</p>'
+  },
+  {
+    question: '如何获取 Printerify 的服务支持？',
+    answer: `<p>如果您在使用 Printerify 的过程中遇到任何问题或需要帮助，请随时联系我们的客服团队。</p>
+             <p>您可以通过以下方式获取支持：</p>
+             <ul>
+               <li>访问我们的产品页面，查阅常见问题解答和使用指南。</li>
+               <li>通过在线聊天工具（微信群或QQ群）与我们的客服代表实时沟通。</li>
+               <li>用户群的加入方式可以发送邮件至 xicheng.lin@foxmail.com，我们会尽快邀请您加入。</li>
+               <li>其他事宜也可发送电子邮件至 xicheng.lin@foxmail.com，我们会尽快回复您。</li>
+             </ul>`
+  }
+]);
+
+const activeFaqIndex = ref(null);
+
+const toggleFaq = (index) => {
+  if (activeFaqIndex.value === index) {
+    activeFaqIndex.value = null; // 如果点击的是已展开项，则关闭它
+  } else {
+    activeFaqIndex.value = index; // 否则，展开新点击的项
+  }
+};
 </script>
 
 <style scoped>
@@ -1177,61 +1197,128 @@ onUnmounted(() => {
   color: var(--color-heading);
 }
 
-/* FAQ Section Styles */
+/* ==================================================== */
+/* FAQ Section Styles (Flat Design)                     */
+/* ==================================================== */
 .faq-section {
   padding: 5rem 2rem;
   background-color: var(--color-background-soft);
 }
-.faq-section h2 {
-  text-align: center;
-  margin-bottom: 2rem;
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: var(--color-heading);
-}
+
 .faq-container {
   max-width: 800px;
   margin: 0 auto;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .faq-item {
-  border-bottom: 1px solid var(--color-border);
-}
-.faq-item:first-of-type {
   border-top: 1px solid var(--color-border);
 }
 
+.faq-question-wrapper {
+  margin: 0;
+}
+
 .faq-question {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--color-heading);
+  /* 重置按钮默认样式 */
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
+
+  /* 自定义样式 */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  list-style: none; /* remove default marker */
+  width: 100%;
   padding: 1.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 500; /* 恢复原版字重 */
+  color: var(--color-heading);
+  transition: color 0.2s ease;
 }
 
-.faq-question::-webkit-details-marker {
-  display: none; /* remove default marker for webkit browsers */
+.faq-item.is-open .faq-question {
+  color: var(--color-primary);
 }
 
-.faq-question::after {
-  content: '+';
-  font-size: 1.5rem;
-  font-weight: 300;
-  transition: transform 0.2s ease-in-out;
+/* 图标样式，保持了清晰的 +/- 转换动效 */
+.faq-icon {
+  width: 1.2em;
+  height: 1.2em;
+  flex-shrink: 0;
+  margin-left: 1rem;
+  position: relative;
 }
 
-details[open] > summary.faq-question::after {
-  content: '−';
+.faq-icon::before,
+.faq-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 2px;
+  background-color: var(--color-heading);
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+/* 纵向的线，与横向的 before 组成 "+" */
+.faq-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* 展开时，纵向的线旋转为横向，形成 "-" */
+.faq-item.is-open .faq-icon::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.faq-item.is-open .faq-icon::before,
+.faq-item.is-open .faq-icon::after {
+  background-color: var(--color-primary);
+}
+
+/* 答案容器动画，这部分保留了顺滑的展开效果 */
+.faq-answer-container {
+  display: grid;
+  grid-template-rows: 0fr; /* 默认折叠 */
+  transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.faq-item.is-open .faq-answer-container {
+  grid-template-rows: 1fr; /* 展开 */
+}
+
+.faq-answer-wrapper {
+  overflow: hidden;
 }
 
 .faq-answer {
+  padding: 0 0 1.5rem 0; /* 恢复原版内边距 */
   color: var(--color-text);
-  padding: 0 0 1.5rem 0;
   line-height: 1.7;
+}
+
+/* 答案内容中 v-html 渲染元素的样式 */
+.faq-answer p {
+  margin-bottom: 1em;
+}
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+.faq-answer ul {
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  list-style-type: disc;
+}
+.faq-answer li {
+  margin-bottom: 0.5rem;
 }
 
 /* CTA Section Styles */
