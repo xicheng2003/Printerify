@@ -1344,12 +1344,15 @@ details[open] > summary.faq-question::after {
 /* 流程导航 */
 .workflow-navigation {
   display: flex;
-  justify-content: center;
+  /* 修改：改用 space-between 以获得可预测的布局 */
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: clamp(3rem, 6vw, 4rem);
+  /* 修改：设定最大宽度并居中 */
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto clamp(3rem, 6vw, 4rem); /* 将 margin-bottom 合并进来 */
   position: relative;
   flex-wrap: wrap;
-  gap: 1rem;
 }
 
 .nav-step {
@@ -1361,7 +1364,9 @@ details[open] > summary.faq-question::after {
   padding: 1rem;
   border-radius: 12px;
   position: relative;
+  /* 修改：确保步骤在连接线上方，并添加背景色以覆盖线条 */
   z-index: 2;
+  background-color: var(--color-background);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1441,9 +1446,12 @@ details[open] > summary.faq-question::after {
 
 .connection-line {
   position: absolute;
-  top: 50%;
-  left: 20%;
-  right: 20%;
+  top: 2.5rem;
+  transform: translateY(-50%);
+  /* 修改：移除 width 和旧的 left 属性 */
+  /* 新增：通过设置 left 和 right 来约束线条长度 */
+  left: 2.5rem;
+  right: 2.5rem;
   height: 2px;
   background-color: var(--color-border);
   z-index: 1;
@@ -1461,13 +1469,15 @@ details[open] > summary.faq-question::after {
 .progress-line::after {
   content: '';
   position: absolute;
-  top: 0;
+  /* 修改：将 top 设置为 50% */
+  top: 50%;
   right: 0;
   width: 8px;
   height: 8px;
   background-color: var(--color-primary);
   border-radius: 50%;
-  transform: translateX(50%);
+  /* 修改：同时应用水平和垂直居中变换 */
+  transform: translate(50%, -50%);
   box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.5);
 }
 
