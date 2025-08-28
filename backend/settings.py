@@ -300,6 +300,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# 告诉 Django 要信任来自反向代理的 X-Forwarded-Host 头，以正确识别域名
+USE_X_FORWARDED_HOST = True
+
+# 告诉 Django 如果 X-Forwarded-Proto 头的值是 'https'，就将请求视为安全（HTTPS）请求
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # 登录设置
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
