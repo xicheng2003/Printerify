@@ -1,7 +1,26 @@
 <script setup>
 // --- 脚本部分无需任何修改，保持原样即可 ---
 import { ref, computed } from 'vue';
+// 【新增】从 vue-router 导入 useRouter
+import { useRouter } from 'vue-router';
+// 【新增】从 Pinia store 导入 useUserStore
+import { useUserStore } from '@/stores/user';
 import apiService from '@/services/apiService';
+
+
+// 【新增】初始化 store 和 router
+const userStore = useUserStore();
+const router = useRouter();
+
+
+// 【新增】创建一个计算属性来实时反映用户的登录状态
+// 这样当 userStore.isAuthenticated 变化时，isUserLoggedIn 会自动更新
+const isUserLoggedIn = computed(() => userStore.isAuthenticated);
+
+// 【新增】一个用于导航到个人中心的函数
+function goToDashboard() {
+  router.push('/profile'); // 使用 router 进行程序化导航
+}
 
 const queryPhoneNumber = ref('');
 const queryPickupCode = ref('');
@@ -70,14 +89,35 @@ function formatPrintSided(sidedCode) {
   return map[sidedCode] || sidedCode; // 如果没匹配到，返回原始值
 }
 // ▲▲▲ 新增函数结束 ▲▲▲
+
+
+
 </script>
 
 <template>
   <!-- --- 模板部分无需任何修改，保持原样即可 --- -->
   <div class="query-container">
+
+    <section class="hero-section">
+      <h2 class="animated-hero-title">订单追踪，状态尽在掌握</h2>
+      <p>Printerify，为每一次打印赋能。</p>
+    </section>
+
+    <div v-if="isUserLoggedIn" class="user-redirect-banner">
+      <div class="banner-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="banner-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <div class="banner-text">
+          <strong>您已登录</strong>
+          <p>所有订单记录已同步至您的账户，可直接前往个人中心查看。</p>
+        </div>
+      </div>
+      <button @click="goToDashboard" class="banner-action-btn">
+        前往个人中心
+      </button>
+    </div>
     <div class="query-card">
-      <h2>订单状态查询</h2>
-      <p class="subtitle">请输入您的手机号和取件码以获取最新状态。</p>
+      <h2>访客订单查询</h2>
+      <p class="subtitle">如果您下单时处于未登录状态，可在此处输入手机号和取件码进行查询。</p>
       <div class="query-form">
         <div class="input-group">
           <input type="tel" v-model.trim="queryPhoneNumber" placeholder="手机号" />
@@ -157,6 +197,87 @@ function formatPrintSided(sidedCode) {
   max-width: 800px;
   margin: 1rem auto;
 }
+
+.hero-section {
+  text-align: center;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.hero-section h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  margin-bottom: 0.5rem;
+}
+
+.hero-section p {
+  font-size: 1.125rem;
+  color: var(--color-text-mute);
+}
+
+/* --- Animated Title --- */
+.animated-hero-title {
+  --scroll-width: 400px;
+  /* 请确保项目中已引入 'Inter' 字体，否则将回退至 sans-serif */
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 3.2rem;
+  text-align: center;
+  letter-spacing: -1.5px;
+  background: linear-gradient(
+    100deg,
+    #666666, #b2b2b2, #ffffff, #b2b2b2, #666666
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-repeat: repeat-x;
+  background-size: var(--scroll-width) 100%;
+  animation: seamless-scroll 5s linear infinite;
+  text-shadow:
+    0px 1px 1px rgba(255, 255, 255, 0.1),
+    0 0 10px rgba(192, 219, 255, 0.2),
+    0 0 30px rgba(192, 219, 255, 0.1),
+    0px -1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* 亮色模式下的专属样式 */
+html:not(.dark) .animated-hero-title {
+  --scroll-width: 300px;
+  background: linear-gradient(
+    100deg,
+    #333333, #aeaeae, #232323, #aeaeae, #333333
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-repeat: repeat-x;
+  background-size: var(--scroll-width) 100%;
+  text-shadow:
+    0px 1px 1px rgba(255, 255, 255, 0.5),
+    0px -1px 1px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes seamless-scroll {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: calc(-1 * var(--scroll-width)) 0;
+  }
+}
+
+/* --- 响应式调整 --- */
+@media (max-width: 767px) {
+  .hero-section h2 { font-size: 2rem; }
+  .hero-section p { font-size: 1rem; }
+  .animated-hero-title {
+    font-size: 2.6rem;
+    letter-spacing: -1px;
+  }
+}
+
 
 .query-card,
 .result-card {
@@ -402,4 +523,105 @@ h4 {
     width: 100%;
   }
 }
+
+.user-redirect-banner {
+  background-color: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.user-redirect-banner .banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-redirect-banner .banner-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.user-redirect-banner .banner-text strong {
+  display: block;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--color-heading);
+  margin-bottom: 0.25rem;
+}
+
+.user-redirect-banner .banner-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-mute);
+}
+
+.user-redirect-banner .banner-action-btn {
+  white-space: nowrap;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  text-decoration: none;
+}
+
+.user-redirect-banner .banner-action-btn:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 639px) {
+  .user-redirect-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 1.25rem;
+  }
+  .user-redirect-banner .banner-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+/* ▼▼▼ 在 style 标签末尾新增以下所有样式 ▼▼▼ */
+
+/* 第 1 部分：设定 query-card 内部内容的“永久”样式 */
+/* 这些规则将始终生效，确保了排版布局的一致性 */
+.query-card h2 {
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.query-card .subtitle {
+  text-align: left;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 第 2 部分：设定登录后的“条件弱化”样式 */
+/* 这个规则只在用户登录时生效，且只改变容器外观，不影响内部排版 */
+.user-redirect-banner + .query-card {
+  background-color: transparent;
+  box-shadow: none;
+  border: 2px dashed var(--color-border);
+  padding: 1.5rem; /* 调整内边距以适应虚线框 */
+}
+/* ▲▲▲ 新增样式结束 ▲▲▲ */
+
+
 </style>
