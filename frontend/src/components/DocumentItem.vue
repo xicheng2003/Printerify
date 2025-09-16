@@ -82,9 +82,9 @@
               @change="updateSetting('paperSize', $event.target.value)"
             >
               <option value="a4">A4</option>
-              <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option>
+              <option value="b5">B5</option>
               <!-- 【预留】添加更多纸张尺寸选项 -->
-              <!-- <option value="b5">B5</option> -->
+              <!-- <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option> -->
             </select>
           </div>
         </div>
