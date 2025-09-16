@@ -9,7 +9,7 @@ from decimal import Decimal # 使用 Decimal 来精确计算货币
 PRICE_CONFIG = {
     'base_service_fee': Decimal('0.50'),
     'print': {
-        'a4': {
+        'a4_70g': {
             'black_white': {
                 'single': Decimal('0.15'),
                 'double': Decimal('0.15'),
@@ -21,7 +21,19 @@ PRICE_CONFIG = {
                 'single_double': None, # 封面单面+内容双面
             }
         },
-        'b5': {
+        'a4_80g': {
+            'black_white': {
+                'single': Decimal('0.15'),
+                'double': Decimal('0.15'),
+                'single_double': None,
+            },
+            'color': {
+                'single': Decimal('0.50'),
+                'double': Decimal('0.80'),
+                'single_double': None,
+            }
+        },
+        'b5_70g': {
             'black_white': {
                 'single': Decimal('0.12'), # B5 价格稍低
                 'double': Decimal('0.12'),

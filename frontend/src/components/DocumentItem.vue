@@ -81,8 +81,10 @@
               :value="document.settings.paperSize"
               @change="updateSetting('paperSize', $event.target.value)"
             >
-              <option value="a4">A4</option>
-              <option value="b5">B5</option>
+              <option value="a4_70g">A4(70g)</option>
+              <option value="a4_80g">A4(80g)</option>
+              <option value="b5_70g">B5(70g)</option>
+              <option value="a4_70g">（70g/80g 为纸张克重，数值越大表示纸张更厚）</option>
               <!-- 【预留】添加更多纸张尺寸选项 -->
               <!-- <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option> -->
             </select>

@@ -90,7 +90,7 @@ export const useOrderStore = defineStore('order', () => {
                     colorMode: 'black_white',
                     printSided: 'single',
                     copies: 1,
-                    paperSize: 'a4' // <--- 【在此处新增】
+                    paperSize: 'a4_70g' // <--- 【在此处新增】
                 },
                 pageCount: 0, printCost: 0,
             };

@@ -181,8 +181,9 @@ class Document(models.Model):
 
     # 1. 定义选择项的嵌套类 (这是推荐的 Django 实践)
     class PaperSizeChoices(models.TextChoices):
-        A4 = 'a4', 'A4'
-        B5 = 'b5', 'B5'
+        A4_70G = 'a4_70g', 'A4(70g)'
+        A4_80G = 'a4_80g', 'A4(80g)'
+        B5_70G = 'b5_70g', 'B5(70g)'
 
     class PrintSidedChoices(models.TextChoices):
         SINGLE = 'single', '单面打印'
@@ -207,7 +208,7 @@ class Document(models.Model):
     paper_size = models.CharField(
         max_length=10,
         choices=PaperSizeChoices.choices, # <-- 引用 PaperSizeChoices 类的 .choices 属性
-        default=PaperSizeChoices.A4,
+        default=PaperSizeChoices.A4_70G,
         help_text="纸张尺寸"
     )
     
