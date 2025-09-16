@@ -2,10 +2,13 @@
   <div
     class="file-uploader"
     :class="[uploadState, { 'is-disabled': disabled }]"
+    @dragover.prevent="onDragOver"
+    @dragleave.prevent="onDragLeave"
+    @drop.prevent="onDrop"
   >
     <label class="uploader-label">
       <div class="icon-wrapper">
-        <svg v-if="uploadState === 'idle'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        <svg v-if="uploadState === 'idle' || uploadState === 'dragover'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         <div v-if="uploadState === 'loading'" class="spinner"></div>
         <svg v-if="uploadState === 'success'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         <svg v-if="uploadState === 'error'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -48,6 +51,7 @@ const message = computed(() => {
     case 'loading': return `正在上传: ${uploadProgress.value}%`;
     case 'success': return `文件上传成功: ${uploadedFileName.value}`;
     case 'error': return '上传失败，请点击重试。';
+    case 'dragover': return '松开文件以上传';
     case 'idle': default: return '点击此处，或拖拽文件到这里';
   }
 });
@@ -60,6 +64,24 @@ function handleFileChange(event) {
   emit('files-selected', files);
 
   event.target.value = '';
+}
+
+function onDragOver(e) {
+  if (props.disabled) return;
+  uploadState.value = 'dragover';
+}
+
+function onDragLeave(e) {
+  if (props.disabled) return;
+  uploadState.value = 'idle';
+}
+
+function onDrop(e) {
+  if (props.disabled) return;
+  const files = e.dataTransfer.files;
+  if (!files || files.length === 0) return;
+  emit('files-selected', files);
+  uploadState.value = 'idle';
 }
 
 function reset() {
@@ -118,8 +140,21 @@ defineExpose({
 }
 
 /* --- 状态样式 --- */
+
 .file-uploader:not(.is-disabled):hover {
   border-color: var(--color-primary); /* 已修改 */
+}
+
+/* 拖拽高亮样式 */
+.file-uploader.dragover {
+  border-color: var(--color-primary);
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.08);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.file-uploader.dragover .icon-wrapper svg,
+.file-uploader.dragover .uploader-text {
+  color: var(--color-primary);
 }
 
 .file-uploader.loading {
