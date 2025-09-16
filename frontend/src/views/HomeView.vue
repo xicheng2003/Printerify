@@ -191,6 +191,7 @@
             <h3 class="step-title">订单提交成功！</h3>
             <p>取件时请出示取件码，请牢记或截图保存。</p>
             <p>凭手机号和取件码，可在订单查询页面查询订单状态</p>
+            <strong> 取件地址：西四学生宿舍 425 </strong>
             <div class="pickup-code-wrapper">
               <span class="pickup-code-label">您的取件码</span>
               <strong class="pickup-code">{{ finalOrder.pickup_code }}</strong>
@@ -1066,12 +1067,12 @@ html.dark .payment-button-image {
    登录引导横幅样式
    =================================================================== */
 .login-guide-banner {
-  background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.95) 0%, 
+  background: linear-gradient(135deg,
+    rgba(248, 250, 252, 0.95) 0%,
     rgba(241, 245, 249, 0.9) 100%);
   border-radius: 16px;
   margin-bottom: 2rem;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(10px);
@@ -1239,11 +1240,11 @@ html.dark .payment-button-image {
     padding: 1.25rem 1.5rem;
     gap: 1rem;
   }
-  
+
   .banner-title {
     font-size: 1.125rem;
   }
-  
+
   .banner-subtitle {
     font-size: 0.85rem;
   }
@@ -1256,27 +1257,27 @@ html.dark .payment-button-image {
     padding: 1.25rem 1.25rem 1rem;
     gap: 1.25rem;
   }
-  
+
   .banner-left {
     justify-content: center;
     text-align: center;
   }
-  
+
   .banner-actions {
     justify-content: center;
     flex-wrap: wrap;
     gap: 0.75rem;
   }
-  
+
   .banner-close-btn {
     top: 0.75rem;
     right: 0.75rem;
   }
-  
+
   .banner-title {
     font-size: 1.1rem;
   }
-  
+
   .banner-subtitle {
     font-size: 0.8rem;
   }
@@ -1287,17 +1288,17 @@ html.dark .payment-button-image {
     margin-bottom: 1.5rem;
     border-radius: 12px;
   }
-  
+
   .banner-content {
     padding: 1rem 1rem 0.75rem;
   }
-  
+
   .banner-actions {
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
   }
-  
+
   .banner-login-btn,
   .banner-register-btn,
   .banner-remind-btn {
@@ -1305,20 +1306,20 @@ html.dark .payment-button-image {
     justify-content: center;
     padding: 0.875rem 1rem;
   }
-  
+
   .banner-left {
     gap: 0.75rem;
   }
-  
+
   .banner-icon {
     width: 40px;
     height: 40px;
   }
-  
+
   .banner-title {
     font-size: 1rem;
   }
-  
+
   .banner-subtitle {
     font-size: 0.75rem;
   }
@@ -1326,8 +1327,8 @@ html.dark .payment-button-image {
 
 /* 暗色模式适配 */
 html.dark .login-guide-banner {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.95) 0%, 
+  background: linear-gradient(135deg,
+    rgba(30, 41, 59, 0.95) 0%,
     rgba(51, 65, 85, 0.9) 100%);
   border-color: rgba(148, 163, 184, 0.3);
 }
