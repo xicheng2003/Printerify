@@ -261,30 +261,42 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderDetailSerializer
 
     def get_queryset(self):
+        """
+        根据用户认证状态和操作动态调整查询范围。
+        - retrieve (详情): 登录用户查自己的，未登录用户查访客的。
+        - list (列表): 登录用户看自己的列表，未登录用户通过参数查询。
+        """
+        user = self.request.user
         base_queryset = super().get_queryset()
-        # 统一使用前端传参的名称
-        pickup_code = self.request.query_params.get('pickup_code')
-        phone_number = self.request.query_params.get('phone_number')
 
-        # 已登录用户：只能看自己的订单，可再叠加查询条件
-        if self.request.user.is_authenticated:
-            queryset = base_queryset.filter(user=self.request.user)
-            if pickup_code:
-                queryset = queryset.filter(pickup_code=pickup_code)
-            if phone_number:
-                queryset = queryset.filter(phone_number=phone_number)
-            return queryset
+        # 对应 GET /api/orders/{id}/ 的 'retrieve' 操作
+        if self.action == 'retrieve':
+            if user.is_authenticated:
+                return base_queryset.filter(user=user)
+            else:
+                return base_queryset.filter(user=None)
 
-        # 未登录用户：仅允许通过取件码或手机号查询；否则不返回任何结果
-        if pickup_code or phone_number:
-            queryset = base_queryset
-            if pickup_code:
-                queryset = queryset.filter(pickup_code=pickup_code)
-            if phone_number:
-                queryset = queryset.filter(phone_number=phone_number)
-            return queryset
+        # 对应 GET /api/orders/ 的 'list' 操作
+        if self.action == 'list':
+            if user.is_authenticated:
+                # 登录用户看自己的订单列表
+                return base_queryset.filter(user=user)
+            else:
+                # 未登录用户，允许通过取件码或手机号查询
+                pickup_code = self.request.query_params.get('pickup_code')
+                phone_number = self.request.query_params.get('phone_number')
+                if pickup_code or phone_number:
+                    queryset = base_queryset.filter(user=None) # 安全起见，只在访客订单中查
+                    if pickup_code:
+                        queryset = queryset.filter(pickup_code=pickup_code)
+                    if phone_number:
+                        queryset = queryset.filter(phone_number=phone_number)
+                    return queryset
+                # 如果没有查询参数，未登录用户不应看到任何列表
+                return base_queryset.none()
 
-        return base_queryset.none()
+        # 对于 create, update, destroy 等其他操作，返回基础查询集即可
+        return base_queryset
         
     def perform_create(self, serializer):
         # 如果用户已认证，将订单与用户关联
