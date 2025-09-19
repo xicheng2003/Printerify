@@ -269,6 +269,10 @@
       <template #header><h3>计费规则说明</h3></template>
       <template #body>
         <div class="billing-rules-content">
+          <li>
+            <strong>计价公式</strong>
+          <p><span class="formula-highlight">总费用 = 基础服务费 + 打印费用 + 装订费用（可选）</span></p>
+          </li>
           <ul>
             <li>
               <strong>基础服务费</strong>
@@ -276,9 +280,40 @@
             </li>
             <li>
               <strong>打印费用</strong>
-              <p>单面双面相同价格，即每面0.15元</p>
-              <p>根据您选择的规格（色彩、单双面）按页计费，具体单价以页面实时显示为准。</p>
-            </li>
+              <p>单面双面相同价格。</p>
+              <p>根据您选择的规格（纸张规格、色彩、单双面）按页计费，具体单价以页面实时显示为准。</p>
+              <table class="price-table">
+                <thead>
+                  <tr>
+                    <th>规格</th>
+                    <th>克重</th>
+                    <th>色彩</th>
+                    <th>单价（每面）</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>A4</td>
+                    <td>70g</td>
+                    <td>黑白</td>
+                    <td>0.15元</td>
+                  </tr>
+                  <tr>
+                    <td>A4</td>
+                    <td>80g</td>
+                    <td>黑白</td>
+                    <td>0.15元</td>
+                  </tr>
+                  <tr>
+                    <td>B5</td>
+                    <td>70g</td>
+                    <td>黑白</td>
+                    <td>0.12元</td>
+                  </tr>
+                </tbody>
+              </table>
+              </li>
+
             <li>
               <strong>装订费用</strong>
               <p>若您选择装订服务，将根据不同的装订方式额外收取固定费用。</p>
@@ -491,6 +526,7 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 </script>
 
 <style scoped>
+
 /* ===================================================================
   样式已更新，使用 CSS 变量以支持主题切换。
   所有布局、尺寸和响应式逻辑均已完整保留。
@@ -892,6 +928,107 @@ html.dark .payment-button-image {
   margin: 0;
   color: var(--color-text-mute); /* 已修改 */
   line-height: 1.6;
+}
+
+.formula-highlight {
+  display: block;
+  text-align: center;
+  margin: 1.2em auto 1.2em auto;
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  font-weight: 350;
+  padding: 0.8em 1.2em;
+  border-radius: 6px;
+  font-size: 1.12em;
+  letter-spacing: 0.5px;
+}
+/* 响应式优化 formula-highlight */
+.formula-highlight {
+  display: block;
+  text-align: center;
+  margin: 1.2em auto;
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  font-weight: 350;
+  padding: 0.8em 1.2em;
+  border-radius: 6px;
+  font-size: 1.12em;
+  letter-spacing: 0.5px;
+  word-break: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .formula-highlight {
+    font-size: 1em;
+    padding: 0.7em 0.5em;
+    margin: 1em 0.2em;
+  }
+}
+
+/* 响应式优化 price-table */
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5em;
+  font-size: 0.95em;
+  overflow-x: auto;
+  display: block;
+}
+
+.price-table th, .price-table td {
+  border: 1px solid var(--color-border);
+  padding: 0.5em 1em;
+  text-align: center;
+  min-width: 80px;
+}
+
+@media (max-width: 600px) {
+  .price-table {
+    font-size: 0.85em;
+    margin-top: 0.5em;
+    /* 让表格横向滚动，防止内容溢出 */
+    overflow-x: auto;
+    display: block;
+  }
+  .price-table th, .price-table td {
+    padding: 0.4em 0.5em;
+    min-width: 70px;
+    font-size: 0.95em;
+  }
+}
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5em;
+  font-size: 0.95em;
+}
+.price-table th, .price-table td {
+  border: 1px solid var(--color-border);
+  padding: 0.5em 1em;
+  text-align: center;
+}
+.price-table th {
+  background: var(--color-background-mute);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.price-table tr:nth-child(even) {
+  background: var(--color-background);
+}
+
+html.dark .price-table th {
+  background: var(--color-background-mute);
+  color: var(--color-text);
+}
+html.dark .price-table td {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+html.dark .price-table tr:nth-child(even) {
+  background: var(--color-background);
 }
 
 @media (max-width: 767px) {
