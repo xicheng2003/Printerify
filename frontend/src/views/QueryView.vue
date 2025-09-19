@@ -54,16 +54,12 @@ async function performQuery() {
 
   try {
     const response = await apiService.queryOrder(queryPhoneNumber.value, queryPickupCode.value);
-
-    if (response.data && response.data.length > 0) {
-      // 如果返回多个订单，取第一个
-      searchResult.value = response.data[0];
-    } else {
-      searchResult.value = null;
-    }
+    // 新端点返回单个订单对象
+    searchResult.value = response.data || null;
   } catch (error) {
     console.error('查询失败:', error);
-    errorMessage.value = '查询请求失败，请检查输入或稍后重试。';
+    // 展示更友好的后端提示（若有）
+    errorMessage.value = error?.response?.data?.error || error.friendlyMessage || '查询请求失败，请检查输入或稍后重试。';
   } finally {
     isLoading.value = false;
   }

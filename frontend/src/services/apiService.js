@@ -229,15 +229,14 @@ export default {
    * @returns {Promise}
    */
   queryOrder(phoneNumber, pickupCode) {
-    if (!phoneNumber && !pickupCode) {
-      throw new Error('至少提供手机号或取件码进行查询');
+    // 新端点要求同时提供手机号与取件码
+    if (!phoneNumber || !pickupCode) {
+      throw new Error('请同时提供手机号与取件码进行查询');
     }
 
-    return apiClient.get('/api/orders/', {
-      params: {
-        phone_number: phoneNumber,
-        pickup_code: pickupCode,
-      },
+    return apiClient.post('/api/orders/query/', {
+      phone_number: phoneNumber,
+      pickup_code: pickupCode,
     });
   },
 

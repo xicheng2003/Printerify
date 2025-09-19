@@ -209,18 +209,18 @@ class PriceEstimationView(generics.GenericAPIView):
         full_file_path = Path(settings.MEDIA_ROOT) / file_path_from_frontend
         
         if not full_file_path.exists():
-             return Response({'error': f'文件在服务器上未找到，路径: {full_file_path}'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': f'文件在服务器上未找到，路径: {full_file_path}'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             # 【核心修正】将 paper_size 传递给计价函数
             page_count, print_cost = pricing.calculate_document_price(
                 file_path=str(full_file_path),
-                paper_size=paper_size, # <--- 传递新参数
+                paper_size=paper_size,  # <--- 传递新参数
                 color_mode=color_mode,
                 print_sided=print_sided,
                 copies=int(copies)
             )
-            
+
             # 返回成功响应
             return Response({
                 "page_count": page_count,
@@ -235,10 +235,56 @@ class PriceEstimationView(generics.GenericAPIView):
             )
 
 
-# OrderViewSet 的代码保持不变
+# 允许访客通过手机号 + 取件码查询任意订单（包括已登录用户的订单）
+class OrderQueryByCodeView(generics.GenericAPIView):
+    """
+    公共查询端点：POST /api/orders/query/
+    请求体必须包含:
+      - phone_number: str
+      - pickup_code: str
+    行为：
+      - 在所有订单中查找完全匹配的记录；
+      - 若找到多条，返回最新的一条，并记录告警日志；
+      - 找不到则返回 404。
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = OrderDetailSerializer
+
+    def post(self, request, *args, **kwargs):
+        phone_number = (request.data.get('phone_number') or '').strip()
+        pickup_code = (request.data.get('pickup_code') or '').strip()
+
+        if not phone_number or not pickup_code:
+            return Response(
+                {'error': '必须同时提供手机号 (phone_number) 和取件码 (pickup_code)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        qs = Order.objects.filter(
+            phone_number=phone_number,
+            pickup_code=pickup_code,
+        ).order_by('-created_at')
+
+        if not qs.exists():
+            return Response(
+                {'error': '未找到匹配的订单，请检查手机号或取件码是否正确'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if qs.count() > 1:
+            logger.warning(
+                f'OrderQueryByCodeView: 多条匹配，返回最新一条 | phone={phone_number}, code={pickup_code}, count={qs.count()}'
+            )
+
+        order = qs.first()
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# OrderViewSet 收敛：列表/详情仅限已登录用户；创建允许任何人
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all().order_by('-created_at')
-    
+
     def get_permissions(self):
         """
         根据不同的操作设置不同的权限
@@ -247,57 +293,25 @@ class OrderViewSet(viewsets.ModelViewSet):
             # 创建订单：允许任何人
             permission_classes = [permissions.AllowAny]
         elif self.action in ['list', 'retrieve']:
-            # 查询订单：允许任何人（但get_queryset会控制具体可见的订单）
-            permission_classes = [permissions.AllowAny]
+            # 列表/详情：仅允许已登录用户访问自己的订单
+            permission_classes = [permissions.IsAuthenticated]
         else:
             # 其他操作（更新、删除）：需要认证
             permission_classes = [permissions.IsAuthenticated]
-        
+
         return [permission() for permission in permission_classes]
-    
+
     def get_serializer_class(self):
         if self.action == 'create':
             return OrderCreateSerializer
         return OrderDetailSerializer
 
     def get_queryset(self):
-        """
-        根据用户认证状态和操作动态调整查询范围。
-        - retrieve (详情): 登录用户查自己的，未登录用户查访客的。
-        - list (列表): 登录用户看自己的列表，未登录用户通过参数查询。
-        """
-        user = self.request.user
-        base_queryset = super().get_queryset()
+        # 仅返回当前用户的订单；未登录用户无法访问 list/retrieve
+        if self.request.user.is_authenticated:
+            return self.queryset.filter(user=self.request.user)
+        return self.queryset.none()
 
-        # 对应 GET /api/orders/{id}/ 的 'retrieve' 操作
-        if self.action == 'retrieve':
-            if user.is_authenticated:
-                return base_queryset.filter(user=user)
-            else:
-                return base_queryset.filter(user=None)
-
-        # 对应 GET /api/orders/ 的 'list' 操作
-        if self.action == 'list':
-            if user.is_authenticated:
-                # 登录用户看自己的订单列表
-                return base_queryset.filter(user=user)
-            else:
-                # 未登录用户，允许通过取件码或手机号查询
-                pickup_code = self.request.query_params.get('pickup_code')
-                phone_number = self.request.query_params.get('phone_number')
-                if pickup_code or phone_number:
-                    queryset = base_queryset.filter(user=None) # 安全起见，只在访客订单中查
-                    if pickup_code:
-                        queryset = queryset.filter(pickup_code=pickup_code)
-                    if phone_number:
-                        queryset = queryset.filter(phone_number=phone_number)
-                    return queryset
-                # 如果没有查询参数，未登录用户不应看到任何列表
-                return base_queryset.none()
-
-        # 对于 create, update, destroy 等其他操作，返回基础查询集即可
-        return base_queryset
-        
     def perform_create(self, serializer):
         # 如果用户已认证，将订单与用户关联
         if self.request.user.is_authenticated:

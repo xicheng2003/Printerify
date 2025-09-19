@@ -2,7 +2,7 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView
+from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView, OrderQueryByCodeView
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -11,6 +11,8 @@ router.register(r'orders', OrderViewSet)
 
 # 3. 定义我们所有手写的、独立的URL路径
 urlpatterns = [
+    # 公开订单查询（手机号 + 取件码）- 需放在 router 之前以避免被 /orders/<pk>/ 抢占
+    path('orders/query/', OrderQueryByCodeView.as_view(), name='order-query-by-code'),
     # 将路由器的URL包含进来
     path('', include(router.urls)),
     
