@@ -78,6 +78,8 @@ def _calculate_pages(file_path, prefer_exact: bool = False):
                 return doc.page_count
         elif file_path.lower().endswith('.docx'):
             return _docx_page_count(file_path, prefer_exact=prefer_exact)
+        elif file_path.lower().endswith('.doc'):
+            return _doc_page_count(file_path, prefer_exact=prefer_exact)
         else:
             # 对于不支持的格式，暂时返回1页，避免程序崩溃
             return 1
@@ -124,6 +126,38 @@ def _docx_page_count(file_path: str, prefer_exact: bool = False) -> int:
     # 5) 启发式估算
     pages = _docx_pages_heuristic(file_path)
     return pages if pages and pages > 0 else 1
+
+
+def _doc_page_count(file_path: str, prefer_exact: bool = False) -> int:
+    """
+    兼容旧版 .doc（二进制）文件的页数计算。
+    优先策略：
+    1) LibreOffice/soffice 转 PDF 读取页数（跨平台，推荐安装）
+    2) Windows + Word COM（pywin32）ComputeStatistics（若可用）
+    3) 可选：docx2pdf（通常依赖 Word）再读取页数
+    4) 最后回退：返回 1（无法可靠解析 .doc 内容结构）
+
+    始终返回 >= 1 的整数。
+    """
+    # 1) LibreOffice/soffice（支持 .doc）
+    if prefer_exact or _is_soffice_enabled():
+        pages = _docx_pages_via_soffice(file_path, timeout_sec=_get_soffice_timeout())
+        if isinstance(pages, int) and pages > 0:
+            return pages
+
+    # 2) Windows + Word COM（pywin32）
+    pages = _docx_pages_from_word_com(file_path)
+    if isinstance(pages, int) and pages > 0:
+        return pages
+
+    # 3) docx2pdf（Word 驱动，可能支持 .doc，若不可用将返回 None）
+    if _is_docx2pdf_enabled():
+        pages = _docx_pages_via_pdf(file_path)
+        if isinstance(pages, int) and pages > 0:
+            return pages
+
+    # 4) 回退：无法可靠估算 .doc，返回 1 以避免阻塞
+    return 1
 
 
 def _docx_pages_from_app_xml(file_path: str) -> int | None:

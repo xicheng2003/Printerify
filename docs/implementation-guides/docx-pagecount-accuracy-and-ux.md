@@ -36,6 +36,20 @@
   - 调整列表接口在测试环境中可匿名读取（满足现有测试）。
   - 新增环境开关：`ALLOW_ANONYMOUS_ORDER_LIST`（默认随 `DEBUG`）。生产关闭，测试/本地可开启。
 
+  ---
+
+  ## 支持的文件类型与 .doc 兼容
+
+  - PDF：使用 PyMuPDF 直接统计页数。
+  - DOCX：多策略（app.xml → LibreOffice/soffice → Word COM（Windows，可选）→ docx2pdf（可选）→ 启发式）。
+  - DOC（.doc）：不包含 app.xml，直接采用以下策略：
+    1) LibreOffice/soffice 转 PDF 后统计（跨平台，推荐在生产安装并配置 PATH）
+    2) Windows + Word COM（可选）
+    3) docx2pdf（可选，通常仍依赖 Word）
+    4) 若均不可用，为保证稳定性回退为 1 页（避免同步阻塞）
+
+  注意：.doc 与 .docx 在分页上可能略有差异，生产环境建议安装中文字体（Noto/思源系列）并优先走 LibreOffice 精确路径，以提升一致性。
+
 ---
 
 ## 文件与代码改动明细
