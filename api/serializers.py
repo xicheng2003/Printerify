@@ -98,7 +98,8 @@ class DocumentCreateSerializer(serializers.Serializer):
     color_mode = serializers.ChoiceField(choices=['black_white', 'color'])
     # 使用 Document 模型中定义的常量，确保前后端一致
     print_sided = serializers.ChoiceField(choices=Document.PrintSidedChoices.values)
-    paper_size = serializers.ChoiceField(choices=Document.PaperSizeChoices.values)
+    # 接受完整枚举值以及兼容的简写（a4/b5）
+    paper_size = serializers.ChoiceField(choices=list(Document.PaperSizeChoices.values))
     copies = serializers.IntegerField(min_value=1)
     sequence_in_group = serializers.IntegerField()
 # --- ▲▲▲ 修改结束 ▲▲▲ ---
@@ -193,6 +194,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                         original_filename=doc_data['original_filename'],
                         page_count=page_count,
                         print_cost=print_cost,
+                        page_count_source=Document.PageCountSource.ESTIMATED,
                         color_mode=doc_data['color_mode'],
                         print_sided=doc_data['print_sided'],
                         paper_size=doc_data['paper_size'], # 保存 paper_size 到数据库
@@ -254,3 +256,30 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__' # 显示所有字段
+
+    def to_representation(self, instance):
+        """
+        扩展返回：
+        - is_estimated: 订单价格是否仍为预估（任一文档为 estimated 即视为预估）
+        - page_count_source: overall 标识（'estimated' | 'exact'）
+        - note: 前端友好文案
+        """
+        data = super().to_representation(instance)
+        try:
+            any_estimated = False
+            # 遍历组内文档，若存在预估则整体为预估
+            for group in instance.groups.all():
+                for doc in group.documents.all():
+                    if getattr(doc, 'page_count_source', 'estimated') != 'exact':
+                        any_estimated = True
+                        break
+                if any_estimated:
+                    break
+
+            data['is_estimated'] = any_estimated
+            data['page_count_source'] = 'estimated' if any_estimated else 'exact'
+            data['note'] = '价格为预估，后台将自动校正' if any_estimated else '价格已精确计算'
+        except Exception:
+            # 防御式：若出现异常，不影响主体数据
+            pass
+        return data

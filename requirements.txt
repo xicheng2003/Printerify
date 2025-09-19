@@ -87,3 +87,7 @@ django-allauth==65.10.0
 requests-oauthlib==2.0.0
 PyJWT==2.10.1
 cryptography==45.0.6
+
+# 可选（提高 DOCX 页数精度）：
+# pywin32==306         # Windows + 已安装 Word 时启用 COM 统计页数
+# docx2pdf==0.1.8      # 将 DOCX 转成 PDF 后读取页数（通常同样需要 Word）

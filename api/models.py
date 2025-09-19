@@ -181,6 +181,8 @@ class Document(models.Model):
 
     # 1. 定义选择项的嵌套类 (这是推荐的 Django 实践)
     class PaperSizeChoices(models.TextChoices):
+        A4 = 'a4', 'A4'
+        B5 = 'b5', 'B5'
         A4_70G = 'a4_70g', 'A4(70g)'
         A4_80G = 'a4_80g', 'A4(80g)'
         B5_70G = 'b5_70g', 'B5(70g)'
@@ -214,6 +216,17 @@ class Document(models.Model):
     
     copies = models.PositiveIntegerField(default=1, help_text="打印份数")
     page_count = models.PositiveIntegerField(help_text="文件页数")
+    # 新增：记录页数来源（estimated/exact）
+    class PageCountSource(models.TextChoices):
+        ESTIMATED = 'estimated', '预估'
+        EXACT = 'exact', '精确'
+
+    page_count_source = models.CharField(
+        max_length=16,
+        choices=PageCountSource.choices,
+        default=PageCountSource.ESTIMATED,
+        help_text="页数来源（预估/精确）",
+    )
     print_cost = models.DecimalField(max_digits=10, decimal_places=2, help_text="此文件的打印费用")
     sequence_in_group = models.PositiveIntegerField(default=0, help_text="文件在组内的顺序")
     
@@ -225,6 +238,10 @@ class Document(models.Model):
     @property
     def paper_size_display(self):
         return self.get_paper_size_display()
+
+    @property
+    def page_count_source_display(self):
+        return self.get_page_count_source_display()
         
     # --- ▲▲▲ 修正代码结束 ▲▲▲ ---
     

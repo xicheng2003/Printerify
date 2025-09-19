@@ -76,6 +76,10 @@ else:
     # 生产环境前端域名
     FRONTEND_URL = 'https://print.morlight.top'
 
+# 控制是否允许匿名访问订单列表（用于本地/测试方便，生产默认为 False）
+# 可通过环境变量 ALLOW_ANONYMOUS_ORDER_LIST 显式覆盖
+ALLOW_ANONYMOUS_ORDER_LIST = config('ALLOW_ANONYMOUS_ORDER_LIST', default=DEBUG, cast=bool)
+
 
 # Application definition
 
@@ -257,6 +261,20 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE # 使用Django的时区
+
+# --- DOCX 页数计算与异步精确设置（可选） ---
+# 注意：为保证前端同步上传响应速度，默认不同步执行重型转换（LibreOffice）。
+# 1) 同步路径：使用环境变量控制，默认关闭
+#    - DOCX_SOFFICE_ENABLED=false
+#    - DOCX_SOFFICE_TIMEOUT=10  # 秒
+# 2) 异步路径：默认开启重算（若不希望后台重算可关闭）
+#    - DOCX_ASYNC_RECOUNT_ENABLED=true
+#    - DOCX_ASYNC_RECOUNT_TIMEOUT=20  # 秒
+# 可以在这里添加 Django 层的默认值（环境变量优先）：
+DOCX_PAGECOUNT_USE_SOFFICE = False
+DOCX_PAGECOUNT_SOFFICE_TIMEOUT = 10
+DOCX_ASYNC_RECOUNT_ENABLED = True
+DOCX_ASYNC_RECOUNT_TIMEOUT = 20
 
 # REST Framework Configuration
 REST_FRAMEWORK = {

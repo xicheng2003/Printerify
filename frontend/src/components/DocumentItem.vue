@@ -26,6 +26,12 @@
           <span>{{ document.pageCount }} 页</span>
           <span class="dot-divider">•</span>
           <span>打印费: <strong>¥{{ Number(document.printCost).toFixed(2) }}</strong></span>
+          <span class="dot-divider">•</span>
+          <span
+            class="status-badge"
+            :class="document.isEstimated ? 'badge-estimated' : 'badge-exact'"
+            :title="document.priceNote || (document.isEstimated ? '价格为预估，后台将自动校正' : '价格已精确计算')"
+          >{{ document.isEstimated ? '预估' : '精确' }}</span>
         </div>
       </div>
 
@@ -256,6 +262,27 @@ function retryUpload() {
 
 .settings-toggle-btn:hover {
   background-color: var(--color-background-mute);
+}
+
+/* 新增：状态徽章样式 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+.badge-estimated {
+  color: #8a6d3b;
+  background: #fcf8e3;
+  border-color: #faebcc;
+}
+.badge-exact {
+  color: #2f6b2f;
+  background: #e6f4ea;
+  border-color: #b7e1c1;
 }
 
 .settings-toggle-btn svg {

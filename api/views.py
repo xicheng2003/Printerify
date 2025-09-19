@@ -199,6 +199,15 @@ class PriceEstimationView(generics.GenericAPIView):
         color_mode = request.data.get('color_mode')
         print_sided = request.data.get('print_sided')
         copies = int(request.data.get('copies', 1))
+        # 可选：前端可传 prefer_exact=true 来在同步阶段尽力获取精确页数（可能稍慢几秒）
+        prefer_exact_raw = str(request.data.get('prefer_exact', '')).strip().lower()
+        prefer_exact = prefer_exact_raw in {'1', 'true', 'yes', 'on'}
+        # 可选：允许覆盖页数（例如PDF已知页数时减少一次解析）
+        override_page_count = request.data.get('override_page_count')
+        try:
+            override_page_count = int(override_page_count) if override_page_count is not None else None
+        except Exception:
+            override_page_count = None
         # 【核心修正】从请求中获取 paper_size
         paper_size = request.data.get('paper_size') # <-- 【新增】获取纸张尺寸
 
@@ -212,19 +221,43 @@ class PriceEstimationView(generics.GenericAPIView):
             return Response({'error': f'文件在服务器上未找到，路径: {full_file_path}'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
+            # 若请求 prefer_exact 且为 DOCX，优先尝试直接用 soffice 获取页数，便于准确标记来源
+            suffix = full_file_path.suffix.lower()
+            if prefer_exact and suffix == '.docx' and override_page_count is None:
+                try:
+                    exact_pages = pricing._docx_pages_via_soffice(str(full_file_path), timeout_sec=pricing._get_soffice_timeout())  # type: ignore[attr-defined]
+                    if isinstance(exact_pages, int) and exact_pages > 0:
+                        override_page_count = exact_pages
+                except Exception:
+                    pass
+
             # 【核心修正】将 paper_size 传递给计价函数
             page_count, print_cost = pricing.calculate_document_price(
                 file_path=str(full_file_path),
                 paper_size=paper_size,  # <--- 传递新参数
                 color_mode=color_mode,
                 print_sided=print_sided,
-                copies=int(copies)
+                copies=int(copies),
+                prefer_exact=prefer_exact,
+                override_page_count=override_page_count,
             )
 
             # 返回成功响应
+            # 标注是否为“预估”：PDF 通常是精确，其它格式（尤其 DOCX）在同步阶段通常为预估
+            # 根据是否成功获得“确切页数”来决定预估标志
+            if suffix == '.pdf':
+                is_estimated = False
+            elif override_page_count is not None:
+                is_estimated = False
+            else:
+                is_estimated = True
+            page_count_source = 'exact' if not is_estimated else 'estimated'
             return Response({
                 "page_count": page_count,
-                "print_cost": f"{print_cost:.2f}"
+                "print_cost": f"{print_cost:.2f}",
+                "page_count_source": page_count_source,
+                "is_estimated": is_estimated,
+                "note": ("价格为预估，后台将自动校正" if is_estimated else "价格已精确计算")
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -292,9 +325,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             # 创建订单：允许任何人
             permission_classes = [permissions.AllowAny]
-        elif self.action in ['list', 'retrieve']:
-            # 列表/详情：仅允许已登录用户访问自己的订单
+        elif self.action in ['retrieve']:
+            # 详情：仅允许已登录用户访问自己的订单
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['list']:
+            # 列表：由配置控制是否允许匿名访问
+            if getattr(settings, 'ALLOW_ANONYMOUS_ORDER_LIST', False):
+                permission_classes = [permissions.AllowAny]
+            else:
+                permission_classes = [permissions.IsAuthenticated]
         else:
             # 其他操作（更新、删除）：需要认证
             permission_classes = [permissions.IsAuthenticated]
@@ -307,7 +346,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderDetailSerializer
 
     def get_queryset(self):
-        # 仅返回当前用户的订单；未登录用户无法访问 list/retrieve
+        # 仅返回当前用户的订单；当允许匿名列表时返回全部
+        if self.action == 'list' and not self.request.user.is_authenticated:
+            if getattr(settings, 'ALLOW_ANONYMOUS_ORDER_LIST', False):
+                return self.queryset
+            return self.queryset.none()
         if self.request.user.is_authenticated:
             return self.queryset.filter(user=self.request.user)
         return self.queryset.none()

@@ -143,6 +143,10 @@
 
           <div v-if="currentStep === 2">
             <h3 class="step-title">第二步：确认信息并支付</h3>
+            <div v-if="anyEstimated" class="order-estimated-alert">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              当前价格为预估，后台将自动校正（提交后将在几秒至十几秒内更新为精确价格）
+            </div>
 
             <div class="price-result">
               <p>订单总计</p>
@@ -523,6 +527,9 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
   }
 }
 
+// 订单层面的“是否预估”判断（任一文档为预估即为预估）
+const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
+
 </script>
 
 <style scoped>
@@ -558,6 +565,19 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 
 .process-section {
   padding-bottom: 2rem;
+}
+
+/* 新增：订单层级的预估提示样式 */
+.order-estimated-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed #faebcc;
+  background: #fcf8e3;
+  color: #8a6d3b;
+  border-radius: 8px;
+  margin: 0.5rem 0 1rem;
 }
 
 .process-card {

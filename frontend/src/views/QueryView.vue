@@ -135,6 +135,10 @@ function formatPrintSided(sidedCode) {
 
     <div v-else-if="searchResult" class="result-card">
       <h3>查询结果</h3>
+      <div v-if="searchResult.is_estimated || searchResult.page_count_source === 'estimated' || (searchResult.groups || []).some(g => (g.documents || []).some(d => d.page_count_source !== 'exact'))" class="order-estimated-alert">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        订单价格为预估，后台将自动校正
+      </div>
       <div class="result-grid">
         <div><strong>取件码:</strong> {{ searchResult.pickup_code }}</div>
         <div><strong>订单号:</strong> {{ searchResult.order_number }}</div>
@@ -164,6 +168,11 @@ function formatPrintSided(sidedCode) {
                   <span>{{ doc.paper_size.toUpperCase() }}</span>
                   <span>{{ doc.color_mode === 'color' ? '彩色' : '黑白' }}</span>
                   <span>{{ formatPrintSided(doc.print_sided) }}</span>
+                  <span
+                    class="doc-status-badge"
+                    :class="doc.page_count_source === 'exact' ? 'doc-badge-exact' : 'doc-badge-estimated'"
+                    :title="doc.page_count_source === 'exact' ? '价格已精确计算' : '价格为预估，后台将自动校正'"
+                  >{{ doc.page_count_source === 'exact' ? '精确' : '预估' }}</span>
                 </div>
               </div>
             </div>
@@ -509,6 +518,46 @@ h4 {
 .view-file-link:hover {
   background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
   border-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+}
+
+/* 文档级 预估/精确 徽章样式（避免与订单状态徽章冲突） */
+.doc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+  border: 1px solid transparent;
+  margin-left: 0.5rem;
+}
+.doc-badge-estimated {
+  color: #8a6d3b;
+  background: #fcf8e3;
+  border-color: #faebcc;
+}
+.doc-badge-exact {
+  color: #2f6b2f;
+  background: #e6f4ea;
+  border-color: #b7e1c1;
+}
+
+/* 订单级 预估提示条 */
+.order-estimated-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fff7ed; /* amber-50 */
+  border: 1px solid #fed7aa; /* amber-200 */
+  color: #9a3412; /* amber-800 */
+  margin-bottom: 1rem;
+}
+html.dark .order-estimated-alert {
+  background: #78350f;
+  border-color: #a16207;
+  color: #fde68a;
 }
 
 @media (max-width: 639px) {

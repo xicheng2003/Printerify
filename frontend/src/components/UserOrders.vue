@@ -45,6 +45,10 @@
         </div>
 
         <div class="card-body">
+          <div v-if="order.is_estimated || order.page_count_source === 'estimated'" class="order-estimated-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            订单价格为预估，后台将自动校正
+          </div>
           <div class="main-info">
             <div class="info-item">
               <span class="info-label">取件码</span>
@@ -75,6 +79,11 @@
                       <span>{{ getPrintSidedText(doc.print_sided) }}</span>,
                       <span>{{ getPaperSizeText(doc.paper_size) }}</span>
                       <span class="doc-cost-new">¥{{ doc.print_cost }}</span>
+                      <span
+                        class="status-badge"
+                        :class="doc.page_count_source === 'exact' ? 'badge-exact' : 'badge-estimated'"
+                        :title="doc.page_count_source === 'exact' ? '价格已精确计算' : '价格为预估，后台将自动校正'"
+                      >{{ doc.page_count_source === 'exact' ? '精确' : '预估' }}</span>
                     </div>
                   </li>
                 </ul>
@@ -108,7 +117,7 @@
 // 只是为了适配新的模板结构，对 ref 变量的定义进行了补充。
 // 所有核心功能、方法和 store 的使用均保持不变。
 //
-import { onMounted, computed, ref } from 'vue'; // 引入 ref
+import { onMounted, ref } from 'vue'; // 引入 ref
 import { useOrderStore } from '../stores/order';
 import { useUserStore } from '../stores/user';
 import LoadingSpinner from './LoadingSpinner.vue';
@@ -361,6 +370,46 @@ html.dark .status-badge-new.status-cancelled { background-color: #991b1b; color:
 .doc-name-new { font-weight: 500; color: var(--color-text); }
 .doc-specs-new { color: var(--color-text-mute); font-size: 0.8rem; }
 .doc-cost-new { font-weight: 500; margin-left: auto; padding-left: 1rem; }
+
+/* 文档级 预估/精确 徽章样式（与 DocumentItem 保持一致） */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+  border: 1px solid transparent;
+  margin-left: 0.5rem;
+}
+.badge-estimated {
+  color: #8a6d3b;
+  background: #fcf8e3;
+  border-color: #faebcc;
+}
+.badge-exact {
+  color: #2f6b2f;
+  background: #e6f4ea;
+  border-color: #b7e1c1;
+}
+
+/* 订单级 预估提示条 */
+.order-estimated-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fff7ed; /* amber-50 */
+  border: 1px solid #fed7aa; /* amber-200 */
+  color: #9a3412; /* amber-800 */
+  margin-bottom: 1rem;
+}
+html.dark .order-estimated-alert {
+  background: #78350f;
+  border-color: #a16207;
+  color: #fde68a;
+}
 
 /* 卡片脚部 */
 .card-footer { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; background-color: var(--color-background-soft); }

@@ -38,11 +38,19 @@ export const useOrderStore = defineStore('order', () => {
                 color_mode: doc.settings.colorMode,
                 print_sided: doc.settings.printSided,
                 paper_size: doc.settings.paperSize,
-                copies: doc.settings.copies
+                copies: doc.settings.copies,
+                // 在第一步希望尽量拿到精确页数（会稍慢，但能“状态翻转”并同步价格）
+                prefer_exact: true,
+                // 如果已经有页数（例如PDF快速读取），可以传递以减少一次解析
+                override_page_count: doc.pageCount || undefined,
             };
             const response = await apiService.getPriceQuote(null, specifications);
             doc.pageCount = response.data.page_count;
             doc.printCost = response.data.print_cost;
+            // 新增：记录预估/精确状态，便于前端提示
+            doc.isEstimated = Boolean(response.data.is_estimated);
+            doc.pageCountSource = response.data.page_count_source || (doc.isEstimated ? 'estimated' : 'exact');
+            doc.priceNote = response.data.note || (doc.isEstimated ? '价格为预估，后台将自动校正' : '价格已精确计算');
         } catch (error) {
             console.error('Price estimation error:', error);
             doc.error = '计价失败';
@@ -93,6 +101,10 @@ export const useOrderStore = defineStore('order', () => {
                     paperSize: 'a4_70g' // <--- 【在此处新增】
                 },
                 pageCount: 0, printCost: 0,
+                // 新增：默认先视为预估，收到后端响应后再更新
+                isEstimated: true,
+                pageCountSource: 'estimated',
+                priceNote: '价格为预估，后台将自动校正',
             };
             const newGroup = { id: `group_${uuidv4()}`, bindingType: 'none', documents: [newDocument] };
             groups.value.push(newGroup);
