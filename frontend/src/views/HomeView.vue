@@ -143,9 +143,14 @@
 
           <div v-if="currentStep === 2">
             <h3 class="step-title">第二步：确认信息并支付</h3>
-            <div v-if="anyEstimated" class="order-estimated-alert">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              当前价格为预估，后台将自动校正（提交后将在几秒至十几秒内更新为精确价格）
+            <div v-if="anyEstimated" class="order-estimated-alert" role="alert" aria-live="polite">
+              <div class="estimated-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <div class="estimated-text">
+                <strong>价格提示：</strong>
+                <span>当前页数为预估，计价可能不准确。建议上传 PDF 格式获得精确价格。若继续提交，系统将尝试在后台更新为精确价格。如有任何疑问，请联系我们。</span>
+              </div>
             </div>
 
             <div class="price-result">
@@ -567,17 +572,35 @@ const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some
   padding-bottom: 2rem;
 }
 
-/* 新增：订单层级的预估提示样式 */
+/* 统一风格：订单层级的预估提示样式（与帮助提示风格一致） */
 .order-estimated-alert {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px dashed #faebcc;
-  background: #fcf8e3;
-  color: #8a6d3b;
-  border-radius: 8px;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  border-radius: 12px;
   margin: 0.5rem 0 1rem;
+}
+
+.order-estimated-alert .estimated-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-estimated-alert .estimated-text strong {
+  display: block;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: 0.25rem;
+}
+
+.order-estimated-alert .estimated-text span {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .process-card {
