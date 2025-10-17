@@ -14,7 +14,9 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        timeout: 300000, // 5分钟超时，适合大文件上传
+        proxyTimeout: 300000
       }
     }
   }

@@ -74,7 +74,14 @@ export const useOrderStore = defineStore('order', () => {
             await _fetchPriceForDocument(docId);
         } catch (error) {
             console.error('File upload error:', error);
-            doc.error = '上传失败';
+            // 使用友好的错误提示
+            if (error.friendlyMessage) {
+                doc.error = error.friendlyMessage;
+            } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+                doc.error = '上传超时，文件可能过大';
+            } else {
+                doc.error = '上传失败，请重试';
+            }
         } finally {
             doc.isUploading = false;
         }

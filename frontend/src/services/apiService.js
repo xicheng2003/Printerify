@@ -11,7 +11,7 @@ axios.defaults.withCredentials = true; // 允许跨域请求携带cookie
 const apiClient = axios.create({
   baseURL: '/', // 因为我们使用Vite代理，所以这里写根路径即可
   withCredentials: true, // 确保每个请求都携带凭据
-  timeout: 10000, // 10秒超时
+  timeout: 120000, // 120秒（2分钟）超时 - 适合大文件上传
 });
 
 // 添加请求拦截器来自动添加认证token
@@ -34,16 +34,24 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 检查是否是超时错误
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      error.friendlyMessage = '上传超时，请检查文件大小或网络连接。建议：文件大小不超过50MB';
+      console.error('请求超时:', error.message);
+      return Promise.reject(error);
+    }
+
     if (error.response) {
       const { status, data } = error.response;
 
       switch (status) {
-        case 400:
+        case 400: {
           // 处理验证错误，提供友好的中文提示
           const friendlyError = formatValidationErrors(data);
           error.friendlyMessage = friendlyError;
           console.warn('请求验证失败:', friendlyError);
           break;
+        }
         case 401:
           // 认证失败，清除本地token
           localStorage.removeItem('token');
@@ -57,6 +65,10 @@ apiClient.interceptors.response.use(
         case 404:
           error.friendlyMessage = '请求的资源不存在';
           console.warn('请求的资源不存在:', data);
+          break;
+        case 413:
+          error.friendlyMessage = '文件过大，请上传小于100MB的文件';
+          console.error('文件过大:', data);
           break;
         case 500:
           error.friendlyMessage = '服务器内部错误，请稍后重试';
@@ -172,6 +184,7 @@ export default {
     return apiClient.post('/api/upload/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress, // 将回调函数传递给axios
+      timeout: 300000, // 上传文件专用超时：5分钟
     });
   },
 

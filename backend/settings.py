@@ -168,6 +168,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# File upload settings
+# 允许上传最大256MB的文件（适合大文档）
+DATA_UPLOAD_MAX_MEMORY_SIZE = 268435456  # 256 MB in bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 268435456  # 256 MB in bytes
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
