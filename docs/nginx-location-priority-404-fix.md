@@ -31,6 +31,14 @@ location /media/ {
 location ^~ /media/ {
     alias /home/xicheng2003/Printerify/media/;
     charset utf-8;  # 处理中文文件名
+    
+    # 根据URL参数动态设置Content-Disposition
+    set $disposition "inline";
+    if ($arg_download = "1") {
+        set $disposition "attachment";
+    }
+    add_header Content-Disposition "$disposition; filename*=UTF-8''$uri" always;
+    
     try_files $uri =404;
 }
 ```
@@ -80,6 +88,14 @@ location /media/ {
 location ^~ /media/ {
     alias /home/xicheng2003/Printerify/media/;
     charset utf-8;
+    
+    # 动态设置Content-Disposition
+    set $disposition "inline";
+    if ($arg_download = "1") {
+        set $disposition "attachment";
+    }
+    add_header Content-Disposition "$disposition; filename*=UTF-8''$uri" always;
+    
     try_files $uri =404;
 }
 ```
