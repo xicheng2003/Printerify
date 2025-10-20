@@ -9,6 +9,22 @@ import { useUserStore } from '@/stores/user'
 // 引入新页面组件
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  // 配置页面切换时的滚动行为
+  scrollBehavior(to, from, savedPosition) {
+    // 如果有保存的滚动位置（如浏览器前进/后退）
+    if (savedPosition) {
+      return savedPosition
+    }
+    // 如果有锚点（如 #section）
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      }
+    }
+    // 默认情况：回到页面顶部
+    return { top: 0, behavior: 'smooth' }
+  },
   routes: [
     // ▼▼▼ 2. 修改和添加下面的路由配置 ▼▼▼
     {
