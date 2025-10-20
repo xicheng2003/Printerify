@@ -479,9 +479,9 @@ const ANIMATION_DURATIONS = {
 
 // 统计数据目标值
 const STATS_TARGETS = {
-  pageCount: 1089,
-  userCount: 46,
-  satisfactionRate: 99
+  pageCount: 1265,
+  userCount: 58,
+  satisfactionRate: 98.9
 };
 
 // Intersection Observer 配置
