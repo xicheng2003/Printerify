@@ -868,7 +868,7 @@ const toggleFaq = (index) => {
 
 .hero-section-reimagined {
   background-color: var(--color-background-soft);
-  padding: 6rem 2rem;
+  padding: 3rem 2rem 6rem;
   min-height: 80vh;
   display: flex;
   align-items: center;

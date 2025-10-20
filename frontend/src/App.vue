@@ -1,6 +1,6 @@
 <template>
   <div id="app-container">
-    <header class="app-header">
+    <header class="app-header" :class="{ scrolled: isScrolled }">
       <div class="container">
         <!-- 【重要更新】将 logo 容器改为指向首页的链接 -->
         <RouterLink to="/" class="logo-container" @click="closeMobileMenu">
@@ -15,9 +15,35 @@
         </RouterLink>
 
         <nav class="desktop-nav">
-          <RouterLink to="/order">自助打印</RouterLink>
-          <RouterLink to="/query">订单查询</RouterLink>
-          <RouterLink to="/terms">关于</RouterLink>
+          <RouterLink to="/order" class="nav-link">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span class="nav-text">自助打印</span>
+          </RouterLink>
+          <RouterLink to="/query" class="nav-link">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span class="nav-text">订单查询</span>
+          </RouterLink>
+          <RouterLink to="/terms" class="nav-link">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span class="nav-text">关于</span>
+          </RouterLink>
         </nav>
 
         <div class="header-controls">
@@ -117,6 +143,8 @@ import { useOrderStore } from '@/stores/order';
 import { useUserStore } from '@/stores/user';
 
 const isMobileMenuOpen = ref(false);
+const isScrolled = ref(false); // 新增：跟踪滚动状态
+const forceExpanded = ref(false); // 新增：强制保持详细状态
 const orderStore = useOrderStore();
 const userStore = useUserStore();
 const router = useRouter();
@@ -152,9 +180,20 @@ function handleAuthUnauthorized() {
 // 定期检查用户状态
 let statusCheckInterval;
 
+// 滚动事件处理
+function handleScroll() {
+  // 如果菜单已打开或强制保持展开状态，不触发缩略状态
+  if (!isMobileMenuOpen.value && !forceExpanded.value) {
+    isScrolled.value = window.scrollY > 80;
+  }
+}
+
 onMounted(() => {
   // 监听认证失效事件
   window.addEventListener('auth:unauthorized', handleAuthUnauthorized);
+
+  // 监听滚动事件
+  window.addEventListener('scroll', handleScroll);
 
   // 每5分钟检查一次用户状态
   statusCheckInterval = setInterval(() => {
@@ -167,17 +206,39 @@ onMounted(() => {
 onUnmounted(() => {
   // 清理事件监听器和定时器
   window.removeEventListener('auth:unauthorized', handleAuthUnauthorized);
+  window.removeEventListener('scroll', handleScroll);
   if (statusCheckInterval) {
     clearInterval(statusCheckInterval);
   }
 });
 
 function toggleMobileMenu() {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  if (!isMobileMenuOpen.value) {
+    // 打开菜单：强制展开并保持详细状态
+    forceExpanded.value = true;
+    isScrolled.value = false;
+    // 延迟打开菜单，让动画更流畅
+    setTimeout(() => {
+      isMobileMenuOpen.value = true;
+    }, 100);
+  } else {
+    // 关闭菜单
+    isMobileMenuOpen.value = false;
+    forceExpanded.value = false;
+    // 关闭后，根据滚动位置决定是否恢复缩略状态
+    if (window.scrollY > 80) {
+      isScrolled.value = true;
+    }
+  }
 }
 
 function closeMobileMenu() {
   isMobileMenuOpen.value = false;
+  forceExpanded.value = false;
+  // 关闭菜单后，根据滚动位置决定是否恢复缩略状态
+  if (window.scrollY > 80) {
+    isScrolled.value = true;
+  }
 }
 
 function handleMobileLogout() {
@@ -197,30 +258,64 @@ function handleMobileLogout() {
 }
 
 .app-header {
-  background-color: var(--color-background-soft);
-  box-shadow: 0 2px 4px var(--shadow-color);
-  padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid var(--color-border);
-  transition: background-color 0.3s, border-color 0.3s, padding 0.3s;
+  padding: 1rem 0;
+  transition: all 0.3s ease;
+}
+
+/* 滚动后的样式 */
+.app-header.scrolled {
+  padding: 0.5rem 0;
 }
 
 .app-header .container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--color-background-soft);
+  border-radius: 20px;
+  padding: 1rem 1.75rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+  width: auto;
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+/* 滚动后的岛屿样式 - 玻璃态效果 */
+.app-header.scrolled .container {
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  max-width: 500px;
+  background-color: rgba(var(--color-background-soft-rgb), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--color-border-rgb), 0.6);
+}
+
+.app-header.scrolled .logo-container svg {
+  width: 28px;
+  height: 28px;
+}
+
+.app-header.scrolled .logo-container h1 {
+  font-size: 1.25rem;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .logo-container svg {
-  transition: width 0.3s, height 0.3s;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .logo-container h1 {
@@ -228,33 +323,77 @@ function handleMobileLogout() {
   font-weight: 700;
   color: var(--color-heading);
   margin: 0;
-  transition: font-size 0.3s;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 滚动后隐藏品牌名 */
+.app-header.scrolled .logo-container {
+  gap: 0;
+}
+
+.app-header.scrolled .logo-container h1 {
+  width: 0;
+  opacity: 0;
 }
 
 .header-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .desktop-nav {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.5rem;
   margin-right: auto;
-  margin-left: 2.5rem;
+  margin-left: 1.5rem;
 }
 
-.desktop-nav a {
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
   color: var(--color-text-mute);
   font-weight: 500;
-  transition: color 0.3s ease;
-  padding: 0.5rem 0;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.875rem;
+  border-radius: 12px;
+  white-space: nowrap;
 }
 
-.desktop-nav a:hover,
-.desktop-nav a.router-link-exact-active {
+.nav-link:hover {
   color: var(--color-primary);
+  background-color: var(--color-background-mute);
+}
+
+.nav-link.router-link-exact-active {
+  color: var(--color-primary);
+  background-color: var(--color-background-mute);
+}
+
+.nav-icon {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.nav-text {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* 滚动后隐藏文字，只显示图标 */
+.app-header.scrolled .nav-text {
+  width: 0;
+  opacity: 0;
+}
+
+.app-header.scrolled .nav-link {
+  gap: 0;
+  padding: 0.5rem;
 }
 
 .app-main {
@@ -281,6 +420,19 @@ function handleMobileLogout() {
   margin: 0 auto;
 }
 
+/* 移动端菜单下拉框样式调整 */
+.mobile-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 5%;
+  right: 5%;
+  background-color: var(--color-background-soft);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
 .mobile-menu-button {
   display: none;
   background: none;
@@ -300,15 +452,7 @@ function handleMobileLogout() {
     background-color: var(--color-background-mute);
 }
 
-.mobile-menu-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--color-background-soft);
-  box-shadow: 0 8px 16px var(--shadow-color);
-  border-top: 1px solid var(--color-border);
-}
+/* 原有的移动端菜单下拉框样式已移到 .container 后面 */
 
 .mobile-nav {
   display: flex;
@@ -474,6 +618,28 @@ function handleMobileLogout() {
   /* --- 移动端导航栏优化 --- */
   .app-header {
     padding: 0.75rem 0; /* 减小垂直内边距 */
+  }
+
+  .app-header .container {
+    max-width: calc(100% - 2rem);
+    padding: 0.875rem 1.25rem;
+  }
+
+  /* 移动端滚动后更紧凑 - 卡片变短 */
+  .app-header.scrolled .container {
+    max-width: 200px; /* 移动端缩略时卡片变短 */
+    padding: 0.625rem 1rem;
+    justify-content: space-between; /* 均匀分布三个元素 */
+  }
+
+  /* 移动端滚动后 Logo 容器不占用额外空间 */
+  .app-header.scrolled .logo-container {
+    margin: 0;
+  }
+
+  /* 移动端滚动后右侧控制区均匀分布 */
+  .app-header.scrolled .header-controls {
+    gap: 0.75rem;
   }
 
   .logo-container svg {

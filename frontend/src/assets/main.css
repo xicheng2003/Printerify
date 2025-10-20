@@ -7,9 +7,15 @@
   --color-background-soft: #f8f9fa; /* 匹配您原始的背景色 */
   --color-background-mute: #f1f3f5;
 
+  /* RGB 版本 - 用于半透明效果 */
+  --color-background-rgb: 255, 255, 255;
+  --color-background-soft-rgb: 248, 249, 250;
+  --color-background-mute-rgb: 241, 243, 245;
+
   /* 边框色 */
   --color-border: #dee2e6;
   --color-border-hover: #ced4da;
+  --color-border-rgb: 222, 226, 230;
 
   /* 文本颜色 */
   --color-heading: #1e293b; /* 匹配您原始的标题色 */
@@ -40,9 +46,15 @@ html.dark {
   --color-background-soft: #1e1e1e;
   --color-background-mute: #2a2a2a;
 
+  /* RGB 版本 - 用于半透明效果 */
+  --color-background-rgb: 18, 18, 18;
+  --color-background-soft-rgb: 30, 30, 30;
+  --color-background-mute-rgb: 42, 42, 42;
+
   /* 边框色 */
   --color-border: #424242;
   --color-border-hover: #5a5a5a;
+  --color-border-rgb: 66, 66, 66;
 
   /* 文本颜色 */
   --color-heading: rgba(255, 255, 255, 0.87);

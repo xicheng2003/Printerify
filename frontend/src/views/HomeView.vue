@@ -1260,6 +1260,9 @@ html.dark .price-table tr:nth-child(even) {
   border: 1px solid rgba(148, 163, 184, 0.2);
   overflow: hidden;
   position: relative;
+  max-width: 950px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .banner-content {
