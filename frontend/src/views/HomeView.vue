@@ -916,7 +916,7 @@ html.dark .payment-button-image {
   /* animation: pulse-ripple 2s ease-in-out infinite; */
 
   /* 选项2: 简单闪烁 */
-  animation: blink 1.5s ease-in-out infinite;
+  /* animation: blink 1.5s ease-in-out infinite; */
 
   /* 选项3: 轻微跳动 */
   /* animation: bounce 1s ease-in-out infinite; */
@@ -928,7 +928,7 @@ html.dark .payment-button-image {
   /* animation: spin-fade 2s linear infinite; */
 
   /* 选项6: 无动画（静态红点） */
-  /* animation: none; */
+  animation: none;
 }
 
 html.dark .update-dot {
