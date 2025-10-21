@@ -120,13 +120,25 @@
             <OrderConfiguration v-if="orderStore.groups.length > 0" />
 
             <div class="terms-agreement">
-              <div>
+              <div class="terms-item">
                 <input type="checkbox" id="terms" v-model="agreedToTerms" />
-                <label for="terms"> 我已阅读并同意 <a href="#" @click.prevent="showTermsModal = true">《服务条款》</a></label>
+                <label for="terms">
+                  我已阅读并同意
+                  <a href="#" @click.prevent="openTermsModal" class="terms-link">
+                    《服务条款》
+                    <span v-if="hasLegalUpdate" class="update-dot" title="条款已于2025年10月21日更新"></span>
+                  </a>
+                </label>
               </div>
-              <div>
+              <div class="terms-item">
                 <input type="checkbox" id="privacy" v-model="agreedToPrivacy" />
-                <label for="privacy"> 我已阅读并同意 <a href="#" @click.prevent="showPrivacyModal = true">《隐私协议》</a></label>
+                <label for="privacy">
+                  我已阅读并同意
+                  <a href="#" @click.prevent="openPrivacyModal" class="terms-link">
+                    《隐私协议》
+                    <span v-if="hasLegalUpdate" class="update-dot" title="协议已于2025年10月21日更新"></span>
+                  </a>
+                </label>
               </div>
             </div>
 
@@ -325,6 +337,13 @@ const showBillingModal = ref(false); // 用于显示计费规则说明的模态�
 const fileUploaderRef = ref(null);
 const finalOrder = ref(null); // 用于存储最终成功创建的订单信息
 
+// 法律文档更新提醒标识
+const LEGAL_UPDATE_DATE = '2025-10-21'; // 法律文档最后更新日期
+const hasLegalUpdate = computed(() => {
+  const lastViewedDate = localStorage.getItem('legalDocsLastViewed');
+  return !lastViewedDate || lastViewedDate < LEGAL_UPDATE_DATE;
+});
+
 // ▼▼▼ 在这里新增控制逻辑 ▼▼▼
 const isBindingHelpVisible = ref(true); // 默认显示
 
@@ -389,6 +408,19 @@ function remindLater() {
   }, 5 * 60 * 1000); // 5分钟
 }
 // ▲▲▲ 新增代码结束 ▲▲▲
+
+// 法律文档模态框打开函数（打开时标记为已查看）
+function openTermsModal() {
+  showTermsModal.value = true;
+  // 用户打开查看后，标记已查看最新版本
+  localStorage.setItem('legalDocsLastViewed', LEGAL_UPDATE_DATE);
+}
+
+function openPrivacyModal() {
+  showPrivacyModal.value = true;
+  // 用户打开查看后，标记已查看最新版本
+  localStorage.setItem('legalDocsLastViewed', LEGAL_UPDATE_DATE);
+}
 
 const isReadyToGoNext = computed(() => {
   return orderStore.isReadyToSubmit && agreedToTerms.value && agreedToPrivacy.value;
@@ -833,31 +865,134 @@ html.dark .payment-button-image {
   border-radius: 8px;
 }
 
-.terms-agreement div {
+.terms-agreement .terms-item {
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.terms-agreement div:last-child {
+.terms-agreement .terms-item:last-child {
   margin-bottom: 0;
 }
 
 .terms-agreement input[type="checkbox"] {
   margin-right: 0.5rem;
   width: auto;
+  flex-shrink: 0;
 }
 
 .terms-agreement label {
   margin-bottom: 0;
   font-weight: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.terms-agreement a {
-  color: var(--color-primary); /* 已修改 */
+.terms-agreement .terms-link {
+  position: relative;
+  display: inline-block;
+  color: var(--color-primary);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* 小红点更新标识 */
+.update-dot {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: rgb(239, 68, 68);
+  border-radius: 50%;
+  border: 1.5px solid var(--color-background-mute);
+
+  /* 动画选择 - 取消注释你喜欢的一个 */
+
+  /* 选项1: 脉动+扩散波（当前使用，微信/QQ风格） */
+  /* animation: pulse-ripple 2s ease-in-out infinite; */
+
+  /* 选项2: 简单闪烁 */
+  animation: blink 1.5s ease-in-out infinite;
+
+  /* 选项3: 轻微跳动 */
+  /* animation: bounce 1s ease-in-out infinite; */
+
+  /* 选项4: 呼吸灯效果 */
+  /* animation: breathe 2s ease-in-out infinite; */
+
+  /* 选项5: 旋转闪烁 */
+  /* animation: spin-fade 2s linear infinite; */
+
+  /* 选项6: 无动画（静态红点） */
+  /* animation: none; */
+}
+
+html.dark .update-dot {
+  background: rgb(248, 113, 113);
+  border-color: var(--color-background-mute);
+}
+
+/* 动画1: 脉动+扩散波 - 微信/QQ消息提示风格 */
+@keyframes pulse-ripple {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+/* 动画2: 简单闪烁 */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* 动画3: 轻微跳动 */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-2px) scale(1.05);
+  }
+  75% {
+    transform: translateY(1px) scale(0.98);
+  }
+}
+
+/* 动画4: 呼吸灯效果 */
+@keyframes breathe {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}
+
+/* 动画5: 旋转闪烁 */
+@keyframes spin-fade {
+  0%, 100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: rotate(180deg) scale(1.1);
+  }
 }
 
 .terms-text {
