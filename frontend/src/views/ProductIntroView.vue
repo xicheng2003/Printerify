@@ -479,8 +479,8 @@ const ANIMATION_DURATIONS = {
 
 // 统计数据目标值
 const STATS_TARGETS = {
-  pageCount: 1265,
-  userCount: 58,
+  pageCount: 1377,
+  userCount: 64,
   satisfactionRate: 98.9
 };
 

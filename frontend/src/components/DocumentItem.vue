@@ -75,9 +75,9 @@
               @change="updateSetting('colorMode', $event.target.value)"
             >
               <option value="black_white">黑白</option>
-              <option value="black_white">（由于机器限制，仅提供黑白打印）</option>
               <!-- 【预留】添加彩色选项 -->
               <!-- <option value="color">彩色</option> -->
+              <option value="" disabled>（由于机器限制，仅提供黑白打印）</option>
             </select>
           </div>
           <div>
@@ -87,12 +87,13 @@
               :value="document.settings.paperSize"
               @change="updateSetting('paperSize', $event.target.value)"
             >
+              <option value="a4_70g">A4(70g)</option>
               <option value="a4_80g">A4(80g)</option>
               <option value="b5_70g">B5(70g)</option>
-              <option value="a4_80g">（A4(70g) 规格纸张暂时用尽，待补货）</option>
-              <option value="a4_80g">（70g/80g 为纸张克重，数值越大表示纸张更厚）</option>
+              <!-- <option value="a4_80g">（A4(70g) 规格纸张暂时用尽，待补货）</option> -->
               <!-- 【预留】添加更多纸张尺寸选项 -->
               <!-- <option value="a4">（暂时仅支持 A4 规格，后续可能增加 B5 ）</option> -->
+              <option value="" disabled>（70g/80g 为纸张克重，数值越大表示纸张更厚）</option>
             </select>
           </div>
         </div>
@@ -316,6 +317,14 @@ function retryUpload() {
   color: var(--color-text);
   margin-bottom: 0.375rem;
   font-weight: 500;
+}
+
+/* 小型帮助文本（select 下方的说明） */
+.field-help {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.85rem;
+  color: var(--color-text-mute);
 }
 
 .settings-grid input,
