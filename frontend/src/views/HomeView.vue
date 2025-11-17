@@ -7,6 +7,33 @@
       </div>
     </Teleport>
 
+    <!-- 订单人工处理时效提醒横幅（5秒后显示，固定顶部，内容下移） -->
+    <Teleport to="body">
+      <transition name="slide-down" appear>
+        <div v-if="showTimingBanner" class="timing-banner" role="alert" aria-live="polite">
+          <div class="timing-banner-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="timing-banner-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              <line x1="12" y1="12" x2="12" y2="16"></line>
+            </svg>
+            <div class="timing-banner-text">
+              <strong>下单提示：</strong>
+              <span>
+                订单提交后需人工打印处理，请耐心等待完成。若您时间紧急，请先与客服沟通并确认预计完成时间后再下单，以免影响使用。感谢理解与支持！
+              </span>
+            </div>
+          </div>
+          <button class="timing-banner-close" @click="dismissTimingBanner" aria-label="关闭时效提醒">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </transition>
+    </Teleport>
+
     <!-- 登录引导横幅 - 仅对未登录用户显示 -->
     <transition name="slide-down" appear>
       <div v-if="!userStore.isAuthenticated && showLoginGuideBanner" class="login-guide-banner">
@@ -304,7 +331,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted, onMounted } from 'vue'; //【修改】引入computed, watch, onUnmounted
+import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue'; //【修改】引入computed, watch, onUnmounted, nextTick
 import { useRouter } from 'vue-router'; // 导入路由
 import { useOrderStore } from '@/stores/order';
 import apiService from '@/services/apiService'; //【修改】使用apiService而不是直接使用axios
@@ -324,6 +351,12 @@ const orderStore = useOrderStore();
 const userStore = useUserStore(); // 使用用户状态管理
 const router = useRouter(); // 使用路由
 const screenshotId = ref(null); // <-- 【新增】用于存储凭证ID的状态
+
+// ▼▼▼ 订单时效提醒横幅状态（5秒后出现） ▼▼▼
+const showTimingBanner = ref(false);
+function dismissTimingBanner() {
+  showTimingBanner.value = false;
+}
 
 // --- UI 控制相关的本地状态 ---
 const currentStep = ref(1);
@@ -361,6 +394,24 @@ onMounted(() => {
   // if (hideBanner === 'true') {
   //   showLoginGuideBanner.value = false;
   // }
+  // 5 秒后显示订单人工处理时效提醒横幅
+  setTimeout(() => {
+    showTimingBanner.value = true;
+  }, 5000);
+});
+
+// 根据横幅高度动态向下推内容，避免覆盖
+watch(showTimingBanner, async (visible) => {
+  if (typeof window === 'undefined') return;
+  if (visible) {
+    await nextTick();
+    const el = document.querySelector('.timing-banner');
+    if (el) {
+      document.body.style.paddingTop = el.offsetHeight + 'px';
+    }
+  } else {
+    document.body.style.paddingTop = '';
+  }
 });
 
 // 监听用户登录状态变化
@@ -1509,6 +1560,94 @@ html.dark .price-table tr:nth-child(even) {
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
 }
+
+/* ===================== 顶部订单时效提醒横幅 ===================== */
+.timing-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(var(--color-primary-rgb,37,99,235),0.25);
+  background: var(--color-background-soft); /* 设为完全不透明的主题背景 */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
+  color: var(--color-heading);
+  animation: timing-banner-drop 0.45s ease;
+  z-index: 10000;
+}
+
+@keyframes timing-banner-drop {
+  0% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.timing-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.timing-banner-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.timing-banner-text strong {
+  display: inline-block;
+  margin-right: 0.25rem;
+  font-weight: 600;
+}
+.timing-banner-text span {
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+.timing-banner-close {
+  background: rgba(var(--color-primary-rgb,37,99,235),0.1);
+  border: 1px solid rgba(var(--color-primary-rgb,37,99,235),0.25);
+  color: var(--color-text-mute);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.timing-banner-close:hover {
+  background: rgba(var(--color-primary-rgb,37,99,235),0.2);
+  color: var(--color-text);
+}
+
+/* 暗色模式适配 */
+html.dark .timing-banner {
+  background: var(--color-background-soft); /* 暗色模式同样不透明 */
+  border-bottom-color: rgba(var(--color-primary-rgb,37,99,235),0.35);
+}
+html.dark .timing-banner-close {
+  background: rgba(var(--color-primary-rgb,37,99,235),0.15);
+  border-color: rgba(var(--color-primary-rgb,37,99,235),0.35);
+}
+html.dark .timing-banner-close:hover {
+  background: rgba(var(--color-primary-rgb,37,99,235),0.3);
+}
+
+@media (max-width: 640px) {
+  .timing-banner { padding: 0.6rem 0.9rem; }
+  .timing-banner-text span { font-size: 0.78rem; }
+  .timing-banner-close { width: 28px; height: 28px; }
+}
+/* ===================== 顶部订单时效提醒横幅结束 ===================== */
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
