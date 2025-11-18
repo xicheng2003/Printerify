@@ -18,7 +18,8 @@ const cache = new Map()
  * @returns {object} 包含渲染内容、加载状态和错误信息
  */
 export function useMarkdown(filePath) {
-  const content = ref('')
+  // 如果缓存中有数据，直接使用缓存初始化
+  const content = ref(cache.has(filePath) ? cache.get(filePath) : '')
   const loading = ref(false)
   const error = ref(null)
 
