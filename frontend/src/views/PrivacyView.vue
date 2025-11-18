@@ -1,8 +1,8 @@
 <template>
-  <div class="terms-page">
-    <h1>服务条款</h1>
-    <div class="terms-content">
-      <LegalDocument type="terms" mode="full" />
+  <div class="privacy-page">
+    <h1>隐私政策</h1>
+    <div class="privacy-content">
+      <LegalDocument type="privacy" mode="full" />
     </div>
   </div>
 </template>
@@ -12,7 +12,7 @@ import LegalDocument from '@/components/legal/LegalDocument.vue'
 </script>
 
 <style scoped>
-.terms-page {
+.privacy-page {
   padding: 2rem 3rem;
   max-width: 800px;
   margin: 2rem auto;
@@ -22,7 +22,7 @@ import LegalDocument from '@/components/legal/LegalDocument.vue'
   border: 1px solid var(--color-border);
 }
 
-.terms-content {
+.privacy-content {
   text-align: justify;
   line-height: 1.8;
   color: var(--color-text);
@@ -36,14 +36,14 @@ h1 {
 }
 
 @media (max-width: 767px) {
-  .terms-page {
+  .privacy-page {
     padding: 1.5rem 1rem;
     margin: 1rem auto;
   }
   h1 {
     font-size: 1.5rem;
   }
-  .terms-content {
+  .privacy-content {
     line-height: 1.7;
     font-size: 0.9rem;
   }

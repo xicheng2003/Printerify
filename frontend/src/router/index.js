@@ -47,10 +47,22 @@ const router = createRouter({
     },
     // --- 新增的路由配置 ---
     {
+      path: '/about',
+      name: 'about',
+      component: () => import('../views/AboutView.vue'),
+      meta: { title: '关于我们' }
+    },
+    {
       path: '/terms',
       name: 'terms',
       component: () => import('../views/TermsView.vue'),
-      meta: { title: '关于' }
+      meta: { title: '服务条款' }
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('../views/PrivacyView.vue'),
+      meta: { title: '隐私政策' }
     },
     // 认证路由
     {
