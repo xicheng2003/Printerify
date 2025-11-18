@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单已完成 - Printerify</title>
+    <style>
+        /* --- 基础重置 --- */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #374151; }
+
+        /* --- 容器样式 --- */
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f3f4f6;
+            padding-bottom: 40px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        /* --- 装饰性顶部条 --- */
+        .top-accent {
+            height: 8px;
+            width: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        /* --- 头部 --- */
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+        .logo-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: #1e293b;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* --- 内容区域 --- */
+        .content {
+            padding: 20px 40px 40px;
+        }
+
+        /* --- 欢迎文案 --- */
+        .welcome-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 24px;
+        }
+        .success-badge {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .success-badge span {
+            background-color: #eff6ff;
+            color: #2563eb;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* --- 核心取件码卡片 --- */
+        .pickup-card {
+            background-color: #eff6ff;
+            border: 2px dashed #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 0 0 35px 0;
+        }
+        .pickup-label {
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .pickup-code {
+            color: #2563eb;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            line-height: 1;
+            font-family: monospace;
+        }
+
+        /* --- 订单详情表格 --- */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .details-table th {
+            text-align: left;
+            padding: 12px 0;
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 500;
+            width: 100px;
+            vertical-align: top;
+        }
+        .details-table td {
+            text-align: right;
+            padding: 12px 0;
+            color: #1f2937;
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* --- 提示信息 --- */
+        .note-box {
+            background-color: #fefce8;
+            border-left: 4px solid #facc15;
+            padding: 16px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #854d0e;
+            margin-top: 10px;
+        }
+        .note-box a {
+            color: #a16207;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* --- 页脚 --- */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #f9fafb;
+            border-top: 1px solid #f3f4f6;
+        }
+        .footer p {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="center" style="padding-top: 40px;">
+                    
+                    <div class="container">
+                        <!-- 顶部装饰条 -->
+                        <div class="top-accent"></div>
+
+                        <!-- 头部 Logo -->
+                        <div class="header">
+                            <div class="logo-container">
+                                <img src="https://print.morlight.top/printerify.png" width="56" height="56" alt="Printerify">
+                            </div>
+                            <h1>Printerify</h1>
+                        </div>
+
+                        <div class="content">
+                            <!-- 成功状态 -->
+                            <div class="success-badge">
+                                <span>🎉 您的订单已完成</span>
+                            </div>
+
+                            <!-- 欢迎语 -->
+                            <div class="welcome-text">
+                                <p style="margin-top: 0;">亲爱的 <strong>{% if order.user %}{{ order.user.get_display_name }}{% else %}用户{% endif %}</strong>：</p>
+                                <p>您的打印订单现已完成，可以凭取件码随时领取。</p>
+                            </div>
+
+                            <!-- 取件码卡片 (重点) -->
+                            <div class="pickup-card">
+                                <div class="pickup-label">您的专属取件码</div>
+                                <div class="pickup-code">{{ order.pickup_code }}</div>
+                            </div>
+
+                            <!-- 订单详情 -->
+                            <table class="details-table" role="presentation">
+                                <tr>
+                                    <th>订单编号</th>
+                                    <td style="font-family: monospace;">{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>取件码</th>
+                                    <td>{{ order.pickup_code }}</td>
+                                </tr>
+                                <tr>
+                                    <th>订单总价</th>
+                                    <td style="color: #ef4444;">¥{{ order.total_price }}</td>
+                                </tr>
+                                <tr>
+                                    <th>下单时间</th>
+                                    <td>{{ order.created_at|date:"Y年m月d日 H:i" }}</td>
+                                </tr>
+                            </table>
+
+                            <!-- 重要提示 -->
+                            <div class="note-box">
+                                <strong>取件提醒：</strong>
+                                请凭上方取件码 <strong>{{ order.pickup_code }}</strong> 领取文件。
+                                您可随时访问 <a href="https://print.morlight.top/query" target="_blank">订单详情页面</a> 查看历史订单。如有疑问，请联系客服。
+                            </div>
+
+                            <p style="margin-top: 30px; text-align: center; color: #9ca3af; font-size: 14px;">
+                                感谢您的信任与支持！
+                            </p>
+                        </div>
+
+                        <!-- 页脚 -->
+                        <div class="footer">
+                            <p>&copy; {% now "Y" %} Printerify. All rights reserved.</p>
+                            <p>此邮件由系统自动发送，请勿直接回复</p>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

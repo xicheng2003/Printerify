@@ -217,4 +217,29 @@ def _recount_order_pages_and_prices(order: Order) -> None:
         order.save(update_fields=['total_price'])
 
 
+@shared_task
+def send_order_completion_email(order_id):
+    """
+    异步发送订单完成提醒邮件。
+    """
+    try:
+        order = Order.objects.get(id=order_id)
+        if order.user and order.user.email:
+            context = {'order': order}
+            html_message = render_to_string('api/user_order_completed.html', context)
+            plain_message = strip_tags(html_message)
+            send_mail(
+                f'订单已完成: {order.pickup_code} | Printerify',
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✓ 订单完成邮件已发送至: {order.user.email}")
+    except Order.DoesNotExist:
+        print(f"!!! 尝试发送完成邮件失败: 订单ID {order_id} 不存在。")
+    except Exception as e:
+        print(f"!!! 订单完成邮件发送失败: {e}")
+
 # 旧的异步任务已不再需要，可以删除

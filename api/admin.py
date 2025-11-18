@@ -7,6 +7,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from .models import Order, BindingGroup, Document, User
+from .tasks import send_order_completion_email
 
 # 注册用户模型
 @admin.register(User)
@@ -104,12 +105,46 @@ class OrderAdmin(admin.ModelAdmin):
     # 【修改】使用我们新的、专门为订单页设计的简化版内联
     inlines = [BindingGroupInlineForOrder]
     readonly_fields = ('order_number', 'pickup_code', 'pickup_code_num', 'phone_number', 'total_price', 'created_at', 'updated_at')
-    actions = ['download_selected_files'] # 下载功能不受影响，依然可用
+    actions = ['download_selected_files', 'mark_as_completed']
 
-    # 下载功能的代码保持不变，因为它本来就是正确的
+    def save_model(self, request, obj, form, change):
+        """
+        重写保存逻辑，以便在状态变为“已完成”时触发邮件。
+        """
+        # 保存前的原始状态
+        if obj.pk:
+            original_obj = Order.objects.get(pk=obj.pk)
+            original_status = original_obj.status
+        else:
+            original_status = None
+
+        # 调用父类的保存方法，确保数据先被写入数据库
+        super().save_model(request, obj, form, change)
+
+        # 检查状态是否从非“已完成”变为了“已完成”
+        if obj.status == Order.StatusChoices.COMPLETED and original_status != Order.StatusChoices.COMPLETED:
+            # 触发异步邮件任务
+            send_order_completion_email.delay(obj.id)
+
+    @admin.action(description='标记选中订单为“已完成”并发送邮件')
+    def mark_as_completed(self, request, queryset):
+        """
+        新增一个后台动作，用于批量标记订单为完成状态。
+        """
+        updated_count = 0
+        for order in queryset:
+            if order.status != Order.StatusChoices.COMPLETED:
+                order.status = Order.StatusChoices.COMPLETED
+                order.save()
+                # 直接在循环中为每个订单触发任务
+                send_order_completion_email.delay(order.id)
+                updated_count += 1
+        
+        self.message_user(request, f"{updated_count} 个订单已成功标记为“已完成”并触发了邮件通知。")
+
+    # 下载功能的代码保持不变
     @admin.action(description='下载选中订单的打印文件和详情PDF')
     def download_selected_files(self, request, queryset):
-        # ... (此部分代码无需修改) ...
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED, False) as zip_file:
             for order in queryset:
