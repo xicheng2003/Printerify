@@ -27,6 +27,9 @@
   /* 主题色 (已替换为您偏爱的蓝色) */
   --color-primary: #2563eb; /* 您原始的蓝色主题色 */
   --color-primary-hover: #1d4ed8; /* 一个稍暗的蓝色用于悬停 */
+  --color-primary-rgb: 37, 99, 235; /* RGB格式用于透明度 */
+  --color-accent: #3b82f6; /* 强调色 */
+  --color-accent-rgb: 59, 130, 246; /* RGB格式用于透明度 */
   --color-secondary: #6c757d;
 
   /* 功能色 */
@@ -38,6 +41,9 @@
   /* 阴影 */
   --shadow-color: rgba(0, 0, 0, 0.05); /* 匹配您原始的阴影 */
   --shadow-card: 0 2px 8px var(--shadow-color);
+
+  /* 半透明背景 - 用于导航栏等 */
+  --color-background-mute-alpha: rgba(248, 249, 250, 0.8);
 }
 
 html.dark {
@@ -66,6 +72,9 @@ html.dark {
   /* 主题色 (适配暗色模式的蓝色) */
   --color-primary: #3b82f6; /* 更明亮的蓝色以适应暗色背景 */
   --color-primary-hover: #60a5fa; /* 悬停时更亮 */
+  --color-primary-rgb: 59, 130, 246; /* RGB格式用于透明度 */
+  --color-accent: #60a5fa; /* 强调色 */
+  --color-accent-rgb: 96, 165, 250; /* RGB格式用于透明度 */
   --color-secondary: #8a9199;
 
   /* 功能色 */
@@ -76,6 +85,9 @@ html.dark {
 
   /* 阴影 */
   --shadow-color: rgba(0, 0, 0, 0.5);
+
+  /* 半透明背景 - 用于导航栏等 */
+  --color-background-mute-alpha: rgba(30, 30, 30, 0.8);
 }
 
 

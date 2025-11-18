@@ -179,7 +179,8 @@ import { RouterLink } from 'vue-router';
     padding-top: 2rem;
   }
   .footer-links-group {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+
     gap: 2.5rem 1.5rem;
   }
 }
