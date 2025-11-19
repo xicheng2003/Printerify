@@ -4,20 +4,10 @@
       <RouterLink to="/" class="logo-container" @click="closeMobileMenu">
         <div class="logo-icon">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="7" y="13" width="10" height="8" rx="1" stroke="url(#gradient2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M17 13H19V11" stroke="url(#gradient2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs>
-              <linearGradient id="gradient1" x1="3" y1="5" x2="21" y2="17" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="var(--color-primary)" />
-                <stop offset="100%" stop-color="var(--color-accent)" />
-              </linearGradient>
-              <linearGradient id="gradient2" x1="7" y1="13" x2="19" y2="21" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="var(--color-heading)" />
-                <stop offset="100%" stop-color="var(--color-primary)" />
-              </linearGradient>
-            </defs>
+            <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="7" y="13" width="10" height="8" rx="1" stroke="var(--color-heading)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 13H19V11" stroke="var(--color-heading)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <h1>Printerify</h1>
@@ -61,7 +51,9 @@
         </button>
       </div>
     </div>
+  </header>
 
+  <Teleport to="body">
     <Transition name="mobile-menu-slide">
       <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="closeMobileMenu">
         <div class="mobile-menu-content" @click.stop>
@@ -126,11 +118,11 @@
         </div>
       </div>
     </Transition>
-  </header>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import ThemeSwitcher from './ThemeSwitcher.vue';
@@ -141,6 +133,15 @@ const router = useRouter();
 
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
+
+// 监听菜单打开状态，锁定/解锁 body 滚动
+watch(isMobileMenuOpen, (isOpen) => {
+  if (isOpen) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 10;
@@ -205,15 +206,14 @@ onBeforeUnmount(() => {
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.75rem;
   text-decoration: none;
   color: var(--color-heading);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  transition: opacity 0.3s ease;
 }
 
 .logo-container:hover {
-  transform: translateY(-2px);
+  opacity: 0.8;
 }
 
 /* 禁用logo的router-link-active样式 */
@@ -232,22 +232,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, rgba(var(--color-accent-rgb), 0.1) 100%);
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.logo-container:hover .logo-icon {
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.15) 0%, rgba(var(--color-accent-rgb), 0.15) 100%);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transform: rotate(-5deg) scale(1.05);
+  width: 36px;
+  height: 36px;
+  color: var(--color-primary);
 }
 
 .logo-container h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
@@ -263,7 +254,7 @@ onBeforeUnmount(() => {
 @media (min-width: 768px) {
   .desktop-nav {
     display: flex;
-    gap: 0.5rem;
+    gap: 2rem;
     align-items: center;
   }
 
@@ -272,60 +263,31 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-text-mute);
     font-weight: 500;
     font-size: 0.9375rem;
-    padding: 0.625rem 1rem;
-    border-radius: 10px;
+    padding: 0.5rem 0;
     position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    transition: color 0.3s ease;
   }
 
   .nav-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, rgba(var(--color-accent-rgb), 0.08) 100%);
-    opacity: 0;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 10px;
+    display: none;
   }
 
   .nav-link svg {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-  }
-
-  .nav-link span {
-    position: relative;
-    z-index: 1;
+    display: none;
   }
 
   .nav-link:hover {
-    color: var(--color-primary);
-    transform: translateY(-2px);
-  }
-
-  .nav-link:hover::before {
-    opacity: 1;
-  }
-
-  .nav-link:hover svg {
-    transform: scale(1.1);
+    color: var(--color-heading);
+    transform: none;
   }
 
   .router-link-exact-active {
     color: var(--color-primary);
-    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, rgba(var(--color-accent-rgb), 0.1) 100%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-
-  .router-link-exact-active::before {
-    opacity: 0;
+    background: none;
+    box-shadow: none;
   }
 }
 
@@ -472,7 +434,7 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, rgba(var(--color-accent-rgb), 0.1) 100%);
+  background: var(--color-background-mute);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -494,7 +456,7 @@ onBeforeUnmount(() => {
 
 .mobile-nav-item.router-link-exact-active {
   color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, rgba(var(--color-accent-rgb), 0.1) 100%);
+  background: var(--color-background-mute);
 }
 
 /* Mobile Auth Section */
@@ -517,7 +479,7 @@ onBeforeUnmount(() => {
   gap: 0.875rem;
   font-weight: 600;
   padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, rgba(var(--color-accent-rgb), 0.08) 100%);
+  background: var(--color-background-mute);
   border-radius: 12px;
   color: var(--color-heading);
 }
@@ -526,7 +488,7 @@ onBeforeUnmount(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -599,7 +561,7 @@ onBeforeUnmount(() => {
 }
 
 .mobile-auth-button.primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  background: var(--color-primary);
   color: #fff;
   box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
 }
