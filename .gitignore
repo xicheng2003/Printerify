@@ -39,3 +39,4 @@ temp_uploads/
 # Log files
 *.log
 django.log
+temp_old_product_intro.vue
