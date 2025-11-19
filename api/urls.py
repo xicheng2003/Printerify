@@ -2,7 +2,7 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView, OrderQueryByCodeView
+from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView, OrderQueryByCodeView, get_pricing_config
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -40,4 +40,5 @@ urlpatterns = [
     path('upload/', FileUploadView.as_view(), name='file-upload'),
     path('estimate-price/', PriceEstimationView.as_view(), name='estimate-price'),
     path('upload-screenshot/', PaymentScreenshotUploadView.as_view(), name='upload-screenshot'),
+    path('config/pricing/', get_pricing_config, name='config-pricing'), # Add pricing config URL
 ]

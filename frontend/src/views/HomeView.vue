@@ -273,58 +273,60 @@
     <Modal :show="showBillingModal" @close="showBillingModal = false">
       <template #header><h3>计费规则说明</h3></template>
       <template #body>
-        <div class="billing-rules-content">
-          <li>
-            <strong>计价公式</strong>
-          <p><span class="formula-highlight">总费用 = 基础服务费 + 打印费用 + 装订费用（可选）</span></p>
-          </li>
+        <div class="billing-rules-content" v-if="orderStore.pricingConfig">
           <ul>
             <li>
+              <strong>计价公式</strong>
+              <p><span class="formula-highlight">总费用 = 基础服务费 + 打印费用 + 装订费用（可选）</span></p>
+            </li>
+            <li>
               <strong>基础服务费</strong>
-              <p>每笔订单将统一收取 0.50元 的基础服务费，用于覆盖设备维护和系统运营成本。</p>
+              <p>每笔订单将统一收取 {{ orderStore.pricingConfig.base_service_fee }}元 的基础服务费。</p>
             </li>
             <li>
               <strong>打印费用</strong>
               <p>单面双面相同价格。</p>
-              <p>根据您选择的规格（纸张规格、色彩、单双面）按页计费，具体单价以页面实时显示为准。</p>
               <table class="price-table">
                 <thead>
                   <tr>
                     <th>规格</th>
-                    <th>克重</th>
                     <th>色彩</th>
                     <th>单价（每面）</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <template v-for="(specs, paperSize) in orderStore.pricingConfig.print" :key="paperSize">
+                    <template v-for="(modes, colorMode) in specs" :key="colorMode">
+                      <tr>
+                        <td>{{ formatPaperSize(paperSize) }}</td>
+                        <td>{{ formatColorMode(colorMode) }}</td>
+                        <td>{{ modes.single }}元</td>
+                      </tr>
+                    </template>
+                  </template>
+                </tbody>
+              </table>
+            </li>
+            <li>
+              <strong>装订费用</strong>
+              <table class="price-table">
+                <thead>
                   <tr>
-                    <td>A4</td>
-                    <td>70g</td>
-                    <td>黑白</td>
-                    <td>0.15元</td>
+                    <th>装订方式</th>
+                    <th>价格</th>
                   </tr>
-                  <tr>
-                    <td>A4</td>
-                    <td>80g</td>
-                    <td>黑白</td>
-                    <td>0.15元</td>
-                  </tr>
-                  <tr>
-                    <td>B5</td>
-                    <td>70g</td>
-                    <td>黑白</td>
-                    <td>0.12元</td>
+                </thead>
+                <tbody>
+                  <tr v-for="(price, type) in orderStore.pricingConfig.binding" :key="type">
+                    <td>{{ formatBindingType(type) }}</td>
+                    <td>{{ price }}元</td>
                   </tr>
                 </tbody>
               </table>
-              </li>
-
-            <li>
-              <strong>装订费用</strong>
-              <p>若您选择装订服务，将根据不同的装订方式额外收取固定费用。</p>
             </li>
           </ul>
         </div>
+        <div v-else class="loading-text">正在加载计费规则...</div>
       </template>
     </Modal>
   </Teleport>
@@ -389,6 +391,9 @@ const showLoginGuideBanner = ref(true); // 默认显示
 
 // 页面初始化时检查用户是否之前关闭过横幅
 onMounted(() => {
+  // 获取最新的计费规则
+  orderStore.fetchPricingConfig();
+
   // 移除本地存储检查，让横幅每次都能显示
   // const hideBanner = localStorage.getItem('hideLoginGuideBanner');
   // if (hideBanner === 'true') {
@@ -575,6 +580,35 @@ function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetFo
 
 // 订单层面的“是否预估”判断（任一文档为预估即为预估）
 const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
+
+// --- 格式化辅助函数 (用于计费规则展示) ---
+function formatPaperSize(key) {
+  const map = {
+    'a4_70g': 'A4 (70g)',
+    'a4_80g': 'A4 (80g)',
+    'b5_70g': 'B5 (70g)'
+  };
+  return map[key] || key;
+}
+
+function formatColorMode(key) {
+  const map = {
+    'black_white': '黑白',
+    'color': '彩色'
+  };
+  return map[key] || key;
+}
+
+function formatBindingType(key) {
+  const map = {
+    'none': '不装订',
+    'staple_top_left': '左上角订书钉',
+    'staple_left_side': '左侧订书钉',
+    'staple': '骑马钉',
+    'ring_bound': '胶圈装订'
+  };
+  return map[key] || key;
+}
 
 </script>
 

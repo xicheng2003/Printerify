@@ -196,66 +196,44 @@ export default {
   uploadPaymentScreenshot(file) {
     const formData = new FormData();
     formData.append('file', file);
-
     return apiClient.post('/api/upload-screenshot/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
   },
 
-  /**
-   * 获取价格估算
-   * @param {File|null} file - 原始文件对象（可为null，如果使用file_path）
-   * @param {object} specifications - 包含打印选项的对象
-   * @returns {Promise}
-   */
-  getPriceQuote(file, specifications) {
-    if (file) {
-      // 如果提供了文件，使用FormData上传
-      const formData = new FormData();
-      formData.append('file', file);
-      Object.keys(specifications).forEach(key => {
-        formData.append(key, specifications[key]);
-      });
-
-      return apiClient.post('/api/estimate-price/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    } else {
-      // 如果没有文件，直接发送JSON数据（用于已上传的文件）
-      return apiClient.post('/api/estimate-price/', specifications);
-    }
+  // 新增：获取计费规则配置
+  getPricingConfig() {
+    return apiClient.get('/api/config/pricing/');
   },
 
-  /**
-   * 创建最终订单
-   * @param {object} orderData - 包含手机号、规格、文件ID等的订单数据
-   * @returns {Promise}
-   */
+  // 创建订单
   createOrder(orderData) {
     return apiClient.post('/api/orders/', orderData);
   },
 
-  /**
-   * 查询订单状态
-   * @param {string} phoneNumber - 手机号
-   * @param {string} pickupCode - 取件码
-   * @returns {Promise}
-   */
-  queryOrder(phoneNumber, pickupCode) {
-    // 新端点要求同时提供手机号与取件码
-    if (!phoneNumber || !pickupCode) {
-      throw new Error('请同时提供手机号与取件码进行查询');
+  // 获取价格预估
+  getPriceQuote(fileId, specifications) {
+    // 如果传入了 fileId，则添加到 specifications 中
+    const data = { ...specifications };
+    if (fileId) {
+        data.file_id = fileId;
     }
-
-    return apiClient.post('/api/orders/query/', {
-      phone_number: phoneNumber,
-      pickup_code: pickupCode,
-    });
+    return apiClient.post('/api/estimate-price/', data);
   },
 
-  // 获取当前用户订单列表
+  // 获取用户订单列表
   getUserOrders() {
-    return apiClient.get('/api/orders/');
+    return apiClient.get('/api/user-orders/');
+  },
+
+  // 根据取件码查询订单
+  queryOrder(phoneNumber, pickupCode) {
+    return apiClient.post('/api/orders/query/', {
+      phone_number: phoneNumber,
+      pickup_code: pickupCode
+    });
   },
 
   // OAuth绑定相关方法
@@ -280,7 +258,7 @@ export default {
   },
 
   getUserProfile() {
-    return apiClient.get('/api/users/profile/');
+    return apiClient.get('/api/profile/');
   },
 
   // 设置认证token

@@ -19,11 +19,23 @@ export const useOrderStore = defineStore('order', () => {
     const paymentMethod = ref('ALIPAY');
     const paymentScreenshotFile = ref(null);
     const isLoading = ref(false);
+    const pricingConfig = ref(null); // 新增：存储从后端获取的计费规则
 
     // 新增：用户订单相关状态
     const userOrders = ref([]);
     const userOrdersLoading = ref(false);
     const userOrdersError = ref(null);
+
+    // 新增：获取计费规则
+    async function fetchPricingConfig() {
+        try {
+            const response = await apiService.getPricingConfig();
+            pricingConfig.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch pricing config:', error);
+            // 如果获取失败，可以使用默认的兜底配置，或者提示用户刷新
+        }
+    }
 
     async function _fetchPriceForDocument(docId) {
         const doc = findDocumentById(docId);
@@ -239,13 +251,34 @@ export const useOrderStore = defineStore('order', () => {
     }
 
     const totalCost = computed(() => {
-        let total = 0.5;
+        // 优先使用后端配置，否则使用默认值
+        const config = pricingConfig.value;
+        let total = 0.5; // 默认基础服务费
+
+        if (config && config.base_service_fee !== undefined) {
+            const fee = Number(config.base_service_fee);
+            if (!isNaN(fee)) {
+                total = fee;
+            }
+        }
+
         groups.value.forEach(group => {
             group.documents.forEach(doc => {
-                total += Number(doc.printCost) || 0;
+                const cost = Number(doc.printCost);
+                if (!isNaN(cost)) {
+                    total += cost;
+                }
             });
             const bindingType = group.bindingType;
-            if (bindingType in BINDING_PRICE_CONFIG) {
+
+            // 计算装订费
+            if (config && config.binding && bindingType in config.binding) {
+                const bindingFee = Number(config.binding[bindingType]);
+                if (!isNaN(bindingFee)) {
+                    total += bindingFee;
+                }
+            } else if (bindingType in BINDING_PRICE_CONFIG) {
+                // 兜底：如果配置未加载，使用本地常量
                 total += BINDING_PRICE_CONFIG[bindingType];
             }
         });
@@ -260,10 +293,10 @@ export const useOrderStore = defineStore('order', () => {
 
     return {
         groups, phoneNumber, paymentMethod, paymentScreenshotFile,
-        isLoading, userOrders, userOrdersLoading, userOrdersError,
+        isLoading, userOrders, userOrdersLoading, userOrdersError, pricingConfig, // Export pricingConfig
         setLoading, addFiles, removeDocument, updateDocumentSettings,
         updateGroupBinding, resetStore, mergeGroups,
-        fetchUserOrders, createOrder, queryOrderByCode,
+        fetchUserOrders, createOrder, queryOrderByCode, fetchPricingConfig, // Export fetchPricingConfig
         totalCost, isReadyToSubmit
     };
 });

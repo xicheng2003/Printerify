@@ -24,11 +24,11 @@ PRICE_CONFIG = {
                 'double': Decimal('0.15'),
                 'single_double': None, # 沿用单/双面价格逻辑
             },
-            'color': {
-                'single': Decimal('0.50'),
-                'double': Decimal('0.80'),
-                'single_double': None, # 封面单面+内容双面
-            }
+#            'color': {
+#                'single': Decimal('0.50'),
+#                'double': Decimal('0.80'),
+#                'single_double': None, # 封面单面+内容双面
+#            }
         },
         'a4_80g': {
             'black_white': {
@@ -36,11 +36,11 @@ PRICE_CONFIG = {
                 'double': Decimal('0.15'),
                 'single_double': None,
             },
-            'color': {
-                'single': Decimal('0.50'),
-                'double': Decimal('0.80'),
-                'single_double': None,
-            }
+#            'color': {
+#                'single': Decimal('0.50'),
+#                'double': Decimal('0.80'),
+#                'single_double': None,
+#            }
         },
         'b5_70g': {
             'black_white': {
@@ -48,11 +48,11 @@ PRICE_CONFIG = {
                 'double': Decimal('0.12'),
                 'single_double': None,
             },
-            'color': {
-                'single': Decimal('0.40'),
-                'double': Decimal('0.70'),
-                'single_double': None,
-            }
+#            'color': {
+#                'single': Decimal('0.40'),
+#                'double': Decimal('0.70'),
+#                'single_double': None,
+#            }
         }
         # 您未来可以在此添加 'a3': { ... } 等更多规格
     },
@@ -60,8 +60,8 @@ PRICE_CONFIG = {
         'none': Decimal('0.00'),
         'staple_top_left': Decimal('0.10'),
         'staple_left_side': Decimal('0.10'),
-        'staple': Decimal('2.00'),
-        'ring_bound': Decimal('5.00'),
+        # 'staple': Decimal('2.00'),
+        # 'ring_bound': Decimal('5.00'),
     }
 }
 

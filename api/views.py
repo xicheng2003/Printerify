@@ -15,6 +15,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Order, User
 from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 from .services import pricing
+from .services.pricing import PRICE_CONFIG # Import PRICE_CONFIG
 
 # OAuth认证相关视图
 from django.shortcuts import redirect
@@ -34,6 +35,16 @@ import requests
 import logging
 
 logger = logging.getLogger(__name__)
+
+# --- 价格配置视图 ---
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_pricing_config(request):
+    """
+    获取当前的计费规则配置，用于前端动态展示价格表和计算预估价。
+    """
+    return Response(PRICE_CONFIG)
 
 # --- 用户认证视图 ---
 
