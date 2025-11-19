@@ -54,12 +54,10 @@ import { RouterLink } from 'vue-router';
 
 <style scoped>
 .app-footer {
-  background-color: var(--color-background-soft);
-  color: var(--color-text-mute);
+  background-color: var(--color-background);
   border-top: 1px solid var(--color-border);
-  padding: 3rem 1rem 1.5rem;
+  padding: 4rem 1.5rem 2rem;
   margin-top: 4rem;
-  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .footer-container {
@@ -67,16 +65,16 @@ import { RouterLink } from 'vue-router';
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 3rem;
-  padding-bottom: 2.5rem;
+  gap: 4rem;
+  padding-bottom: 3rem;
   align-items: start;
 }
 
 .footer-brand {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  align-items: flex-start; /* 默认在桌面端左对齐 */
+  gap: 1rem;
+  align-items: flex-start;
 }
 
 .logo-and-title-link {
@@ -84,6 +82,12 @@ import { RouterLink } from 'vue-router';
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.logo-and-title-link:hover {
+  opacity: 1;
 }
 
 .footer-logo-svg {
@@ -92,23 +96,19 @@ import { RouterLink } from 'vue-router';
 
 .footer-title {
   font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1.75rem;
+  font-weight: 700;
+  font-size: 1.5rem;
   color: var(--color-heading);
   margin: 0;
-  transition: color 0.2s;
-}
-
-.logo-and-title-link:hover .footer-title {
-  color: var(--color-primary);
+  letter-spacing: -0.5px;
 }
 
 .footer-tagline {
   font-size: 0.9rem;
   line-height: 1.6;
-  max-width: 320px;
+  color: var(--color-text-mute);
+  max-width: 300px;
   margin: 0;
-  text-align: left; /* 默认在桌面端左对齐 */
 }
 
 .footer-links-group {
@@ -118,11 +118,12 @@ import { RouterLink } from 'vue-router';
 }
 
 .footer-links-title {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-heading);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .footer-links-list {
@@ -131,80 +132,69 @@ import { RouterLink } from 'vue-router';
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .footer-link {
   color: var(--color-text-mute);
   text-decoration: none;
   font-size: 0.9rem;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 
 .footer-link:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  color: var(--color-heading);
 }
 
 .footer-bottom-bar {
   max-width: 1200px;
   margin: 0 auto;
   border-top: 1px solid var(--color-border);
-  padding-top: 1.5rem;
+  padding-top: 2rem;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--color-text-mute);
+  opacity: 0.8;
 }
 
 /* ▼▼▼【核心修改】响应式布局中的对齐修正 ▼▼▼ */
 @media (max-width: 820px) {
   .footer-container {
-    grid-template-columns: 1fr; /* 在移动端，布局变为单列 */
+    grid-template-columns: 1fr;
     gap: 3rem;
+    text-align: center;
   }
 
-  /* 当布局变为单列时，让品牌区内容水平居中 */
   .footer-brand {
     align-items: center;
   }
 
-  /* Slogan 文本也需要居中 */
   .footer-tagline {
     text-align: center;
+    margin: 0 auto;
   }
 
-  /* 优化移动端三列布局的对齐 */
   .footer-links-group {
     width: 100%;
     justify-items: center;
+    gap: 3rem;
   }
 
   .footer-links-column {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-  }
-
-  .footer-links-title {
-    text-align: center;
-    width: 100%;
-  }
-
-  .footer-links-list {
-    align-items: center;
-    width: 100%;
   }
 }
 
 @media (max-width: 540px) {
   .app-footer {
-    padding-top: 2rem;
+    padding: 3rem 1rem 1.5rem;
   }
+
   .footer-links-group {
     grid-template-columns: repeat(3, 1fr);
-
-    gap: 2.5rem 1.5rem;
+    gap: 1rem;
   }
 }
 </style>
