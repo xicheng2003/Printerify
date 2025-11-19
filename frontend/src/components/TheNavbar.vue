@@ -251,10 +251,8 @@ onBeforeUnmount(() => {
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
-  background: linear-gradient(135deg, var(--color-heading) 0%, var(--color-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
 }
 
 /* Desktop Navigation */
@@ -635,5 +633,15 @@ onBeforeUnmount(() => {
 .mobile-menu-slide-leave-to .mobile-menu-content {
   transform: scale(0.95);
   opacity: 0;
+}
+</style>
+
+<style>
+/* 暗色模式下的品牌名渐变效果 - 放在非 scoped 样式中以避免编译问题 */
+html.dark .logo-container h1 {
+  background: linear-gradient(135deg, var(--color-heading) 0%, var(--color-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 </style>
