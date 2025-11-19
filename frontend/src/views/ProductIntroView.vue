@@ -26,7 +26,7 @@
               <span class="stat-label">累计打印页数</span>
             </div>
             <div class="stat-item">
-              <span class="stat-value">99%</span>
+              <span class="stat-value">98.9%</span>
               <span class="stat-label">好评率</span>
             </div>
           </div>

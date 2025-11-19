@@ -59,56 +59,72 @@
         <div class="mobile-menu-content" @click.stop>
           <nav class="mobile-nav">
             <RouterLink to="/order" @click="closeMobileMenu" class="mobile-nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
+              <div class="nav-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+              </div>
               <span>自助打印</span>
             </RouterLink>
             <RouterLink to="/query" @click="closeMobileMenu" class="mobile-nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
+              <div class="nav-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </div>
               <span>订单查询</span>
             </RouterLink>
             <RouterLink to="/about" @click="closeMobileMenu" class="mobile-nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
+              <div class="nav-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
               <span>关于</span>
             </RouterLink>
           </nav>
 
           <div class="mobile-auth-section">
             <div v-if="userStore.isAuthenticated" class="mobile-user-menu">
-              <div class="mobile-user-info">
+              <div class="mobile-user-card">
                 <img :src="userStore.user?.avatar_url" alt="avatar" class="mobile-avatar" v-if="userStore.user?.avatar_url" />
-                <div class="mobile-avatar" v-else>
+                <div class="mobile-avatar placeholder" v-else>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
-                <span class="mobile-username">{{ userStore.user?.username }}</span>
+                <div class="mobile-user-details">
+                  <span class="mobile-username">{{ userStore.user?.username }}</span>
+                  <span class="mobile-user-role">普通用户</span>
+                </div>
               </div>
-              <RouterLink to="/profile" @click="closeMobileMenu" class="mobile-menu-item">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>个人中心</span>
-              </RouterLink>
-              <button @click="handleMobileLogout" class="mobile-menu-item mobile-logout">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>退出登录</span>
-              </button>
+
+              <div class="mobile-menu-group">
+                <RouterLink to="/profile" @click="closeMobileMenu" class="mobile-nav-item">
+                  <div class="nav-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <span>个人中心</span>
+                </RouterLink>
+                <button @click="handleMobileLogout" class="mobile-nav-item mobile-logout">
+                  <div class="nav-icon-wrapper danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                  </div>
+                  <span>退出登录</span>
+                </button>
+              </div>
             </div>
             <div v-else class="mobile-auth-buttons">
               <RouterLink to="/auth/login" @click="closeMobileMenu" class="mobile-auth-button">登录</RouterLink>
@@ -322,30 +338,18 @@ onBeforeUnmount(() => {
   height: 40px;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
   position: relative;
   overflow: hidden;
 }
 
-.mobile-menu-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--color-background-mute);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.mobile-menu-button:hover::before {
-  opacity: 1;
+.mobile-menu-button:hover {
+  background-color: var(--color-background-mute);
 }
 
 .hamburger-line {
-  width: 20px;
+  width: 18px;
   height: 2px;
   background: currentColor;
   border-radius: 2px;
@@ -406,7 +410,7 @@ onBeforeUnmount(() => {
 .mobile-nav {
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
   gap: 0.5rem;
   overflow-y: auto;
   flex: 1;
@@ -420,81 +424,91 @@ onBeforeUnmount(() => {
   color: var(--color-text);
   font-size: 1rem;
   font-weight: 500;
-  padding: 1rem;
+  padding: 0.5rem;
   border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
-.mobile-nav-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--color-background-mute);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
+.mobile-nav-item:hover,
 .mobile-nav-item:active {
-  transform: scale(0.98);
-}
-
-.mobile-nav-item:hover::before,
-.mobile-nav-item.router-link-exact-active::before {
-  opacity: 1;
-}
-
-.mobile-nav-item svg,
-.mobile-nav-item span {
-  position: relative;
-  z-index: 1;
+  background: var(--color-background-mute);
 }
 
 .mobile-nav-item.router-link-exact-active {
-  color: var(--color-primary);
   background: var(--color-background-mute);
+  color: var(--color-heading);
+}
+
+.nav-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-background-mute);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-mute);
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-item:hover .nav-icon-wrapper,
+.mobile-nav-item.router-link-exact-active .nav-icon-wrapper {
+  background: var(--color-primary);
+  color: white;
+}
+
+.nav-icon-wrapper.danger {
+  color: var(--color-danger);
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.mobile-nav-item:hover .nav-icon-wrapper.danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.mobile-logout {
+  color: var(--color-danger);
 }
 
 /* Mobile Auth Section */
 .mobile-auth-section {
   margin-top: auto;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
   border-top: 1px solid var(--color-border);
-  background: var(--color-background);
+  background: var(--color-background-soft);
 }
 
 .mobile-user-menu {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.5rem;
 }
 
-.mobile-user-info {
+.mobile-user-card {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  font-weight: 600;
-  padding: 0.75rem;
-  background: var(--color-background-mute);
-  border-radius: 12px;
-  color: var(--color-heading);
+  gap: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .mobile-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   color: white;
+  flex-shrink: 0;
 }
 
 .mobile-avatar img {
@@ -503,38 +517,31 @@ onBeforeUnmount(() => {
   object-fit: cover;
 }
 
-.mobile-menu-item {
+.mobile-user-details {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: none;
-  border: none;
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-align: left;
-  padding: 0.875rem 1rem;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.mobile-menu-item:hover {
+.mobile-username {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--color-heading);
+}
+
+.mobile-user-role {
+  font-size: 0.8rem;
+  color: var(--color-text-mute);
   background: var(--color-background-mute);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  align-self: flex-start;
 }
 
-.mobile-menu-item:active {
-  transform: scale(0.98);
-}
-
-.mobile-logout {
-  color: #ef4444;
-}
-
-.mobile-logout:hover {
-  background: rgba(239, 68, 68, 0.1);
+.mobile-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .mobile-auth-buttons {

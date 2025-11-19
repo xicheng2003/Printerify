@@ -25,10 +25,13 @@
         </svg>
       </div>
 
-      <Transition name="slide-fade">
+      <Transition name="fade-scale">
         <div v-if="isMenuOpen" class="dropdown-menu">
+          <div class="menu-header">
+            <span class="menu-label">账号</span>
+          </div>
           <router-link to="/profile" class="menu-item" @click="closeMenu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
@@ -36,7 +39,7 @@
           </router-link>
           <div class="menu-divider"></div>
           <button @click="handleLogout" class="menu-item logout-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -97,71 +100,97 @@ function handleLogout() {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background-color: var(--color-background-mute);
-  border-radius: 50px;
+  gap: 0.75rem;
   cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
   transition: background-color 0.2s;
+  border: 1px solid transparent;
 }
 
 .user-info:hover {
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background-mute);
+  border-color: var(--color-border);
 }
 
 .avatar {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  color: white;
 }
 
 .username {
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--color-heading);
+  font-size: 0.95rem;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: 120%;
   right: 0;
-  background-color: var(--color-background-soft);
+  width: 200px;
+  background-color: var(--color-background);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-card);
-  min-width: 200px;
-  z-index: 1000;
-  margin-top: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  z-index: 100;
+  transform-origin: top right;
+}
+
+.menu-header {
+  padding: 0.5rem 0.75rem;
+}
+
+.menu-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 1rem;
-  text-decoration: none;
-  color: var(--color-text);
-  background: none;
+  padding: 0.625rem 0.75rem;
   border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 0.875rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  border-radius: 8px;
   transition: background-color 0.2s;
+  text-decoration: none;
+  text-align: left;
 }
 
 .menu-item:hover {
   background-color: var(--color-background-mute);
-  color: var(--color-primary);
+  color: var(--color-heading);
+}
+
+.menu-icon {
+  margin-right: 0.75rem;
+  opacity: 0.8;
 }
 
 .menu-divider {
   height: 1px;
   background-color: var(--color-border);
-  margin: 0.25rem 0;
+  margin: 0.5rem 0;
 }
 
 .logout-item {
@@ -169,80 +198,61 @@ function handleLogout() {
 }
 
 .logout-item:hover {
-  background-color: var(--color-background-mute);
+  background-color: rgba(220, 53, 69, 0.05);
   color: var(--color-danger-hover);
+}
+
+/* Animation */
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .auth-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .auth-button {
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
   font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
   transition: all 0.2s;
 }
 
 .login-button {
-  background-color: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
 }
 
 .login-button:hover {
-  background-color: var(--color-background-mute);
+  color: var(--color-primary);
 }
 
 .register-button {
   background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border: 1px solid var(--color-primary);
+  color: white;
 }
 
 .register-button:hover {
   background-color: var(--color-primary-hover);
-}
-
-.rotate {
-  transform: rotate(180deg);
-}
-
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(var(--color-primary-rgb), 0.2);
 }
 
 @media (max-width: 767px) {
-  /* 在移动端隐藏登录注册按钮，因为它们现在在汉堡菜单中 */
   .auth-buttons {
     display: none;
   }
-
-  /* 保持已登录用户菜单的显示 */
   .user-menu {
     display: block;
-  }
-}
-
-@media (min-width: 768px) {
-  .auth-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .auth-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
   }
 }
 </style>
