@@ -49,6 +49,10 @@
     <div class="form-group">
       <label>请输入手机号以完成下单：</label>
       <input type="tel" v-model="orderStore.phoneNumber" placeholder="用于查询订单" :disabled="isLoading" />
+      <p v-if="isAutoFilled" class="auto-fill-hint">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        已自动填充您绑定的手机号
+      </p>
     </div>
 
     <BaseButton @click="createOrder" :loading="isLoading" class="full-width-btn">我已支付，确认下单</BaseButton>
@@ -59,15 +63,23 @@
 <script setup>
 import { computed } from 'vue';
 import { useOrderStore } from '@/stores/order';
+import { useUserStore } from '@/stores/user';
 import PaymentUploader from '@/components/PaymentUploader.vue';
 import BaseButton from '@/components/BaseButton.vue';
 
 const emits = defineEmits(['screenshot-uploaded','create-order','back']);
 const orderStore = useOrderStore();
+const userStore = useUserStore();
 
 const isLoading = computed(() => orderStore.isSubmitting || false);
 const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
 const totalCost = computed(() => orderStore.totalCost);
+
+const isAutoFilled = computed(() => {
+  return userStore.isAuthenticated &&
+         userStore.user?.phone_number &&
+         orderStore.phoneNumber === userStore.user.phone_number;
+});
 
 function onScreenshotUploaded(id) {
   emits('screenshot-uploaded', id);
@@ -96,6 +108,15 @@ function createOrder() {
   border: 1px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
   border-radius: 12px;
   margin: 0.5rem 0 1rem;
+}
+
+.auto-fill-hint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .order-estimated-alert .estimated-icon {

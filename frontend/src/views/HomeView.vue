@@ -293,6 +293,13 @@ const unwatchAuth = watch(() => userStore.isAuthenticated, (isAuth) => {
   }
 });
 
+// 监听用户信息变化，自动填充手机号
+watch(() => userStore.user, (newUser) => {
+  if (newUser && newUser.phone_number && !orderStore.phoneNumber) {
+    orderStore.phoneNumber = newUser.phone_number;
+  }
+}, { immediate: true });
+
 // 组件卸载时清理监听器
 onUnmounted(() => {
   unwatchAuth();
