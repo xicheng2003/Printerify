@@ -372,7 +372,7 @@ const toggleFaq = (index) => {
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   color: var(--color-text-mute);
   margin-bottom: 2.5rem;
   line-height: 1.6;
@@ -967,7 +967,7 @@ const toggleFaq = (index) => {
     width: 100%;
   }
 
-  .cta-button-primary, .cta-link {
+  .cta-button-primary {
     width: 100%;
     justify-content: center;
   }
