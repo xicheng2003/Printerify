@@ -131,5 +131,253 @@ defineExpose({
 </script>
 
 <style scoped>
-/* component-local styles can be added here if necessary */
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--color-heading);
+}
+
+.billing-info-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-text-mute);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.billing-info-trigger:hover {
+  color: var(--color-primary);
+}
+
+.billing-info-trigger svg {
+  margin-top: -2px;
+}
+
+.upload-notice {
+  background-color: var(--color-background-mute);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.upload-notice p {
+  margin: 0 0 0.75rem 0;
+  font-weight: 500;
+  color: var(--color-heading);
+}
+
+.upload-notice p strong {
+  font-weight: 700;
+}
+
+.upload-notice ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.upload-notice li {
+  margin-bottom: 0.75rem;
+  position: relative;
+  padding-left: 1.25rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.upload-notice li::before {
+  content: '•';
+  color: var(--color-primary);
+  font-weight: bold;
+  display: inline-block;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.upload-notice li:last-child {
+  margin-bottom: 0;
+}
+
+.upload-notice li strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.binding-help-alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.help-alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.help-alert-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.help-alert-close-btn {
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-mute);
+  transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.help-alert-close-btn:hover {
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
+}
+
+.help-alert-text strong {
+  font-weight: 600;
+  color: var(--color-heading);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.help-alert-text p,
+.help-alert-text ul {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.6;
+  padding-left: 0.1em;
+}
+
+.help-alert-text li {
+  margin-bottom: 0.5rem;
+}
+
+.help-alert-text li:last-child {
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.help-alert-text li::marker {
+  color: var(--color-primary);
+}
+
+.help-alert-text li strong {
+  display: inline;
+  margin-bottom: 0;
+}
+
+.help-alert-text span {
+  font-family: monospace;
+  background-color: var(--color-border);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  display: inline-block;
+  line-height: 1;
+}
+
+.terms-agreement {
+  font-size: 0.9rem;
+  color: var(--color-text-mute);
+  margin-top: 2rem;
+  margin-bottom: 0;
+  padding: 1rem;
+  background-color: var(--color-background-mute);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.terms-agreement .terms-item {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terms-agreement .terms-item:last-child {
+  margin-bottom: 0;
+}
+
+.terms-agreement input[type="checkbox"] {
+  margin-right: 0.5rem;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.terms-agreement label {
+  margin-bottom: 0;
+  font-weight: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.terms-agreement .terms-link {
+  position: relative;
+  display: inline-block;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.update-dot {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: rgb(239, 68, 68);
+  border-radius: 50%;
+  border: 1.5px solid var(--color-background-mute);
+  animation: none;
+}
+
+html.dark .update-dot {
+  background: rgb(248, 113, 113);
+  border-color: var(--color-background-mute);
+}
+
+.full-width-btn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1.1rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@media (max-width: 767px) {
+  .step-title { font-size: 1.25rem; }
+}
 </style>

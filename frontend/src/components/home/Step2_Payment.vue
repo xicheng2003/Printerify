@@ -79,7 +79,194 @@ function createOrder() {
 </script>
 
 <style scoped>
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--color-heading);
+}
+
+.order-estimated-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  border-radius: 12px;
+  margin: 0.5rem 0 1rem;
+}
+
+.order-estimated-alert .estimated-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-estimated-alert .estimated-text strong {
+  display: block;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: 0.25rem;
+}
+
+.order-estimated-alert .estimated-text span {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.price-result {
+  background-color: var(--color-background-mute);
+  border: 1px solid var(--color-primary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.price-result p {
+    color: var(--color-text);
+}
+
+.price {
+  font-size: 1.75rem;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.payment-method-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.payment-method-selector label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  width: 160px;
+  height: 56px;
+  box-sizing: border-box;
+  background-color: var(--color-background);
+}
+
+.payment-method-selector label:hover {
+  border-color: var(--color-border-hover);
+}
+
+.payment-method-selector label.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.payment-method-selector input[type="radio"] {
+  display: none;
+}
+
+.payment-button-image {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  transition: filter 0.3s;
+}
+
+html.dark .payment-button-image {
+  filter: invert(1) grayscale(1) brightness(1.5);
+}
+
+.payment-section {
+  border-top: 1px solid var(--color-border);
+  padding: 1.5rem 0;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.payment-instruction {
+  margin-top: 0;
+  color: var(--color-text);
+}
+
+.qr-code {
+  max-width: 180px;
+  margin: 1rem auto;
+  display: block;
+  border-radius: 8px;
+  background-color: white;
+  padding: 5px;
+}
+
+.payment-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: #1677ff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.payment-link:hover {
+  background-color: #4096ff;
+}
+
+.form-group {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: var(--color-heading);
+}
+
+.form-group input[type="tel"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input[type="tel"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+}
+
+.form-group input[type="tel"]::placeholder {
+  color: var(--color-text-mute);
+  opacity: 0.7;
+}
+
+.full-width-btn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1.1rem;
+}
+
 .secondary-action-btn {
   margin-top: 1rem;
+}
+
+@media (max-width: 767px) {
+  .step-title { font-size: 1.25rem; }
+  .payment-method-selector { gap: 1rem; }
+  .payment-method-selector label { width: 140px; height: 48px; }
 }
 </style>
