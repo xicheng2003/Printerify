@@ -2,31 +2,42 @@ import { defineStore } from 'pinia'
 import { ref, watchEffect } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-  // 1. 从 localStorage 读取初始主题，若无则默认为 'light'
-  const theme = ref(localStorage.getItem('theme') || 'light')
+  // 1. 从 localStorage 读取初始主题，若无则默认为 'system'
+  const theme = ref(localStorage.getItem('theme') || 'system')
 
-  // 2. 切换主题的方法
-  function toggleTheme() {
-    theme.value = theme.value === 'light' ? 'dark' : 'light'
-  }
+  // 2. 系统暗色模式媒体查询
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
-  // 3. 使用 watchEffect 监听主题变化，执行副作用
-  watchEffect(() => {
-    // 3.1 将当前主题存入 localStorage
-    localStorage.setItem('theme', theme.value)
+  // 3. 应用主题的逻辑
+  function applyTheme() {
+    const isDark = 
+      theme.value === 'dark' || 
+      (theme.value === 'system' && mediaQuery.matches)
 
-    // 3.2 根据当前主题，更新根元素 <html> 的 class
-    if (theme.value === 'dark') {
+    if (isDark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
-  })
-
-  // 4. 应用加载时，立即根据初始主题设置一次 class，防止刷新时闪烁
-  if (theme.value === 'dark') {
-    document.documentElement.classList.add('dark')
   }
 
-  return { theme, toggleTheme }
+  // 4. 监听主题状态变化并应用
+  watchEffect(() => {
+    localStorage.setItem('theme', theme.value)
+    applyTheme()
+  })
+
+  // 5. 监听系统主题变化
+  mediaQuery.addEventListener('change', () => {
+    if (theme.value === 'system') {
+      applyTheme()
+    }
+  })
+
+  // 6. 设置主题的方法
+  function setTheme(newTheme) {
+    theme.value = newTheme
+  }
+
+  return { theme, setTheme }
 })
