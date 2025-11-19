@@ -120,10 +120,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=False, allow_blank=True)
     payment_screenshot_id = serializers.CharField(write_only=True, required=False, allow_null=True)
     payment_method = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    remark = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = Order
-        fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'phone_number', 'groups', 'created_at', 'payment_method', 'payment_screenshot_id')
+        fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'phone_number', 'groups', 'created_at', 'payment_method', 'payment_screenshot_id', 'remark')
         read_only_fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'created_at')
 
     def create(self, validated_data):
@@ -131,6 +132,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phone_number', None)
         screenshot_id = validated_data.pop('payment_screenshot_id', None)
         payment_method = validated_data.pop('payment_method', None)
+        remark = validated_data.pop('remark', '')
         
         # 获取当前用户（如果已认证）
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
@@ -143,7 +145,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 phone_number=phone_number,
                 pickup_code=pickup_code_str,
                 pickup_code_num=pickup_code_num_val,
-                payment_method=payment_method
+                payment_method=payment_method,
+                remark=remark
             )
 
             #【修改后】总价从我们定义的基础服务费开始计算

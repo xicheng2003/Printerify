@@ -142,6 +142,7 @@ class Order(models.Model):
     # 【修改】payment_screenshot 指向了我们新的动态路径函数
     payment_screenshot = models.FileField(upload_to=get_payment_screenshot_path, blank=True, null=True, help_text="支付凭证截图")
     order_summary_pdf = models.FileField(upload_to='summaries/', blank=True, null=True, help_text="订单摘要PDF")
+    remark = models.TextField(blank=True, null=True, help_text="用户备注")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

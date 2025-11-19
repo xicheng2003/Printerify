@@ -16,6 +16,7 @@ const BINDING_PRICE_CONFIG = {
 export const useOrderStore = defineStore('order', () => {
     const groups = ref([]);
     const phoneNumber = ref('');
+    const remark = ref(''); // 新增：用户备注
     const paymentMethod = ref('ALIPAY');
     const paymentScreenshotFile = ref(null);
     const isLoading = ref(false);
@@ -168,6 +169,7 @@ export const useOrderStore = defineStore('order', () => {
     function resetStore() {
         groups.value = [];
         phoneNumber.value = '';
+        remark.value = ''; // 重置备注
         paymentMethod.value = 'WECHAT';
         paymentScreenshotFile.value = null;
     }
@@ -292,7 +294,7 @@ export const useOrderStore = defineStore('order', () => {
     });
 
     return {
-        groups, phoneNumber, paymentMethod, paymentScreenshotFile,
+        groups, phoneNumber, remark, paymentMethod, paymentScreenshotFile,
         isLoading, userOrders, userOrdersLoading, userOrdersError, pricingConfig, // Export pricingConfig
         setLoading, addFiles, removeDocument, updateDocumentSettings,
         updateGroupBinding, resetStore, mergeGroups,

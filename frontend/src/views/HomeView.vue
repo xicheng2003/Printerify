@@ -367,6 +367,7 @@ async function handleCreateOrder() {
     payment_screenshot_id: screenshotId.value,
     payment_method: orderStore.paymentMethod,
     phone_number: orderStore.phoneNumber,
+    remark: orderStore.remark, // 添加备注字段
     groups: orderStore.groups.map((group, groupIndex) => ({
       binding_type: group.bindingType,
       sequence_in_order: groupIndex + 1,

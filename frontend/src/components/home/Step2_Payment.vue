@@ -55,21 +55,58 @@
       </p>
     </div>
 
+    <!-- 备注触发区域 (简洁版) -->
+    <div class="remark-simple-trigger" @click="showRemarkModal = true" role="button" tabindex="0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="remark-icon-simple">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+      <span v-if="!orderStore.remark">添加备注（可选）</span>
+      <span v-else class="remark-text-preview">
+        <span class="label">备注：</span>{{ orderStore.remark }}
+      </span>
+    </div>
+
     <BaseButton @click="createOrder" :loading="isLoading" class="full-width-btn">我已支付，确认下单</BaseButton>
     <BaseButton variant="secondary" @click="$emit('back')" class="full-width-btn secondary-action-btn">上一步</BaseButton>
+
+    <!-- 备注模态框 -->
+    <Teleport to="body">
+      <Modal :show="showRemarkModal" @close="showRemarkModal = false">
+        <template #header><h3>订单备注</h3></template>
+        <template #body>
+          <div class="remark-input-wrapper">
+            <textarea
+              v-model="orderStore.remark"
+              placeholder="如有特殊要求（如：配送时间、包装要求等），请在此说明..."
+              rows="5"
+              class="remark-textarea"
+            ></textarea>
+          </div>
+        </template>
+        <template #footer>
+          <div class="modal-actions">
+             <BaseButton @click="showRemarkModal = false" class="full-width-btn">保存备注</BaseButton>
+          </div>
+        </template>
+      </Modal>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useOrderStore } from '@/stores/order';
 import { useUserStore } from '@/stores/user';
 import PaymentUploader from '@/components/PaymentUploader.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import Modal from '@/components/Modal.vue';
 
 const emits = defineEmits(['screenshot-uploaded','create-order','back']);
 const orderStore = useOrderStore();
 const userStore = useUserStore();
+
+const showRemarkModal = ref(false);
 
 const isLoading = computed(() => orderStore.isSubmitting || false);
 const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
@@ -117,6 +154,69 @@ function createOrder() {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+/* 备注触发区域 (简洁版) */
+.remark-simple-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-mute);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.remark-simple-trigger:hover {
+  color: var(--color-primary);
+}
+
+.remark-icon-simple {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.remark-text-preview {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px; /* 限制最大宽度，防止过长 */
+}
+
+.remark-text-preview .label {
+  font-weight: 500;
+}
+
+/* 模态框内样式 */
+.remark-input-wrapper {
+  margin-bottom: 1rem;
+}
+
+.remark-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.remark-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .order-estimated-alert .estimated-icon {
