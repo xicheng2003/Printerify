@@ -172,6 +172,21 @@ import { RouterLink } from 'vue-router';
   .footer-tagline {
     text-align: center;
   }
+
+  /* 优化三列布局的居中分布 */
+  .footer-links-group {
+    justify-content: center;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .footer-links-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 @media (max-width: 540px) {
