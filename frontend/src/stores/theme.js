@@ -10,8 +10,8 @@ export const useThemeStore = defineStore('theme', () => {
 
   // 3. 应用主题的逻辑
   function applyTheme() {
-    const isDark = 
-      theme.value === 'dark' || 
+    const isDark =
+      theme.value === 'dark' ||
       (theme.value === 'system' && mediaQuery.matches)
 
     if (isDark) {

@@ -1,8 +1,8 @@
 <template>
   <div class="theme-switcher-wrapper" ref="wrapperRef">
-    <button 
-      @click="toggleMenu" 
-      class="theme-btn" 
+    <button
+      @click="toggleMenu"
+      class="theme-btn"
       :aria-label="currentLabel"
       :title="currentLabel"
     >
@@ -12,8 +12,8 @@
     <Transition name="fade-scale">
       <div v-if="isOpen" class="theme-menu">
         <div class="menu-title">外观</div>
-        <button 
-          v-for="option in options" 
+        <button
+          v-for="option in options"
           :key="option.value"
           @click="selectTheme(option.value)"
           class="menu-item"
