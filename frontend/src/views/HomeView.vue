@@ -97,157 +97,27 @@
         <Stepper :current-step="currentStep" :steps="['配置订单', '支付', '完成']" />
 
         <div class="step-content">
-          <div v-if="currentStep === 1">
-            <h3 class="step-title">第一步：上传文档并设置规格</h3>
+          <Step1_Config
+            v-if="currentStep === 1"
+            ref="fileUploaderRef"
+            :agreedToTerms="agreedToTerms"
+            :agreedToPrivacy="agreedToPrivacy"
+            @update:agreedToTerms="agreedToTerms = $event"
+            @update:agreedToPrivacy="agreedToPrivacy = $event"
+            @next="goToPaymentStep"
+            @open-terms="openTermsModal"
+            @open-privacy="openPrivacyModal"
+            @show-billing="showBillingModal = true"
+          />
 
-            <div class="billing-info-trigger" @click="showBillingModal = true">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-              <span>计费规则说明</span>
-            </div>
+          <Step2_Payment
+            v-if="currentStep === 2"
+            @screenshot-uploaded="onScreenshotUploaded"
+            @create-order="handleCreateOrder"
+            @back="currentStep = 1"
+          />
 
-            <div class="upload-notice" v-if="orderStore.groups.length === 0">
-              <p><strong>上传须知</strong></p>
-              <ul>
-                <li><strong>格式推荐</strong>: 为确保打印效果与排版格式一致，强烈建议您上传 <strong>PDF</strong> 格式的文档。</li>
-                <li><strong>文件大小</strong>: 单个文件大小建议不超过 <strong>100MB</strong>，最大支持 200MB。大文件上传时间较长，请耐心等待。</li>
-                <li><strong>隐私安全</strong>: 所有文件将通过加密通道上传，并存储在专用服务器上。打印完成后，您的文件将被<strong>立即销毁</strong>，绝不外泄。</li>
-                <li><strong>合规声明</strong>: 请遵守相关法律法规，<strong>严禁上传</strong>任何涉密、涉政及其他违禁内容的文件。</li>
-              </ul>
-            </div>
-
-            <FileUploader
-              ref="fileUploaderRef"
-              @files-selected="handleFilesSelected"
-              :disabled="!agreedToTerms || !agreedToPrivacy"
-            />
-
-            <transition name="fade">
-              <div v-if="orderStore.groups.length > 0 && isBindingHelpVisible" class="binding-help-alert">
-                <div class="help-alert-content">
-                  <div class="help-alert-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  </div>
-                  <div class="help-alert-text">
-                    <strong>装订组使用技巧：</strong>
-                    <ul>
-                      <li>
-                        <strong>合并装订：</strong>新上传时，每个文件都是独立的"装订组"。如需将多个文件装订在一起，请按住组标题旁的 <span>⠿</span> 拖拽，并覆盖到另一组上即可合并。
-                      </li>
-                      <li>
-                        <strong>调整顺序：</strong>当您为合并后的组选择了任意一项装订服务后，组内文件的从上到下顺序即为最终的打印和装订顺序。您可以按住单个文件左侧的 <span>⠿</span> 上下拖拽，自由调整它们的打印顺序。
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <button @click="dismissBindingHelp" class="help-alert-close-btn" title="关闭提示">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-            </transition>
-            <OrderConfiguration v-if="orderStore.groups.length > 0" />
-
-            <div class="terms-agreement">
-              <div class="terms-item">
-                <input type="checkbox" id="terms" v-model="agreedToTerms" />
-                <label for="terms">
-                  我已阅读并同意
-                  <a href="#" @click.prevent="openTermsModal" class="terms-link">
-                    《服务条款》
-                    <span v-if="hasLegalUpdate" class="update-dot" title="条款已于2025年10月21日更新"></span>
-                  </a>
-                </label>
-              </div>
-              <div class="terms-item">
-                <input type="checkbox" id="privacy" v-model="agreedToPrivacy" />
-                <label for="privacy">
-                  我已阅读并同意
-                  <a href="#" @click.prevent="openPrivacyModal" class="terms-link">
-                    《隐私协议》
-                    <span v-if="hasLegalUpdate" class="update-dot" title="协议已于2025年10月21日更新"></span>
-                  </a>
-                </label>
-              </div>
-            </div>
-
-            <BaseButton
-              v-if="orderStore.groups.length > 0"
-              @click="goToPaymentStep"
-              :disabled="!isReadyToGoNext"
-              :loading="!orderStore.isReadyToSubmit"
-              class="full-width-btn"
-              style="margin-top: 2rem;"
-            >
-              <span>{{ nextStepButtonText }}</span>
-            </BaseButton>
-          </div>
-
-          <div v-if="currentStep === 2">
-            <h3 class="step-title">第二步：确认信息并支付</h3>
-            <div v-if="anyEstimated" class="order-estimated-alert" role="alert" aria-live="polite">
-              <div class="estimated-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </div>
-              <div class="estimated-text">
-                <strong>价格提示：</strong>
-                <span>当前页数为预估，计价可能不准确。建议上传 PDF 格式获得精确价格。若继续提交，系统将尝试在后台更新为精确价格。如有任何疑问，请联系我们。</span>
-              </div>
-            </div>
-
-            <div class="price-result">
-              <p>订单总计</p>
-              <p class="price"><strong>¥ {{ totalCost }}</strong></p>
-            </div>
-
-            <div class="payment-method-selector">
-              <label :class="{ 'active': orderStore.paymentMethod === 'WECHAT' }">
-                <input type="radio" v-model="orderStore.paymentMethod" value="WECHAT" name="payment-method"/>
-                <img src="/wechat-logo.png" alt="微信支付" class="payment-button-image"/>
-              </label>
-              <label :class="{ 'active': orderStore.paymentMethod === 'ALIPAY' }">
-                <input type="radio" v-model="orderStore.paymentMethod" value="ALIPAY" name="payment-method"/>
-                <img src="/alipay-logo.png" alt="支付宝" class="payment-button-image"/>
-              </label>
-            </div>
-
-            <div class="payment-section">
-              <div v-if="orderStore.paymentMethod === 'WECHAT'">
-                <p class="payment-instruction">请使用微信扫描下方二维码完成支付</p>
-                <img src="/wechat_qr.jpg" alt="微信收款二维码" class="qr-code">
-              </div>
-              <div v-if="orderStore.paymentMethod === 'ALIPAY'">
-                 <p class="payment-instruction">请使用支付宝扫描二维码，或点击下方链接</p>
-                 <img src="/alipay_qr.jpg" alt="支付宝收款二维码" class="qr-code">
-                 <a href="https://qr.alipay.com/2m611064ovvydd9jbdrnv22" target="_blank" class="payment-link">
-                   点此跳转支付宝APP付款
-                 </a>
-              </div>
-            </div>
-            <div class="payment-section">
-              <PaymentUploader @upload-success="onScreenshotUploaded" />
-            </div>
-            <div class="form-group">
-              <label>请输入手机号以完成下单：</label>
-              <input type="tel" v-model="orderStore.phoneNumber" placeholder="用于查询订单" :disabled="isLoading" />
-            </div>
-            <BaseButton @click="handleCreateOrder" :loading="isLoading" class="full-width-btn">
-              我已支付，确认下单
-            </BaseButton>
-          </div>
-
-          <div v-if="currentStep === 3 && finalOrder" class="completion-view">
-            <!-- 【修改】这里的 SVG stroke 颜色使用了 CSS 变量 -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <h3 class="step-title">订单提交成功！</h3>
-            <p>取件时请出示取件码，请牢记或截图保存。</p>
-            <p>凭手机号和取件码，可在订单查询页面查询订单状态</p>
-            <strong> 取件地址：西四学生宿舍 425 </strong>
-            <div class="pickup-code-wrapper">
-              <span class="pickup-code-label">您的取件码</span>
-              <strong class="pickup-code">{{ finalOrder.pickup_code }}</strong>
-            </div>
-            <p class="order-number-info">完整订单号: {{ finalOrder.order_number }}</p>
-            <BaseButton @click="resetForNewOrder" class="full-width-btn">再来一单</BaseButton>
-          </div>
+          <Step3_Result v-if="currentStep === 3 && finalOrder" :finalOrder="finalOrder" @reset="resetForNewOrder" />
         </div>
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
@@ -333,7 +203,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue'; //【修改】引入computed, watch, onUnmounted, nextTick
+import { ref, watch, onUnmounted, onMounted, nextTick } from 'vue'; //【修改】引入 watch, onUnmounted, onMounted, nextTick
 import { useRouter } from 'vue-router'; // 导入路由
 import { useOrderStore } from '@/stores/order';
 import apiService from '@/services/apiService'; //【修改】使用apiService而不是直接使用axios
@@ -341,12 +211,13 @@ import { useUserStore } from '@/stores/user'; // 导入用户状态管理
 
 // 导入组件
 import Stepper from '@/components/Stepper.vue';
-import FileUploader from '@/components/FileUploader.vue';
-import PaymentUploader from '@/components/PaymentUploader.vue';
-import BaseButton from '@/components/BaseButton.vue';
+// FileUploader/PaymentUploader/BaseButton are now encapsulated in step components
 import Modal from '@/components/Modal.vue';
-import OrderConfiguration from '@/components/OrderConfiguration.vue';
+// OrderConfiguration moved into Step1_Config
 import LegalDocument from '@/components/legal/LegalDocument.vue';
+import Step1_Config from '@/components/home/Step1_Config.vue';
+import Step2_Payment from '@/components/home/Step2_Payment.vue';
+import Step3_Result from '@/components/home/Step3_Result.vue';
 
 // --- 使用 Pinia Store 和 Router ---
 const orderStore = useOrderStore();
@@ -374,17 +245,7 @@ const finalOrder = ref(null); // 用于存储最终成功创建的订单信息
 
 // 法律文档更新提醒标识
 const LEGAL_UPDATE_DATE = '2025-10-21'; // 法律文档最后更新日期
-const hasLegalUpdate = computed(() => {
-  const lastViewedDate = localStorage.getItem('legalDocsLastViewed');
-  return !lastViewedDate || lastViewedDate < LEGAL_UPDATE_DATE;
-});
-
-// ▼▼▼ 在这里新增控制逻辑 ▼▼▼
-const isBindingHelpVisible = ref(true); // 默认显示
-
-function dismissBindingHelp() {
-  isBindingHelpVisible.value = false;
-}
+// legal update flag and binding help moved into step components
 
 // 登录引导横幅相关状态
 const showLoginGuideBanner = ref(true); // 默认显示
@@ -394,11 +255,6 @@ onMounted(() => {
   // 获取最新的计费规则
   orderStore.fetchPricingConfig();
 
-  // 移除本地存储检查，让横幅每次都能显示
-  // const hideBanner = localStorage.getItem('hideLoginGuideBanner');
-  // if (hideBanner === 'true') {
-  //   showLoginGuideBanner.value = false;
-  // }
   // 5 秒后显示订单人工处理时效提醒横幅
   setTimeout(() => {
     showTimingBanner.value = true;
@@ -437,84 +293,51 @@ onUnmounted(() => {
 
 function dismissBanner() {
   showLoginGuideBanner.value = false;
-  // 不再保存到本地存储，让横幅在下次访问时重新显示
-  // localStorage.setItem('hideLoginGuideBanner', 'true');
 }
 
 function goToLogin() {
-  // 跳转到登录页面
   router.push('/auth/login');
   dismissBanner();
 }
 
 function goToRegister() {
-  // 跳转到注册页面
   router.push('/auth/register');
   dismissBanner();
 }
 
 function remindLater() {
-  // 稍后提醒逻辑，隐藏横幅一段时间后重新显示
   showLoginGuideBanner.value = false;
-  // 设置一个较短的延迟时间，比如5分钟后重新显示
   setTimeout(() => {
     if (!userStore.isAuthenticated) {
       showLoginGuideBanner.value = true;
     }
-  }, 5 * 60 * 1000); // 5分钟
+  }, 5 * 60 * 1000);
 }
-// ▲▲▲ 新增代码结束 ▲▲▲
 
-// 法律文档模态框打开函数（打开时标记为已查看）
 function openTermsModal() {
   showTermsModal.value = true;
-  // 用户打开查看后，标记已查看最新版本
   localStorage.setItem('legalDocsLastViewed', LEGAL_UPDATE_DATE);
 }
 
 function openPrivacyModal() {
   showPrivacyModal.value = true;
-  // 用户打开查看后，标记已查看最新版本
   localStorage.setItem('legalDocsLastViewed', LEGAL_UPDATE_DATE);
 }
 
-const isReadyToGoNext = computed(() => {
-  return orderStore.isReadyToSubmit && agreedToTerms.value && agreedToPrivacy.value;
-});
+// Step components manage ready/next text and file selection
 
-// 【新增】这个计算属性根据不同状态显示不同的按钮文本
-const nextStepButtonText = computed(() => {
-  if (!agreedToTerms.value || !agreedToPrivacy.value) {
-    return '请先同意服务条款和隐私协议';
-  }
-  if (!orderStore.isReadyToSubmit) {
-    return '处理文件中...';
-  }
-  return `下一步，确认订单 (总计 ¥${totalCost.value})`;
-});
-
-const totalCost = computed(() => orderStore.totalCost);
-
-// --- 方法 ---
-function handleFilesSelected(files) {
-  orderStore.addFiles(files);
-}
-
-// 【新增】处理截图上传成功的事件函数
 function onScreenshotUploaded(uploadedId) {
   screenshotId.value = uploadedId;
 }
 
 function goToPaymentStep() {
-  if (isReadyToGoNext.value) { // <--- 将 isReadyToSubmit 修改为 isReadyToGoNext
+  if (agreedToTerms.value && agreedToPrivacy.value && orderStore.isReadyToSubmit) {
     currentStep.value = 2;
   }
 }
 
-// 【关键】最终的订单创建函数
 async function handleCreateOrder() {
-  // 基础校验
-  if (!screenshotId.value) { // <-- 【修改】校验逻辑
+  if (!screenshotId.value) {
     errorMessage.value = '请先上传付款截图！';
     return;
   }
@@ -526,37 +349,29 @@ async function handleCreateOrder() {
   isLoading.value = true;
   errorMessage.value = '';
 
-  // 1. 从 Store 中构建后端需要的JSON数据结构
   const payload = {
-    // 【修改】将 screenshotId 添加到 payload 中
     payment_screenshot_id: screenshotId.value,
-    payment_method: orderStore.paymentMethod, // <-- 【新增】确保这一行存在
+    payment_method: orderStore.paymentMethod,
     phone_number: orderStore.phoneNumber,
     groups: orderStore.groups.map((group, groupIndex) => ({
       binding_type: group.bindingType,
       sequence_in_order: groupIndex + 1,
       documents: group.documents.map((doc, docIndex) => ({
-        file_id: doc.serverId, // 使用预上传后服务器返回的ID
+        file_id: doc.serverId,
         original_filename: doc.fileName,
-        paper_size: doc.settings.paperSize, // <--- 【核心修正】在这里补上 paper_size 字段
+        paper_size: doc.settings.paperSize,
         color_mode: doc.settings.colorMode,
         print_sided: doc.settings.printSided,
         copies: doc.settings.copies,
         sequence_in_group: docIndex + 1,
       })),
     })),
-    // payment_method: orderStore.paymentMethod,
-    // 【待办】支付凭证也需要预上传并获取ID
   };
 
   try {
-    // 2. 发送创建订单的POST请求
     const response = await apiService.createOrder(payload);
-
-    // 3. 处理成功响应
-    finalOrder.value = response.data; // 保存成功返回的订单数据
-    currentStep.value = 3; // 跳转到成功页面
-
+    finalOrder.value = response.data;
+    currentStep.value = 3;
   } catch (error) {
     console.error('Order creation failed:', error.response?.data || error.message);
     errorMessage.value = '订单创建失败，请稍后重试或联系客服。';
@@ -565,23 +380,21 @@ async function handleCreateOrder() {
   }
 }
 
-function resetForNewOrder() { // <--- 1. 将函数名从 reset 修改为 resetForNewOrder
+function resetForNewOrder() {
   orderStore.resetStore();
   currentStep.value = 1;
-  finalOrder.value = null; // <--- 2. 增加这一行，清空上一单的结果
+  finalOrder.value = null;
   agreedToTerms.value = false;
   agreedToPrivacy.value = false;
   errorMessage.value = '';
-  screenshotId.value = null; // <--- 3. 增加这一行，重置截图ID
-  if (fileUploaderRef.value) {
+  screenshotId.value = null;
+  if (fileUploaderRef.value && fileUploaderRef.value.reset) {
     fileUploaderRef.value.reset();
   }
 }
 
-// 订单层面的“是否预估”判断（任一文档为预估即为预估）
-const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
+// anyEstimated handled inside Step2_Payment
 
-// --- 格式化辅助函数 (用于计费规则展示) ---
 function formatPaperSize(key) {
   const map = {
     'a4_70g': 'A4 (70g)',
@@ -612,7 +425,7 @@ function formatBindingType(key) {
 
 </script>
 
-<style scoped>
+<style>
 
 /* ===================================================================
   样式已更新，使用 CSS 变量以支持主题切换。
@@ -773,39 +586,6 @@ function formatBindingType(key) {
   font-size: 1.1rem;
 }
 
-.completion-view {
-  text-align: center;
-  padding: 2rem 0;
-}
-
-.completion-view > p {
-  color: var(--color-text-mute); /* 已修改 */
-  margin-bottom: 1rem;
-}
-
-.pickup-code-wrapper {
-  background-color: var(--color-background-mute); /* 已修改 */
-  border: 1px dashed var(--color-primary); /* 已修改 */
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1.5rem auto;
-  max-width: 300px;
-}
-
-.pickup-code-label {
-  font-size: 1rem;
-  color: var(--color-text); /* 已修改 */
-}
-
-.pickup-code {
-  display: block;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--color-primary); /* 已修改 */
-  letter-spacing: 4px;
-  margin-top: 0.5rem;
-}
-
 .error-message {
   color: var(--color-text-on-danger); /* 已修改 */
   font-weight: 500;
@@ -814,13 +594,6 @@ function formatBindingType(key) {
   background-color: var(--color-danger); /* 已修改 */
   padding: 0.75rem;
   border-radius: 8px;
-}
-
-.order-number-info {
-  color: var(--color-text-mute); /* 已修改 */
-  font-size: 0.875rem;
-  margin-top: -0.5rem;
-  margin-bottom: 2rem;
 }
 
 .upload-notice {

@@ -2,11 +2,15 @@
 defineProps({
   loading: Boolean,
   disabled: Boolean,
+  variant: {
+    type: String,
+    default: 'primary'
+  }
 });
 </script>
 
 <template>
-  <button class="base-button" :disabled="loading || disabled">
+  <button class="base-button" :class="[`variant-${variant}`]" :disabled="loading || disabled">
     <div v-if="loading" class="spinner-wrapper">
       <div class="spinner"></div>
     </div>
@@ -33,15 +37,28 @@ defineProps({
   border: 1px solid transparent;
   user-select: none;
   transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
 
-  /* 默认样式使用主题色 */
+/* --- 变体样式 --- */
+.variant-primary {
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
 }
 
-.base-button:hover:not(:disabled) {
+.variant-primary:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
   box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+}
+
+.variant-secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.variant-secondary:hover:not(:disabled) {
+  background-color: var(--color-background-mute);
+  border-color: var(--color-border-hover);
 }
 
 .base-button:active:not(:disabled) {
