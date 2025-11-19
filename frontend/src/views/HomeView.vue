@@ -275,6 +275,13 @@ watch(showTimingBanner, async (visible) => {
   }
 });
 
+// 监听步骤变化，自动滚动到顶部
+watch(currentStep, () => {
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+  }
+});
+
 // 监听用户登录状态变化
 const unwatchAuth = watch(() => userStore.isAuthenticated, (isAuth) => {
   if (isAuth) {
