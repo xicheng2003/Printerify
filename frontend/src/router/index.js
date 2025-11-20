@@ -96,6 +96,13 @@ const router = createRouter({
       meta: {
         title: 'OAuth登录回调'
       }
+    },
+    // 404 页面 (必须放在最后)
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+      meta: { title: '页面未找到' }
     }
   ]
 })
