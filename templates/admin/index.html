@@ -1,0 +1,171 @@
+{% extends 'unfold/layouts/base_simple.html' %}
+
+{% load i18n unfold %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block title %}
+    {% trans 'Dashboard' %} | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name" class="flex items-center">
+        <a href="{% url 'admin:index' %}" class="flex items-center gap-2 font-bold text-lg">
+            <div class="text-[#2563eb] dark:text-[#3b82f6]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="7" y="13" width="10" height="8" rx="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 13H19V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="text-gray-900 dark:text-white">Printerify</span>
+        </a>
+    </h1>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* 自定义滚动条样式，保持页面整洁 */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    html.dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
+    html.dark ::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    {% include "unfold/helpers/messages.html" %}
+
+    <!-- Hero Section: 简洁、低调、大气 -->
+    <div class="mb-10 mt-4">
+        <div class="flex items-center gap-6">
+            <!-- Logo -->
+            <div class="flex-shrink-0 text-[#2563eb] dark:text-[#3b82f6]">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 17H5C3.89543 17 3 16.1046 3 15V11C3 9.89543 3.89543 9 5 9H19C20.1046 9 21 9.89543 21 11V15C21 16.1046 20.1046 17 19 17H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 9V7C17 5.89543 16.1046 5 15 5H9C7.89543 5 7 5.89543 7 7V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="7" y="13" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 13H19V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            
+            <!-- Text Content -->
+            <div class="flex flex-col justify-center">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    Printerify <span class="font-light text-gray-400 dark:text-gray-500">Admin</span>
+                </h1>
+                <p class="text-base text-gray-500 dark:text-gray-400 mt-1 font-medium tracking-wide">
+                    简单 · 快速 · 可靠
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-8">
+        {% if kpi %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {% for item in kpi %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ item.title }}</h3>
+                            {% if item.icon %}
+                                <span class="material-symbols-outlined text-gray-400">{{ item.icon }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-baseline">
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white {{ item.metric_class }}">
+                                {{ item.metric }}
+                            </p>
+                        </div>
+                        {% if item.footer %}
+                            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                {{ item.footer }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if charts %}
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {% for chart in charts %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ chart.title }}</h3>
+                        <div class="relative h-64">
+                            <canvas id="chart-{{ forloop.counter }}"></canvas>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {% for app in app_list %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                            <a href="{{ app.app_url }}" class="hover:underline">{{ app.name }}</a>
+                        </h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for model in app.models %}
+                            <li class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                <div class="flex items-center">
+                                    <a href="{{ model.admin_url }}" class="text-sm font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-500">
+                                        {{ model.name }}
+                                    </a>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    {% if model.add_url %}
+                                        <a href="{{ model.add_url }}" class="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-500 transition-colors" title="{% trans 'Add' %}">
+                                            <span class="material-symbols-outlined text-xl">add</span>
+                                        </a>
+                                    {% endif %}
+                                    {% if model.admin_url %}
+                                        <a href="{{ model.admin_url }}" class="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-500 transition-colors" title="{% trans 'Change' %}">
+                                            <span class="material-symbols-outlined text-xl">edit</span>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if charts %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for chart in charts %}
+                    new Chart(document.getElementById('chart-{{ forloop.counter }}'), {
+                        type: '{{ chart.type }}',
+                        data: {{ chart.data|safe }},
+                        options: {{ chart.options|safe }}
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+{% endblock %}

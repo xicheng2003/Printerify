@@ -21,6 +21,7 @@ Django==5.2.3
 django-cors-headers==4.7.0
 django-extensions==4.1
 django-filter==25.1
+django-unfold==0.71.0
 djangorestframework==3.16.0
 factory_boy==3.3.3
 Faker==37.5.3
@@ -90,4 +91,4 @@ cryptography==45.0.6
 
 # 可选（提高 DOCX 页数精度）：
 # pywin32==306         # Windows + 已安装 Word 时启用 COM 统计页数
-# docx2pdf==0.1.8      # 将 DOCX 转成 PDF 后读取页数（通常同样需要 Word）
+# docx2pdf==0.1.8      # 将 DOCX 转成 PDF 后读取页数（通常同样需要 Word)

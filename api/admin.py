@@ -6,18 +6,20 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import Order, BindingGroup, Document, User
 from .tasks import send_order_completion_email
 
 # 注册用户模型
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin, ModelAdmin):
     list_display = ('username', 'email', 'phone_number', 'is_staff', 'is_active', 'date_joined')
     list_filter = ('is_staff', 'is_active', 'date_joined')
     search_fields = ('username', 'email', 'phone_number')
 
 @admin.register(Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(ModelAdmin):
     """
     独立的“文件”管理页面，方便搜索和查看。
     """
@@ -37,7 +39,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return "无文件"
     file_link.short_description = '文件链接'
 
-class DocumentInline(admin.TabularInline):
+class DocumentInline(TabularInline):
     """
     文件内联编辑器。
     【重要】它现在将被用在 BindingGroupAdmin 中，而不是嵌套在另一个内联里。
@@ -49,6 +51,7 @@ class DocumentInline(admin.TabularInline):
     # 【修改】将顺序号也设为只读
     readonly_fields = ('sequence_in_group', 'original_filename', 'get_file_link', 'page_count', 'print_cost')
 
+
     def get_file_link(self, obj):
         if obj.file_path:
             return format_html('<a href="{}" target="_blank">点击查看</a>', obj.file_path.url)
@@ -59,7 +62,7 @@ class DocumentInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None): return False
 
 @admin.register(BindingGroup)
-class BindingGroupAdmin(admin.ModelAdmin):
+class BindingGroupAdmin(ModelAdmin):
     """
     【新增】为“装订组”创建独立的管理页面。
     这个页面是解决问题的关键，它会包含文件的内联列表。
@@ -73,7 +76,7 @@ class BindingGroupAdmin(admin.ModelAdmin):
     order_link.short_description = '所属订单'
 
 
-class BindingGroupInlineForOrder(admin.TabularInline):
+class BindingGroupInlineForOrder(TabularInline):
     """
     【修改】这是专门用在“订单”页面里的简化版内联。
     它只显示基本信息和一个跳转链接。
@@ -95,7 +98,7 @@ class BindingGroupInlineForOrder(admin.TabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     """
     主订单模型的后台管理配置。
     """
