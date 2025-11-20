@@ -135,16 +135,16 @@ const goBack = () => {
     font-size: 8rem;
     margin-bottom: -2.5rem;
   }
-  
+
   .error-title {
     font-size: 1.75rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .btn-primary {
     width: 100%;
   }
