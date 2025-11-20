@@ -3,8 +3,8 @@
 import time
 import random
 import string
-from django.db import models
-from django.db.models import Max
+from django.db import models, transaction, IntegrityError
+from django.db.models import Max, Q, UniqueConstraint
 from django.utils import timezone # 导入 timezone 模块
 from django.contrib.auth.models import AbstractUser
 
@@ -16,7 +16,8 @@ def generate_order_number():
 
 def generate_pickup_code():
     """
-    生成一个在有效订单中唯一的、循环的取件码 (P-066 to P-666)。
+    生成一个在有效订单中唯一的取件码 (P-010 to P-999)。
+    采用随机生成策略，避免因历史订单删除导致号码回退或重复的误导。
     """
     from .models import Order
 
@@ -26,22 +27,32 @@ def generate_pickup_code():
         Order.StatusChoices.COMPLETED,
     ]
     
-    last_code_obj = Order.objects.filter(status__in=ACTIVE_STATUSES).aggregate(max_code=Max('pickup_code_num'))
-    last_code_num = last_code_obj.get('max_code') or 65
-
-    next_code_num = last_code_num + 1
-
-    while True:
-        if next_code_num > 666:
-            next_code_num = 66
-
+    # 尝试生成次数上限，防止极端情况下死循环
+    MAX_RETRIES = 50
+    
+    for _ in range(MAX_RETRIES):
+        # 随机生成 10 - 999 之间的数字
+        # 范围扩大可以显著降低碰撞概率
+        next_code_num = random.randint(10, 999)
         code_to_check = f"P-{next_code_num:03d}"
+        
+        # 检查是否被活跃订单占用
         is_taken = Order.objects.filter(status__in=ACTIVE_STATUSES, pickup_code=code_to_check).exists()
 
         if not is_taken:
             return code_to_check, next_code_num
 
-        next_code_num += 1
+    # 如果运气极差（或爆单）导致随机碰撞严重，则降级为顺序查找空缺
+    # 从 10 开始找一个没被占用的
+    for i in range(10, 1000):
+        code_to_check = f"P-{i:03d}"
+        if not Order.objects.filter(status__in=ACTIVE_STATUSES, pickup_code=code_to_check).exists():
+            return code_to_check, i
+            
+    # 极度极端情况：所有号码都被占满了（几乎不可能，除非有近1000个未完成订单）
+    # 返回一个溢出码或抛出异常，这里选择返回时间戳后三位作为兜底
+    fallback_num = int(time.time()) % 1000
+    return f"P-{fallback_num:03d}", fallback_num
 
 def get_order_document_path(instance, filename):
     """
@@ -145,6 +156,41 @@ class Order(models.Model):
     remark = models.TextField(blank=True, null=True, help_text="用户备注")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['pickup_code'],
+                condition=models.Q(status__in=['pending', 'processing', 'completed']),
+                name='unique_active_pickup_code'
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        # 如果没有取件码，尝试生成并保存
+        if not self.pickup_code:
+            # 使用重试机制处理并发冲突
+            max_retries = 5
+            for attempt in range(max_retries):
+                code_str, code_num = generate_pickup_code()
+                self.pickup_code = code_str
+                self.pickup_code_num = code_num
+                try:
+                    # 使用 savepoint 确保如果失败可以回滚而不影响外层事务
+                    with transaction.atomic():
+                        super().save(*args, **kwargs)
+                    return # 保存成功，退出
+                except IntegrityError:
+                    # 只有在最后一次尝试失败时才抛出异常
+                    if attempt == max_retries - 1:
+                        raise
+                    # 否则重置取件码并继续下一次尝试
+                    self.pickup_code = ''
+                    self.pickup_code_num = 0
+                    continue
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Order {self.order_number} ({self.pickup_code})"

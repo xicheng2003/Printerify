@@ -138,13 +138,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
 
         with transaction.atomic():
-            pickup_code_str, pickup_code_num_val = generate_pickup_code()
+            # 取件码生成逻辑已移至 Order.save() 方法中，以支持并发重试
             order = Order.objects.create(
                 user=user,  # 关联用户（如果已登录）
                 total_price=0,
                 phone_number=phone_number,
-                pickup_code=pickup_code_str,
-                pickup_code_num=pickup_code_num_val,
                 payment_method=payment_method,
                 remark=remark
             )
