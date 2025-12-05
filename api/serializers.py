@@ -241,10 +241,26 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                     # 记录扣费前余额
                     balance_before = user.page_balance
                     
-                    # 扣除余额
+                    # 扣除用户总余额
                     user.page_balance -= total_pages_consumed
                     user.total_pages_used += total_pages_consumed
                     user.save()
+                    
+                    # 【重要】从活跃套餐中按FIFO顺序扣减 pages_remaining
+                    remaining_to_deduct = total_pages_consumed
+                    active_packages = UserPackage.objects.filter(
+                        user=user,
+                        status=UserPackage.StatusChoices.ACTIVE,
+                        pages_remaining__gt=0
+                    ).order_by('activated_at')  # 先激活的先扣
+                    
+                    for pkg in active_packages:
+                        if remaining_to_deduct <= 0:
+                            break
+                        deduct_from_pkg = min(pkg.pages_remaining, remaining_to_deduct)
+                        pkg.pages_remaining -= deduct_from_pkg
+                        pkg.save()
+                        remaining_to_deduct -= deduct_from_pkg
                     
                     # 创建交易记录
                     Transaction.objects.create(
