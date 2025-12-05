@@ -59,12 +59,22 @@
             <h4>活跃套餐</h4>
             <div class="package-list">
               <div v-for="pkg in balanceInfo.active_packages" :key="pkg.id" class="package-item">
-                <div class="package-info">
+                <div class="package-header">
                   <span class="package-name">{{ pkg.package_name }}</span>
                   <span class="package-pages">剩余 {{ pkg.pages_remaining }}/{{ pkg.pages_total }} 页</span>
                 </div>
                 <div class="package-progress">
                   <div class="progress-bar" :style="{ width: `${(pkg.pages_remaining / pkg.pages_total) * 100}%` }"></div>
+                </div>
+                <div class="package-times">
+                  <span class="time-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    购买 {{ formatDate(pkg.purchased_at) }}
+                  </span>
+                  <span v-if="pkg.activated_at" class="time-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    激活 {{ formatDate(pkg.activated_at) }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -340,11 +350,14 @@ function getBindingTypeText(type) { return { none: '无装订', staple_top_left:
 .active-packages h4, .recent-transactions h4 { font-size: 1rem; font-weight: 600; color: var(--color-heading); margin: 0 0 1rem; }
 .package-list, .transaction-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .package-item { background-color: var(--color-background-soft); padding: 1rem; border-radius: 8px; }
-.package-info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.package-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
 .package-name { font-weight: 600; color: var(--color-heading); }
 .package-pages { font-size: 0.875rem; color: var(--color-text-mute); }
 .package-progress { height: 6px; background-color: var(--color-border); border-radius: 3px; overflow: hidden; }
 .progress-bar { height: 100%; background-color: var(--color-primary); transition: width 0.3s; }
+.package-times { display: flex; gap: 1.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--color-border); }
+.time-item { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--color-text-mute); }
+.time-item svg { opacity: 0.7; }
 .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background-color: var(--color-background-soft); border-radius: 8px; }
 .transaction-info { display: flex; flex-direction: column; gap: 0.25rem; }
 .transaction-type { font-weight: 600; color: var(--color-heading); }
