@@ -350,8 +350,9 @@ function goToPaymentStep() {
   }
 }
 
-async function handleCreateOrder() {
-  if (!screenshotId.value) {
+async function handleCreateOrder(options = {}) {
+  // 只有非余额支付才需要上传截图
+  if (orderStore.paymentMethod !== 'BALANCE' && !screenshotId.value) {
     errorMessage.value = '请先上传付款截图！';
     return;
   }
@@ -364,10 +365,11 @@ async function handleCreateOrder() {
   errorMessage.value = '';
 
   const payload = {
-    payment_screenshot_id: screenshotId.value,
+    payment_screenshot_id: orderStore.paymentMethod === 'BALANCE' ? null : screenshotId.value,
     payment_method: orderStore.paymentMethod,
     phone_number: orderStore.phoneNumber,
     remark: orderStore.remark, // 添加备注字段
+    use_balance: options.useBalance || false, // 新增：是否使用余额
     groups: orderStore.groups.map((group, groupIndex) => ({
       binding_type: group.bindingType,
       sequence_in_order: groupIndex + 1,

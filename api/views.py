@@ -12,8 +12,13 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from .models import Order, User
-from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
+from .models import Order, User, Package, UserPackage, Transaction
+from .serializers import (
+    OrderCreateSerializer, OrderDetailSerializer, UserSerializer, 
+    UserRegistrationSerializer, UserLoginSerializer, PackageSerializer,
+    UserPackageSerializer, UserPackageCreateSerializer, TransactionSerializer,
+    UserBalanceSerializer
+)
 from .services import pricing
 from .services.pricing import PRICE_CONFIG # Import PRICE_CONFIG
 
@@ -825,3 +830,114 @@ class OAuthBindingView(View):
             
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+# --- 套餐相关视图 ---
+
+class PackageListView(generics.ListAPIView):
+    """
+    获取所有可用套餐列表
+    GET /api/packages/
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PackageSerializer
+    
+    def get_queryset(self):
+        """只返回启用的套餐，按排序权重和价格排序"""
+        return Package.objects.filter(is_active=True).order_by('sort_order', 'price')
+
+
+class UserPackagePurchaseView(generics.CreateAPIView):
+    """
+    购买套餐
+    POST /api/packages/purchase/
+    需要登录
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserPackageCreateSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_package = serializer.save()
+        
+        return Response({
+            'message': '套餐购买成功，等待管理员审核',
+            'user_package': UserPackageSerializer(user_package).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class UserPackageListView(generics.ListAPIView):
+    """
+    获取当前用户的套餐列表
+    GET /api/user/packages/
+    需要登录
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserPackageSerializer
+    
+    def get_queryset(self):
+        """返回当前用户的所有套餐"""
+        return UserPackage.objects.filter(user=self.request.user).order_by('-purchased_at')
+
+
+class UserBalanceView(generics.RetrieveAPIView):
+    """
+    获取当前用户的余额信息
+    GET /api/user/balance/
+    需要登录
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserBalanceSerializer
+    
+    def get_object(self):
+        """返回当前用户"""
+        return self.request.user
+
+
+class TransactionListView(generics.ListAPIView):
+    """
+    获取当前用户的交易记录
+    GET /api/user/transactions/
+    需要登录
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TransactionSerializer
+    
+    def get_queryset(self):
+        """返回当前用户的所有交易记录"""
+        return Transaction.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def activate_user_package(request, package_id):
+    """
+    管理员激活用户套餐（审核通过）
+    POST /api/admin/packages/<id>/activate/
+    需要管理员权限
+    """
+    try:
+        user_package = UserPackage.objects.get(id=package_id)
+        
+        if user_package.status != UserPackage.StatusChoices.PENDING:
+            return Response({
+                'error': '该套餐已处理，无需重复激活'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 激活套餐
+        user_package.activate()
+        
+        return Response({
+            'message': '套餐激活成功',
+            'user_package': UserPackageSerializer(user_package).data
+        }, status=status.HTTP_200_OK)
+        
+    except UserPackage.DoesNotExist:
+        return Response({
+            'error': '套餐不存在'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)

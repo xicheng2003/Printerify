@@ -23,6 +23,71 @@
         </div>
       </div>
 
+      <!-- 余额卡片 -->
+      <div class="content-card balance-card">
+        <div class="balance-header">
+          <h3 class="card-title">账户余额</h3>
+          <router-link to="/packages" class="recharge-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            购买套餐
+          </router-link>
+        </div>
+        <div v-if="loadingBalance" class="balance-loading">
+          <div class="spinner"></div>
+          <span>加载中...</span>
+        </div>
+        <div v-else class="balance-content">
+          <div class="balance-main">
+            <div class="balance-item-large">
+              <label>剩余页数</label>
+              <p class="balance-value">{{ balanceInfo?.page_balance || 0 }} <span class="unit">页</span></p>
+            </div>
+            <div class="balance-stats">
+              <div class="balance-item-small">
+                <label>累计购买</label>
+                <p>{{ balanceInfo?.total_pages_purchased || 0 }} 页</p>
+              </div>
+              <div class="balance-item-small">
+                <label>累计使用</label>
+                <p>{{ balanceInfo?.total_pages_used || 0 }} 页</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 活跃套餐 -->
+          <div v-if="balanceInfo?.active_packages && balanceInfo.active_packages.length > 0" class="active-packages">
+            <h4>活跃套餐</h4>
+            <div class="package-list">
+              <div v-for="pkg in balanceInfo.active_packages" :key="pkg.id" class="package-item">
+                <div class="package-info">
+                  <span class="package-name">{{ pkg.package_name }}</span>
+                  <span class="package-pages">剩余 {{ pkg.pages_remaining }}/{{ pkg.pages_total }} 页</span>
+                </div>
+                <div class="package-progress">
+                  <div class="progress-bar" :style="{ width: `${(pkg.pages_remaining / pkg.pages_total) * 100}%` }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最近交易 -->
+          <div v-if="balanceInfo?.recent_transactions && balanceInfo.recent_transactions.length > 0" class="recent-transactions">
+            <h4>最近交易</h4>
+            <div class="transaction-list">
+              <div v-for="txn in balanceInfo.recent_transactions.slice(0, 5)" :key="txn.id" class="transaction-item">
+                <div class="transaction-info">
+                  <span class="transaction-type">{{ txn.transaction_type_display }}</span>
+                  <span class="transaction-time">{{ formatDate(txn.created_at, true) }}</span>
+                </div>
+                <div class="transaction-amount" :class="{ 'positive': txn.pages > 0, 'negative': txn.pages < 0 }">
+                  {{ txn.pages > 0 ? '+' : '' }}{{ txn.pages }} 页
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="stats-grid-new">
         <div class="stat-item"><p>{{ orderStats.total }}</p><label>总订单</label></div>
         <div class="stat-item"><p class="pending">{{ orderStats.pending }}</p><label>待处理</label></div>
@@ -106,7 +171,7 @@
 // 只是为了适配新的模板结构，对 formatDate 方法增加了参数。
 // 所有核心功能、方法和 store 的使用均保持不变。
 //
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import Modal from '../components/Modal.vue'
 import apiService from '../services/apiService'
@@ -121,6 +186,10 @@ const statusFilter = ref('')
 const expandedOrders = ref([])
 const orders = ref([])
 const editForm = ref({ phone_number: '', email: '' })
+
+// 余额相关
+const loadingBalance = ref(false)
+const balanceInfo = ref(null)
 
 const filteredOrders = computed(() => {
   if (!statusFilter.value) return orders.value
@@ -142,10 +211,23 @@ onMounted(async () => {
   await userStore.initializeStore()
   if (userStore.isAuthenticated) {
     await userStore.fetchProfile()
-    await fetchUserOrders()
+    await Promise.all([fetchUserOrders(), fetchBalance()])
     editForm.value.phone_number = userStore.userProfile?.phone_number || ''
     editForm.value.email = userStore.userProfile?.email || ''
   }
+
+  // 监听页面可见性变化，当用户回到页面时刷新余额
+  const handleVisibilityChange = () => {
+    if (!document.hidden && userStore.isAuthenticated) {
+      fetchBalance()
+    }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  // 组件卸载时移除监听器
+  onUnmounted(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+  })
 })
 
 async function fetchUserOrders() {
@@ -156,6 +238,19 @@ async function fetchUserOrders() {
     orders.value = response.data
   } catch (error) { console.error('获取用户订单失败:', error) }
   finally { isLoading.value = false }
+}
+
+async function fetchBalance() {
+  if (!userStore.isAuthenticated) return
+  loadingBalance.value = true
+  try {
+    const response = await apiService.getUserBalance()
+    balanceInfo.value = response.data
+  } catch (error) {
+    console.error('获取余额信息失败:', error)
+  } finally {
+    loadingBalance.value = false
+  }
 }
 
 async function refreshOrders() { await fetchUserOrders() }
@@ -222,6 +317,41 @@ function getBindingTypeText(type) { return { none: '无装订', staple_top_left:
 .profile-secondary-info { border-top: 1px solid var(--color-border); padding: 1rem 1.5rem; display: flex; gap: 2rem; font-size: 0.9rem; }
 .info-item label { color: var(--color-text-mute); margin-right: 0.5rem; }
 .info-item span { color: var(--color-text); font-weight: 500; }
+
+/* Balance Card */
+.balance-card { margin-bottom: 2rem; }
+.balance-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--color-border); }
+.recharge-btn { display: inline-flex; align-items: center; gap: 0.5rem; background-color: var(--color-primary); color: white; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+.recharge-btn:hover { background-color: var(--color-primary-hover); }
+.balance-loading { display: flex; justify-content: center; align-items: center; padding: 3rem; gap: 1rem; color: var(--color-text-mute); }
+.balance-loading .spinner { width: 24px; height: 24px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.balance-content { padding: 1.5rem; }
+.balance-main { display: flex; gap: 2rem; margin-bottom: 2rem; }
+.balance-item-large { flex: 1; background-color: var(--color-primary); color: white; padding: 2rem; border-radius: 12px; }
+.balance-item-large label { font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; display: block; }
+.balance-value { font-size: 3rem; font-weight: 700; margin: 0; }
+.balance-value .unit { font-size: 1.5rem; font-weight: 500; }
+.balance-stats { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+.balance-item-small { background-color: var(--color-background-soft); padding: 1.5rem; border-radius: 12px; }
+.balance-item-small label { font-size: 0.875rem; color: var(--color-text-mute); display: block; margin-bottom: 0.5rem; }
+.balance-item-small p { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); margin: 0; }
+.active-packages, .recent-transactions { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
+.active-packages h4, .recent-transactions h4 { font-size: 1rem; font-weight: 600; color: var(--color-heading); margin: 0 0 1rem; }
+.package-list, .transaction-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.package-item { background-color: var(--color-background-soft); padding: 1rem; border-radius: 8px; }
+.package-info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.package-name { font-weight: 600; color: var(--color-heading); }
+.package-pages { font-size: 0.875rem; color: var(--color-text-mute); }
+.package-progress { height: 6px; background-color: var(--color-border); border-radius: 3px; overflow: hidden; }
+.progress-bar { height: 100%; background-color: var(--color-primary); transition: width 0.3s; }
+.transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background-color: var(--color-background-soft); border-radius: 8px; }
+.transaction-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.transaction-type { font-weight: 600; color: var(--color-heading); }
+.transaction-time { font-size: 0.75rem; color: var(--color-text-mute); }
+.transaction-amount { font-weight: 700; font-size: 1.125rem; }
+.transaction-amount.positive { color: #10b981; }
+.transaction-amount.negative { color: #ef4444; }
 
 /* Stats Grid */
 .stats-grid-new { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }

@@ -15,8 +15,10 @@
     <div class="price-result">
       <p>订单总计</p>
       <p class="price"><strong>¥ {{ totalCost }}</strong></p>
+      <p class="pages-info">共需打印 {{ totalPages }} 页</p>
     </div>
 
+    <!-- 支付方式选择 -->
     <div class="payment-method-selector">
       <label :class="{ 'active': orderStore.paymentMethod === 'WECHAT' }">
         <input type="radio" v-model="orderStore.paymentMethod" value="WECHAT" name="payment-method"/>
@@ -26,24 +28,89 @@
         <input type="radio" v-model="orderStore.paymentMethod" value="ALIPAY" name="payment-method"/>
         <img src="/alipay-logo.png" alt="支付宝" class="payment-button-image"/>
       </label>
+      <label
+        v-if="userStore.isAuthenticated"
+        :class="{ 'active': orderStore.paymentMethod === 'BALANCE', 'disabled': userBalance < totalPages }"
+        class="balance-label"
+      >
+        <input
+          type="radio"
+          v-model="orderStore.paymentMethod"
+          value="BALANCE"
+          name="payment-method"
+          :disabled="userBalance < totalPages"
+        />
+        <div class="balance-payment-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="balance-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+            <path d="M12 18V6"></path>
+          </svg>
+          <span class="balance-text">余额支付</span>
+          <span class="balance-hint">({{ userBalance }}页)</span>
+        </div>
+      </label>
     </div>
 
-    <div class="payment-section">
-      <div v-if="orderStore.paymentMethod === 'WECHAT'">
-        <p class="payment-instruction">请使用微信扫描下方二维码完成支付</p>
-        <img src="/wechat_qr.jpg" alt="微信收款二维码" class="qr-code">
+    <!-- 余额支付详情 -->
+    <div v-if="orderStore.paymentMethod === 'BALANCE'" class="balance-payment-detail">
+      <div v-if="userBalance >= totalPages" class="balance-sufficient">
+        <div class="balance-check-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h4>余额充足，可以支付</h4>
+        <div class="balance-calculation">
+          <div class="calc-row">
+            <span>当前余额：</span>
+            <span class="calc-value">{{ userBalance }} 页</span>
+          </div>
+          <div class="calc-row">
+            <span>本次消费：</span>
+            <span class="calc-value deduct">- {{ totalPages }} 页</span>
+          </div>
+          <div class="calc-row total">
+            <span>支付后余额：</span>
+            <span class="calc-value">{{ userBalance - totalPages }} 页</span>
+          </div>
+        </div>
+        <router-link to="/packages" class="recharge-link-inline">余额不够？去购买套餐</router-link>
       </div>
-      <div v-if="orderStore.paymentMethod === 'ALIPAY'">
-         <p class="payment-instruction">请使用支付宝扫描二维码，或点击下方链接</p>
-         <img src="/alipay_qr.jpg" alt="支付宝收款二维码" class="qr-code">
-         <a href="https://qr.alipay.com/2m611064ovvydd9jbdrnv22" target="_blank" class="payment-link">
-           点此跳转支付宝APP付款
-         </a>
+      <div v-else class="balance-insufficient">
+        <div class="balance-warn-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h4>余额不足</h4>
+        <p>当前余额 {{ userBalance }} 页，需要 {{ totalPages }} 页，还差 {{ totalPages - userBalance }} 页</p>
+        <router-link to="/packages" class="recharge-btn-large">立即购买套餐</router-link>
       </div>
     </div>
 
-    <div class="payment-section">
-      <PaymentUploader @upload-success="onScreenshotUploaded" />
+    <!-- 第三方支付：二维码和上传凭证 -->
+    <div v-if="orderStore.paymentMethod === 'WECHAT' || orderStore.paymentMethod === 'ALIPAY'" class="third-party-payment">
+      <div class="payment-section">
+        <div v-if="orderStore.paymentMethod === 'WECHAT'">
+          <p class="payment-instruction">请使用微信扫描下方二维码完成支付</p>
+          <img src="/wechat_qr.jpg" alt="微信收款二维码" class="qr-code">
+        </div>
+        <div v-if="orderStore.paymentMethod === 'ALIPAY'">
+          <p class="payment-instruction">请使用支付宝扫描二维码，或点击下方链接</p>
+          <img src="/alipay_qr.jpg" alt="支付宝收款二维码" class="qr-code">
+          <a href="https://qr.alipay.com/2m611064ovvydd9jbdrnv22" target="_blank" class="payment-link">
+            点此跳转支付宝APP付款
+          </a>
+        </div>
+      </div>
+
+      <div class="payment-section">
+        <PaymentUploader @upload-success="onScreenshotUploaded" />
+      </div>
     </div>
 
     <div class="form-group">
@@ -95,22 +162,35 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useOrderStore } from '@/stores/order';
 import { useUserStore } from '@/stores/user';
 import PaymentUploader from '@/components/PaymentUploader.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import Modal from '@/components/Modal.vue';
+import apiService from '@/services/apiService';
 
 const emits = defineEmits(['screenshot-uploaded','create-order','back']);
 const orderStore = useOrderStore();
 const userStore = useUserStore();
 
 const showRemarkModal = ref(false);
+const userBalance = ref(0);
 
 const isLoading = computed(() => orderStore.isSubmitting || false);
 const anyEstimated = computed(() => orderStore.groups.some(g => g.documents.some(d => d.isEstimated)));
 const totalCost = computed(() => orderStore.totalCost);
+
+// 计算订单总页数
+const totalPages = computed(() => {
+  let total = 0;
+  orderStore.groups.forEach(group => {
+    group.documents.forEach(doc => {
+      total += (doc.pageCount || 0) * (doc.copies || 1);
+    });
+  });
+  return total;
+});
 
 const isAutoFilled = computed(() => {
   return userStore.isAuthenticated &&
@@ -122,8 +202,38 @@ function onScreenshotUploaded(id) {
   emits('screenshot-uploaded', id);
 }
 
+// 加载用户余额
+async function loadUserBalance() {
+  if (!userStore.isAuthenticated) return;
+  try {
+    const response = await apiService.getUserBalance();
+    userBalance.value = response.data.page_balance || 0;
+  } catch (error) {
+    console.error('获取余额失败:', error);
+  }
+}
+
 function createOrder() {
-  emits('create-order');
+  // 判断是否使用余额支付
+  const useBalance = orderStore.paymentMethod === 'BALANCE';
+
+  // 如果选择余额支付但余额不足，阻止提交
+  if (useBalance && userBalance.value < totalPages.value) {
+    alert('余额不足，无法下单');
+    return;
+  }
+
+  // 将使用余额的选项传递给父组件
+  emits('create-order', { useBalance });
+}
+
+onMounted(() => {
+  loadUserBalance();
+});
+
+// 监听用户登录状态变化
+if (userStore.isAuthenticated) {
+  loadUserBalance();
 }
 </script>
 
@@ -194,7 +304,6 @@ function createOrder() {
 .remark-input-wrapper {
   margin-bottom: 1rem;
 }
-
 .remark-textarea {
   width: 100%;
   padding: 0.75rem;
@@ -248,7 +357,7 @@ function createOrder() {
 }
 
 .price-result p {
-    color: var(--color-text);
+  color: var(--color-text);
 }
 
 .price {
@@ -257,35 +366,50 @@ function createOrder() {
   font-weight: 700;
 }
 
+.pages-info {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-mute);
+}
+
 .payment-method-selector {
   display: flex;
   justify-content: center;
   gap: 1.5rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .payment-method-selector label {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 4px;
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1rem;
   transition: all 0.2s ease-in-out;
-  width: 160px;
-  height: 56px;
+  min-width: 140px;
   box-sizing: border-box;
   background-color: var(--color-background);
+  position: relative;
 }
 
-.payment-method-selector label:hover {
+.payment-method-selector label:hover:not(.disabled) {
   border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .payment-method-selector label.active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary);
+  background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.05);
+}
+
+.payment-method-selector label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .payment-method-selector input[type="radio"] {
@@ -294,10 +418,169 @@ function createOrder() {
 
 .payment-button-image {
   display: block;
-  max-height: 100%;
-  max-width: 100%;
+  height: 40px;
+  width: auto;
   object-fit: contain;
   transition: filter 0.3s;
+}
+
+/* 余额支付选项样式 */
+.balance-label {
+  flex-direction: row !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.balance-payment-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.balance-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  transition: filter 0.3s;
+}
+
+html.dark .balance-icon {
+  filter: grayscale(1) brightness(1.5);
+}
+
+.balance-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-heading);
+}
+
+.balance-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-mute);
+}
+
+.payment-method-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-heading);
+  text-align: center;
+}
+
+/* 余额支付详情 */
+.balance-payment-detail {
+  background-color: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.balance-sufficient h4,
+.balance-insufficient h4 {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: var(--color-heading);
+}
+
+.balance-check-icon,
+.balance-warn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+.balance-check-icon {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.balance-warn-icon {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.balance-calculation {
+  background-color: var(--color-background);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.calc-row.total {
+  border-top: 2px solid var(--color-border);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.calc-value {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.calc-value.deduct {
+  color: #ef4444;
+}
+
+.recharge-link-inline {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: rgba(59, 130, 246, 0.1);
+  transition: all 0.2s;
+}
+
+.recharge-link-inline:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.balance-insufficient p {
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+}
+
+.recharge-btn-large {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background-color: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb, 37, 99, 235), 0.3);
+}
+
+.recharge-btn-large:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 37, 99, 235), 0.4);
+}
+
+/* 第三方支付区域 */
+.third-party-payment {
+  border-top: 1px solid var(--color-border);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
 }
 
 html.dark .payment-button-image {
@@ -305,10 +588,8 @@ html.dark .payment-button-image {
 }
 
 .payment-section {
-  border-top: 1px solid var(--color-border);
-  padding: 1.5rem 0;
-  margin-top: 1.5rem;
   text-align: center;
+  margin-top: 1.5rem;
 }
 
 .payment-instruction {
@@ -388,6 +669,6 @@ html.dark .payment-button-image {
 @media (max-width: 767px) {
   .step-title { font-size: 1.25rem; }
   .payment-method-selector { gap: 1rem; }
-  .payment-method-selector label { width: 140px; height: 48px; }
+  .payment-method-selector label { min-width: 120px; padding: 0.75rem; }
 }
 </style>

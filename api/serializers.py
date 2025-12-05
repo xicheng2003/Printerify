@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from django.db import transaction  # 导入数据库事务处理
 from django.contrib.auth import authenticate
-from .models import Order, BindingGroup, Document, generate_pickup_code, User
+from .models import Order, BindingGroup, Document, generate_pickup_code, User, Package, UserPackage, Transaction
 from .services import pricing  # 假设您的计费逻辑在 services/pricing.py 中
 from django.core.files import File # <-- 【新增】导入Django的File对象
 from pathlib import Path          # <-- 【新增】导入Path对象
@@ -20,8 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = ('id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'page_balance', 'total_pages_purchased', 'total_pages_used', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'page_balance', 'total_pages_purchased', 'total_pages_used', 'created_at', 'updated_at')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -121,10 +121,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     payment_screenshot_id = serializers.CharField(write_only=True, required=False, allow_null=True)
     payment_method = serializers.CharField(write_only=True, required=False, allow_blank=True)
     remark = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    use_balance = serializers.BooleanField(write_only=True, required=False, default=False)  # 新增：是否使用余额
     
     class Meta:
         model = Order
-        fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'phone_number', 'groups', 'created_at', 'payment_method', 'payment_screenshot_id', 'remark')
+        fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'phone_number', 'groups', 'created_at', 'payment_method', 'payment_screenshot_id', 'remark', 'use_balance')
         read_only_fields = ('id', 'order_number', 'pickup_code', 'status', 'total_price', 'created_at')
 
     def create(self, validated_data):
@@ -133,6 +134,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         screenshot_id = validated_data.pop('payment_screenshot_id', None)
         payment_method = validated_data.pop('payment_method', None)
         remark = validated_data.pop('remark', '')
+        use_balance = validated_data.pop('use_balance', False)  # 新增：是否使用余额
         
         # 获取当前用户（如果已认证）
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
@@ -149,6 +151,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
             #【修改后】总价从我们定义的基础服务费开始计算
             total_order_price = pricing.PRICE_CONFIG.get('base_service_fee', 0)
+            total_pages_consumed = 0  # 新增：计算总页数消耗
 
             if screenshot_id:
                 temp_screenshot_path = Path(settings.MEDIA_ROOT) / 'payments' / screenshot_id
@@ -216,6 +219,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
                     total_group_print_cost += print_cost
                     group_total_pages += page_count * doc_data['copies']
+                    total_pages_consumed += page_count * doc_data['copies']  # 新增：累计总页数
 
                 # 计算并保存装订费
                 binding_cost = pricing.calculate_binding_cost(
@@ -229,6 +233,39 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
             order.total_price = total_order_price
             order.save()
+            
+            # 【新增】余额扣费逻辑
+            if use_balance and user and user.is_authenticated:
+                # 检查用户余额是否足够
+                if user.page_balance >= total_pages_consumed:
+                    # 记录扣费前余额
+                    balance_before = user.page_balance
+                    
+                    # 扣除余额
+                    user.page_balance -= total_pages_consumed
+                    user.total_pages_used += total_pages_consumed
+                    user.save()
+                    
+                    # 创建交易记录
+                    Transaction.objects.create(
+                        user=user,
+                        transaction_type=Transaction.TransactionType.CONSUME,
+                        amount=total_order_price,
+                        pages=-total_pages_consumed,  # 负数表示消费
+                        balance_before=balance_before,
+                        balance_after=user.page_balance,
+                        order=order,
+                        description=f"订单 {order.order_number} 消费 {total_pages_consumed} 页"
+                    )
+                    
+                    # 标记订单已使用余额支付（可选，如果需要区分支付方式）
+                    order.payment_method = f"{payment_method} + 余额抵扣" if payment_method else "余额抵扣"
+                    order.save()
+                else:
+                    # 余额不足，抛出异常
+                    raise serializers.ValidationError({
+                        'use_balance': f'余额不足：需要 {total_pages_consumed} 页，当前余额 {user.page_balance} 页'
+                    })
 
             # 【新增】在这里触发异步任务
             # 我们将订单的ID传递给任务
@@ -284,3 +321,151 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             # 防御式：若出现异常，不影响主体数据
             pass
         return data
+
+
+# --- 套餐相关序列化器 ---
+
+class PackageSerializer(serializers.ModelSerializer):
+    """
+    套餐序列化器 - 用于展示套餐信息
+    """
+    price_per_page = serializers.SerializerMethodField()
+    savings = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Package
+        fields = (
+            'id', 'name', 'description', 'pages', 'price', 'original_price',
+            'discount_rate', 'validity_days', 'is_active', 'is_featured',
+            'sort_order', 'price_per_page', 'savings', 'created_at'
+        )
+        read_only_fields = ('id', 'created_at')
+    
+    def get_price_per_page(self, obj):
+        """计算每页成本"""
+        return obj.price_per_page
+    
+    def get_savings(self, obj):
+        """计算节省金额"""
+        return obj.savings
+
+
+class UserPackageSerializer(serializers.ModelSerializer):
+    """
+    用户套餐序列化器 - 用于展示用户已购套餐
+    """
+    package_name = serializers.CharField(source='package.name', read_only=True)
+    package_info = PackageSerializer(source='package', read_only=True)
+    is_valid = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = UserPackage
+        fields = (
+            'id', 'package', 'package_name', 'package_info', 'purchase_price',
+            'pages_total', 'pages_remaining', 'payment_method', 'payment_screenshot',
+            'purchased_at', 'activated_at', 'expires_at', 'status', 'remark',
+            'is_valid', 'created_at'
+        )
+        read_only_fields = ('id', 'purchased_at', 'activated_at', 'created_at')
+    
+    def get_is_valid(self, obj):
+        """检查套餐是否有效"""
+        return obj.is_valid
+
+
+class UserPackageCreateSerializer(serializers.ModelSerializer):
+    """
+    用户套餐创建序列化器 - 用于购买套餐
+    """
+    payment_screenshot_id = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
+    class Meta:
+        model = UserPackage
+        fields = ('package', 'payment_method', 'payment_screenshot_id', 'remark')
+    
+    def validate_package(self, value):
+        """验证套餐是否有效"""
+        if not value.is_active:
+            raise serializers.ValidationError("该套餐已下架，无法购买")
+        return value
+    
+    def create(self, validated_data):
+        """创建套餐购买记录"""
+        user = self.context['request'].user
+        package = validated_data['package']
+        payment_method = validated_data.get('payment_method', '')
+        payment_screenshot_id = validated_data.pop('payment_screenshot_id', None)
+        remark = validated_data.get('remark', '')
+        
+        # 创建用户套餐记录
+        user_package = UserPackage.objects.create(
+            user=user,
+            package=package,
+            purchase_price=package.price,
+            pages_total=package.pages,
+            pages_remaining=package.pages,
+            payment_method=payment_method,
+            remark=remark,
+            status=UserPackage.StatusChoices.PENDING
+        )
+        
+        # 处理支付凭证
+        if payment_screenshot_id:
+            temp_path = Path(settings.MEDIA_ROOT) / 'temp_uploads' / payment_screenshot_id
+            if temp_path.exists():
+                # 移动文件到正式目录
+                with open(temp_path, 'rb') as f:
+                    user_package.payment_screenshot.save(temp_path.name, File(f), save=True)
+                # 删除临时文件
+                temp_path.unlink()
+        
+        return user_package
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    """
+    交易记录序列化器
+    """
+    transaction_type_display = serializers.CharField(source='get_transaction_type_display', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    order_number = serializers.CharField(source='order.order_number', read_only=True, allow_null=True)
+    package_name = serializers.CharField(source='user_package.package.name', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = Transaction
+        fields = (
+            'id', 'user', 'user_username', 'transaction_type', 'transaction_type_display',
+            'amount', 'pages', 'balance_before', 'balance_after',
+            'order', 'order_number', 'user_package', 'package_name',
+            'description', 'created_at'
+        )
+        read_only_fields = ('id', 'created_at')
+
+
+class UserBalanceSerializer(serializers.ModelSerializer):
+    """
+    用户余额信息序列化器
+    """
+    active_packages = serializers.SerializerMethodField()
+    recent_transactions = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = (
+            'id', 'username', 'page_balance', 'total_pages_purchased', 
+            'total_pages_used', 'active_packages', 'recent_transactions'
+        )
+        read_only_fields = fields
+    
+    def get_active_packages(self, obj):
+        """获取用户的活跃套餐"""
+        active_packages = obj.packages.filter(
+            status=UserPackage.StatusChoices.ACTIVE,
+            pages_remaining__gt=0
+        )
+        return UserPackageSerializer(active_packages, many=True).data
+    
+    def get_recent_transactions(self, obj):
+        """获取最近10条交易记录"""
+        recent = obj.transactions.all()[:10]
+        return TransactionSerializer(recent, many=True).data

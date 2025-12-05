@@ -284,5 +284,32 @@ export default {
     } catch {
       return false;
     }
+  },
+
+  // --- 套餐相关 API ---
+
+  // 获取所有可用套餐
+  getPackages() {
+    return apiClient.get('/api/packages/');
+  },
+
+  // 购买套餐
+  purchasePackage(data) {
+    return apiClient.post('/api/packages/purchase/', data);
+  },
+
+  // 获取用户的套餐列表
+  getUserPackages() {
+    return apiClient.get('/api/user/packages/');
+  },
+
+  // 获取用户余额信息
+  getUserBalance() {
+    return apiClient.get('/api/user/balance/');
+  },
+
+  // 获取用户交易记录
+  getUserTransactions() {
+    return apiClient.get('/api/user/transactions/');
   }
 };

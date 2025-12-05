@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Order, BindingGroup, Document, User
+from .models import Order, BindingGroup, Document, User, Package, UserPackage, Transaction
 from .tasks import send_order_completion_email
 
 # 注册用户模型
@@ -164,3 +164,140 @@ class OrderAdmin(ModelAdmin):
         response = HttpResponse(zip_buffer, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename="printerify_orders.zip"'
         return response
+
+
+# --- 套餐相关管理页面 ---
+
+@admin.register(Package)
+class PackageAdmin(ModelAdmin):
+    """
+    套餐管理页面
+    """
+    list_display = ('name', 'pages', 'price', 'discount_rate', 'is_active', 'is_featured', 'sort_order', 'created_at')
+    list_filter = ('is_active', 'is_featured', 'created_at')
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'is_featured', 'sort_order')
+    ordering = ['sort_order', 'price']
+    
+    fieldsets = (
+        ('基本信息', {
+            'fields': ('name', 'description', 'pages', 'price', 'original_price', 'discount_rate')
+        }),
+        ('有效期设置', {
+            'fields': ('validity_days',),
+            'description': '留空表示永久有效'
+        }),
+        ('显示设置', {
+            'fields': ('is_active', 'is_featured', 'sort_order')
+        }),
+    )
+
+
+@admin.register(UserPackage)
+class UserPackageAdmin(ModelAdmin):
+    """
+    用户套餐管理页面
+    """
+    list_display = ('id', 'user_link', 'package_name', 'purchase_price', 'pages_total', 'pages_remaining', 'status', 'purchased_at', 'expires_at', 'action_buttons')
+    list_filter = ('status', 'purchased_at', 'package')
+    search_fields = ('user__username', 'user__email', 'package__name')
+    readonly_fields = ('user', 'package', 'purchase_price', 'pages_total', 'pages_remaining', 'purchased_at', 'activated_at', 'payment_screenshot_preview')
+    actions = ['activate_packages', 'cancel_packages']
+    
+    fieldsets = (
+        ('用户和套餐信息', {
+            'fields': ('user', 'package', 'purchase_price', 'pages_total', 'pages_remaining')
+        }),
+        ('支付信息', {
+            'fields': ('payment_method', 'payment_screenshot', 'payment_screenshot_preview')
+        }),
+        ('状态和时间', {
+            'fields': ('status', 'purchased_at', 'activated_at', 'expires_at')
+        }),
+        ('备注', {
+            'fields': ('remark',)
+        }),
+    )
+    
+    def user_link(self, obj):
+        """用户链接"""
+        user_url = reverse('admin:api_user_change', args=[obj.user.id])
+        return format_html('<a href="{}">{}</a>', user_url, obj.user.username)
+    user_link.short_description = '用户'
+    
+    def package_name(self, obj):
+        """套餐名称"""
+        return obj.package.name
+    package_name.short_description = '套餐'
+    
+    def payment_screenshot_preview(self, obj):
+        """支付凭证预览"""
+        if obj.payment_screenshot:
+            return format_html('<a href="{}" target="_blank"><img src="{}" style="max-width: 300px; max-height: 200px;" /></a>', 
+                             obj.payment_screenshot.url, obj.payment_screenshot.url)
+        return "无凭证"
+    payment_screenshot_preview.short_description = '支付凭证预览'
+    
+    def action_buttons(self, obj):
+        """操作按钮"""
+        if obj.status == UserPackage.StatusChoices.PENDING:
+            return format_html(
+                '<a class="button" href="{}">审核激活</a>',
+                reverse('admin:api_userpackage_change', args=[obj.id])
+            )
+        return '-'
+    action_buttons.short_description = '操作'
+    
+    @admin.action(description='激活选中的待审核套餐')
+    def activate_packages(self, request, queryset):
+        """批量激活套餐"""
+        activated_count = 0
+        for user_package in queryset:
+            if user_package.status == UserPackage.StatusChoices.PENDING:
+                try:
+                    user_package.activate()
+                    activated_count += 1
+                except Exception as e:
+                    self.message_user(request, f"激活套餐 {user_package.id} 失败: {str(e)}", level='error')
+        
+        if activated_count > 0:
+            self.message_user(request, f"成功激活 {activated_count} 个套餐")
+    
+    @admin.action(description='取消选中的套餐')
+    def cancel_packages(self, request, queryset):
+        """批量取消套餐"""
+        updated = queryset.update(status=UserPackage.StatusChoices.CANCELLED)
+        self.message_user(request, f"成功取消 {updated} 个套餐")
+
+
+@admin.register(Transaction)
+class TransactionAdmin(ModelAdmin):
+    """
+    交易记录管理页面
+    """
+    list_display = ('id', 'user_link', 'transaction_type', 'pages', 'amount', 'balance_before', 'balance_after', 'order_link', 'created_at')
+    list_filter = ('transaction_type', 'created_at')
+    search_fields = ('user__username', 'user__email', 'order__order_number', 'description')
+    readonly_fields = ('user', 'transaction_type', 'amount', 'pages', 'balance_before', 'balance_after', 'order', 'user_package', 'description', 'created_at')
+    
+    def user_link(self, obj):
+        """用户链接"""
+        user_url = reverse('admin:api_user_change', args=[obj.user.id])
+        return format_html('<a href="{}">{}</a>', user_url, obj.user.username)
+    user_link.short_description = '用户'
+    
+    def order_link(self, obj):
+        """订单链接"""
+        if obj.order:
+            order_url = reverse('admin:api_order_change', args=[obj.order.id])
+            return format_html('<a href="{}">{}</a>', order_url, obj.order.order_number)
+        return '-'
+    order_link.short_description = '关联订单'
+    
+    def has_add_permission(self, request):
+        """禁止手动添加交易记录"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """禁止删除交易记录"""
+        return False

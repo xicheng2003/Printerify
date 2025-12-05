@@ -79,12 +79,22 @@ def get_order_document_path(instance, filename):
 
 def get_payment_screenshot_path(instance, filename):
     """
-    【新增】付款凭证的存储路径
+    【新增】订单付款凭证的存储路径
     格式为: payments/YYYY-MM-DD/取件码/原始文件名
     """
     current_date = timezone.now().strftime('%Y-%m-%d')
     pickup_code = instance.pickup_code
     return f'payments/{current_date}/{pickup_code}/{filename}'
+
+
+def get_package_payment_path(instance, filename):
+    """
+    套餐购买付款凭证的存储路径
+    格式为: package_payments/YYYY-MM-DD/用户ID/文件名
+    """
+    current_date = timezone.now().strftime('%Y-%m-%d')
+    user_id = instance.user_id
+    return f'package_payments/{current_date}/{user_id}/{filename}'
 
 
 # --- 用户模型 ---
@@ -101,6 +111,11 @@ class User(AbstractUser):
     github_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     google_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     avatar_url = models.URLField(blank=True, null=True)
+    
+    # 套餐余额字段
+    page_balance = models.IntegerField(default=0, help_text="账户页数余额（标准页数）")
+    total_pages_purchased = models.IntegerField(default=0, help_text="累计购买页数")
+    total_pages_used = models.IntegerField(default=0, help_text="累计使用页数")
     
     def __str__(self):
         return self.username
@@ -297,3 +312,194 @@ class Document(models.Model):
 
     def __str__(self):
         return f"Document {self.original_filename} in Group {self.group.id}"
+
+
+# --- 套餐相关模型 ---
+
+class Package(models.Model):
+    """
+    套餐模板 - 定义可供购买的打印套餐
+    """
+    name = models.CharField(max_length=100, help_text="套餐名称，如'基础版'")
+    description = models.TextField(blank=True, help_text="套餐描述")
+    pages = models.IntegerField(help_text="包含的标准打印页数")
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="套餐价格")
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="原价（用于显示优惠）")
+    discount_rate = models.DecimalField(max_digits=5, decimal_places=2, default=100, help_text="折扣率（如95表示95折）")
+    
+    # 套餐有效期配置
+    validity_days = models.IntegerField(null=True, blank=True, help_text="有效期（天数），空表示永久有效")
+    
+    # 套餐状态
+    is_active = models.BooleanField(default=True, help_text="是否启用该套餐")
+    is_featured = models.BooleanField(default=False, help_text="是否推荐套餐（在列表中突出显示）")
+    
+    # 排序和分类
+    sort_order = models.IntegerField(default=0, help_text="排序权重（越小越靠前）")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['sort_order', 'price']
+        verbose_name = "打印套餐"
+        verbose_name_plural = "打印套餐"
+    
+    def __str__(self):
+        return f"{self.name} - {self.pages}页 ¥{self.price}"
+    
+    @property
+    def price_per_page(self):
+        """计算每页成本"""
+        if self.pages > 0:
+            return float(self.price) / self.pages
+        return 0
+    
+    @property
+    def savings(self):
+        """计算节省金额"""
+        if self.original_price:
+            return float(self.original_price) - float(self.price)
+        return 0
+
+
+class UserPackage(models.Model):
+    """
+    用户已购套餐记录 - 记录用户购买的套餐及使用情况
+    """
+    class StatusChoices(models.TextChoices):
+        PENDING = 'pending', '待支付'
+        ACTIVE = 'active', '使用中'
+        EXPIRED = 'expired', '已过期'
+        EXHAUSTED = 'exhausted', '已用完'
+        CANCELLED = 'cancelled', '已取消'
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='packages', help_text="购买用户")
+    package = models.ForeignKey(Package, on_delete=models.PROTECT, help_text="套餐类型")
+    
+    # 购买信息
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, help_text="实际支付价格")
+    pages_total = models.IntegerField(help_text="套餐总页数")
+    pages_remaining = models.IntegerField(help_text="剩余页数")
+    
+    # 支付信息
+    payment_method = models.CharField(max_length=50, blank=True, null=True, help_text="支付方式")
+    payment_screenshot = models.FileField(upload_to=get_package_payment_path, blank=True, null=True, help_text="支付凭证")
+    
+    # 时间信息
+    purchased_at = models.DateTimeField(auto_now_add=True, help_text="购买时间")
+    activated_at = models.DateTimeField(null=True, blank=True, help_text="激活时间（审核通过后）")
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="过期时间")
+    
+    # 状态
+    status = models.CharField(max_length=20, choices=StatusChoices.choices, default=StatusChoices.PENDING, help_text="套餐状态")
+    
+    # 备注
+    remark = models.TextField(blank=True, null=True, help_text="备注信息")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-purchased_at']
+        verbose_name = "用户套餐"
+        verbose_name_plural = "用户套餐"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.package.name} ({self.status})"
+    
+    @property
+    def is_valid(self):
+        """检查套餐是否有效（未过期且有剩余页数）"""
+        if self.status != self.StatusChoices.ACTIVE:
+            return False
+        if self.pages_remaining <= 0:
+            return False
+        if self.expires_at and timezone.now() > self.expires_at:
+            return False
+        return True
+    
+    def activate(self):
+        """激活套餐（审核通过后调用）"""
+        if self.status == self.StatusChoices.PENDING:
+            self.status = self.StatusChoices.ACTIVE
+            self.activated_at = timezone.now()
+            
+            # 如果套餐有有效期，计算过期时间
+            if self.package.validity_days:
+                from datetime import timedelta
+                self.expires_at = timezone.now() + timedelta(days=self.package.validity_days)
+            
+            # 记录激活前的余额
+            balance_before = self.user.page_balance
+            
+            # 更新用户余额
+            self.user.page_balance += self.pages_total
+            self.user.total_pages_purchased += self.pages_total
+            self.user.save()
+            
+            # 创建交易记录
+            Transaction.objects.create(
+                user=self.user,
+                transaction_type=Transaction.TransactionType.RECHARGE,
+                amount=self.purchase_price,
+                pages=self.pages_total,
+                balance_before=balance_before,
+                balance_after=self.user.page_balance,
+                user_package=self,
+                description=f"套餐充值：{self.package.name}（{self.pages_total}页）"
+            )
+            
+            self.save()
+    
+    def deduct_pages(self, pages):
+        """扣除页数"""
+        if pages > self.pages_remaining:
+            raise ValueError(f"剩余页数不足：需要{pages}页，剩余{self.pages_remaining}页")
+        
+        self.pages_remaining -= pages
+        
+        # 如果用完了，更新状态
+        if self.pages_remaining == 0:
+            self.status = self.StatusChoices.EXHAUSTED
+        
+        self.save()
+
+
+class Transaction(models.Model):
+    """
+    交易记录 - 记录所有余额变动（充值、消费）
+    """
+    class TransactionType(models.TextChoices):
+        RECHARGE = 'recharge', '充值'
+        CONSUME = 'consume', '消费'
+        REFUND = 'refund', '退款'
+        ADMIN_ADJUST = 'admin_adjust', '管理员调整'
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions', help_text="关联用户")
+    transaction_type = models.CharField(max_length=20, choices=TransactionType.choices, help_text="交易类型")
+    
+    # 金额和页数
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="交易金额")
+    pages = models.IntegerField(help_text="页数变动（正数表示增加，负数表示减少）")
+    
+    # 余额快照
+    balance_before = models.IntegerField(help_text="交易前余额")
+    balance_after = models.IntegerField(help_text="交易后余额")
+    
+    # 关联对象
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions', help_text="关联订单（如果是消费）")
+    user_package = models.ForeignKey(UserPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions', help_text="关联套餐（如果是充值）")
+    
+    # 描述
+    description = models.TextField(blank=True, help_text="交易描述")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "交易记录"
+        verbose_name_plural = "交易记录"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_transaction_type_display()} {self.pages}页"

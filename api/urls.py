@@ -2,7 +2,15 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, OAuthTokenValidationView, OrderQueryByCodeView, get_pricing_config
+from .views import (
+    OrderViewSet, FileUploadView, PriceEstimationView, PaymentScreenshotUploadView, 
+    UserRegistrationView, UserLoginView, user_logout, user_profile, update_user_profile, 
+    user_orders, get_csrf_token, GitHubLoginView, GoogleLoginView, GitHubCallbackView, 
+    GoogleCallbackView, OAuthCallbackView, OAuthUserInfoView, OAuthBindingView, 
+    OAuthTokenValidationView, OrderQueryByCodeView, get_pricing_config,
+    PackageListView, UserPackagePurchaseView, UserPackageListView, 
+    UserBalanceView, TransactionListView, activate_user_package
+)
 
 # 1. 创建一个路由器
 router = DefaultRouter()
@@ -41,4 +49,12 @@ urlpatterns = [
     path('estimate-price/', PriceEstimationView.as_view(), name='estimate-price'),
     path('upload-screenshot/', PaymentScreenshotUploadView.as_view(), name='upload-screenshot'),
     path('config/pricing/', get_pricing_config, name='config-pricing'), # Add pricing config URL
+    
+    # 套餐相关URL
+    path('packages/', PackageListView.as_view(), name='package-list'),
+    path('packages/purchase/', UserPackagePurchaseView.as_view(), name='package-purchase'),
+    path('user/packages/', UserPackageListView.as_view(), name='user-packages'),
+    path('user/balance/', UserBalanceView.as_view(), name='user-balance'),
+    path('user/transactions/', TransactionListView.as_view(), name='user-transactions'),
+    path('admin/packages/<int:package_id>/activate/', activate_user_package, name='activate-package'),
 ]

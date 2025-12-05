@@ -97,6 +97,16 @@ const router = createRouter({
         title: 'OAuth登录回调'
       }
     },
+    // 套餐购买页面
+    {
+      path: '/packages',
+      name: 'packages',
+      component: () => import('../views/PackageView.vue'),
+      meta: {
+        title: '打印套餐',
+        requiresAuth: false
+      }
+    },
     // 404 页面 (必须放在最后)
     {
       path: '/:pathMatch(.*)*',
