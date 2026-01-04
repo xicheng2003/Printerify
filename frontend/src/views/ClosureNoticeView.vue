@@ -74,67 +74,6 @@
     </div>
   </div>
 </template>
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17,21 17,13 7,13 7,21"></polyline>
-              <polyline points="7,3 7,8 15,8"></polyline>
-            </svg>
-            查看历史订单
-          </button>
-
-          <!-- 刷新页面按钮（检查是否恢复营业） -->
-          <button @click="refreshStatus" class="btn btn-primary">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <polyline points="1 20 1 14 7 14"></polyline>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-            刷新检查营业状态
-          </button>
-
-          <!-- 登出按钮（仅对已登录用户） -->
-          <button
-            v-if="isAuthenticated"
-            @click="logout"
-            class="btn btn-text"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            登出账号
-          </button>
-        </div>
-
-        <!-- 底部提示 -->
-        <div class="closure-footer">
-          <p>感谢您的理解与支持！我们很快将回来为您服务。</p>
-          <p class="footer-contact">如有紧急事项，请通过其他渠道联系我们</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
@@ -183,50 +122,6 @@ const formatDate = (date) => {
 const refreshStatus = async () => {
   try {
     const response = await axios.get('/api/system-config/');
-    if (response.data && response.data.is_open) {
-      // 营业已恢复，跳转到首页
-      router.push('/');
-    } else {
-      // 仍然关闭，更新显示
-      if (response.data) {
-        closureReason.value = response.data.closure_reason || closureReason.value;
-        reopeningDate.value = response.data.reopening_date;
-        noticeContent.value = response.data.notice_content || '';
-        allowViewingHistory.value = response.data.allow_viewing_history;
-      }
-      alert('仍在暂停营业中，请稍后再试。');
-    }
-  } catch (error) {
-    console.error('检查营业状态失败:', error);
-    alert('检查失败，请刷新页面重试。');
-  }
-};
-
-// 查看历史订单
-const goToOrders = () => {
-  router.push('/profile');
-};
-
-// 登出
-const logout = async () => {
-  try {
-    await userStore.logout();
-    router.push('/');
-  } catch (error) {
-    console.error('登出失败:', error);
-  }
-};
-</script>
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
-
-// 刷新检查营业状态
-const refreshStatus = async () => {
-  try {
-    const response = await apiService.get('/system-config/');
     if (response.data && response.data.is_open) {
       // 营业已恢复，跳转到首页
       router.push('/');
