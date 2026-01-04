@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Order, BindingGroup, Document, User
+from .models import Order, BindingGroup, Document, User, SystemConfig
 from .tasks import send_order_completion_email
 
 # 注册用户模型
@@ -164,3 +164,56 @@ class OrderAdmin(ModelAdmin):
         response = HttpResponse(zip_buffer, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename="printerify_orders.zip"'
         return response
+
+
+# --- 系统配置管理 ---
+
+@admin.register(SystemConfig)
+class SystemConfigAdmin(ModelAdmin):
+    """
+    系统配置管理页面，用于控制营业状态。
+    这个模型使用单例模式，只维护一条记录。
+    """
+    list_display = ('get_status', 'closure_reason', 'reopening_date', 'updated_at')
+    readonly_fields = ('updated_at',)
+    
+    fieldsets = (
+        ('营业状态', {
+            'fields': ('is_open',),
+            'description': '勾选表示营业中，取消勾选表示暂停营业。'
+        }),
+        ('关闭信息', {
+            'fields': ('closure_reason', 'reopening_date', 'notice_content'),
+            'description': '在关闭营业后显示给用户的信息。'
+        }),
+        ('用户权限', {
+            'fields': ('allow_viewing_history',),
+            'description': '控制在暂停营业期间是否允许用户查看历史数据。'
+        }),
+        ('时间戳', {
+            'fields': ('updated_at',),
+        }),
+    )
+    
+    def get_status(self, obj):
+        """显示营业状态"""
+        if obj.is_open:
+            return format_html('<span style="color: green;">✓ 营业中</span>')
+        else:
+            return format_html('<span style="color: red;">✗ 已关闭</span>')
+    get_status.short_description = '营业状态'
+    
+    def has_add_permission(self, request):
+        """只能有一条记录，所以禁止添加"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """禁止删除配置记录"""
+        return False
+    
+    def changelist_view(self, request, extra_context=None):
+        """进入列表页时，自动重定向到编辑页（因为只有一条记录）"""
+        from .models import SystemConfig
+        config = SystemConfig.get_config()
+        from django.shortcuts import redirect
+        return redirect(f'/admin/api/systemconfig/{config.pk}/change/')

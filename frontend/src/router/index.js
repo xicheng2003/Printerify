@@ -4,7 +4,9 @@ import ProductIntroView from '../views/ProductIntroView.vue'
 import AuthView from '../views/AuthView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import OAuthCallbackView from '@/views/OAuthCallbackView.vue'
+import ClosureNoticeView from '@/views/ClosureNoticeView.vue'
 import { useUserStore } from '@/stores/user'
+import apiService from '@/services/apiService'
 
 // 引入新页面组件
 const router = createRouter({
@@ -97,6 +99,16 @@ const router = createRouter({
         title: 'OAuth登录回调'
       }
     },
+    // 暂停营业提示页面
+    {
+      path: '/closure-notice',
+      name: 'closure-notice',
+      component: ClosureNoticeView,
+      meta: {
+        title: '暂停营业',
+        requiresClosure: true
+      }
+    },
     // 404 页面 (必须放在最后)
     {
       path: '/:pathMatch(.*)*',
@@ -107,10 +119,50 @@ const router = createRouter({
   ]
 })
 
-// 路由守卫：检查认证状态
+// 缓存系统配置
+let systemConfig = null;
+let configLastFetch = 0;
+const CONFIG_CACHE_TIME = 5 * 60 * 1000; // 5分钟缓存
+
+async function getSystemConfig() {
+  const now = Date.now();
+  // 如果缓存还有效，直接返回
+  if (systemConfig && (now - configLastFetch) < CONFIG_CACHE_TIME) {
+    return systemConfig;
+  }
+
+  try {
+    const response = await apiService.get('/system-config/');
+    systemConfig = response.data;
+    configLastFetch = now;
+    return systemConfig;
+  } catch (error) {
+    console.error('Failed to fetch system config:', error);
+    // 如果请求失败，返回默认配置（营业中）
+    return { is_open: true };
+  }
+}
+
+// 路由守卫：检查认证状态和营业状态
 router.beforeEach(async (to, from, next) => {
   const pageTitle = to.meta.title ? `${to.meta.title} - 自助打印服务` : '自助打印服务';
   document.title = pageTitle;
+
+  // 获取系统配置
+  const config = await getSystemConfig();
+
+  // 如果已关闭营业，除了以下路由外，所有路由都重定向到关闭提示页
+  const allowedWhenClosed = ['closure-notice', 'oauth-callback'];
+  if (!config.is_open && !allowedWhenClosed.includes(to.name)) {
+    // 如果用户已登录且允许查看历史记录，可以访问个人资料页
+    const userStore = useUserStore();
+    if (config.allow_viewing_history && userStore.isAuthenticated && to.name === 'profile') {
+      // 允许访问
+    } else {
+      next({ name: 'closure-notice' });
+      return;
+    }
+  }
 
   // 检查是否需要认证
   if (to.meta.requiresAuth) {

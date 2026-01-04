@@ -297,3 +297,64 @@ class Document(models.Model):
 
     def __str__(self):
         return f"Document {self.original_filename} in Group {self.group.id}"
+
+
+# --- 系统配置模型 ---
+
+class SystemConfig(models.Model):
+    """
+    全局系统配置，用于控制营业状态、维护公告等。
+    这个模型只保存一条记录（单例模式）。
+    """
+    
+    # 营业状态
+    is_open = models.BooleanField(
+        default=True,
+        help_text="是否营业。关闭时显示暂停营业页面"
+    )
+    
+    # 关闭原因（显示在用户界面）
+    closure_reason = models.CharField(
+        max_length=500,
+        default="放假暂停营业，感谢您的理解！",
+        help_text="营业关闭时显示的原因描述"
+    )
+    
+    # 预计重新营业时间
+    reopening_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="预计重新营业日期"
+    )
+    
+    # 额外提示内容
+    notice_content = models.TextField(
+        blank=True,
+        help_text="在关闭页面中显示的额外提示信息"
+    )
+    
+    # 是否允许已登录用户查看历史订单
+    allow_viewing_history = models.BooleanField(
+        default=True,
+        help_text="关闭营业后，是否允许用户查看历史订单"
+    )
+    
+    # 时间戳
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "系统配置"
+        verbose_name_plural = "系统配置"
+    
+    def __str__(self):
+        status = "营业中" if self.is_open else "已关闭"
+        return f"系统配置 - {status}"
+    
+    @classmethod
+    def get_config(cls):
+        """
+        获取系统配置的单例对象。
+        如果不存在则创建默认配置。
+        """
+        config, created = cls.objects.get_or_create(pk=1)
+        return config

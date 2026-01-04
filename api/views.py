@@ -825,3 +825,26 @@ class OAuthBindingView(View):
             
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+# --- 系统配置视图 ---
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_system_config(request):
+    """
+    获取全局系统配置信息
+    GET /api/system-config/
+    用于显示营业状态、关闭原因等信息
+    """
+    from .models import SystemConfig
+    
+    config = SystemConfig.get_config()
+    
+    return Response({
+        'is_open': config.is_open,
+        'closure_reason': config.closure_reason,
+        'reopening_date': config.reopening_date,
+        'notice_content': config.notice_content,
+        'allow_viewing_history': config.allow_viewing_history,
+    }, status=status.HTTP_200_OK)
