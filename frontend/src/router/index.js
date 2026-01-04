@@ -132,7 +132,7 @@ async function getSystemConfig() {
   }
 
   try {
-    const response = await apiService.get('/system-config/');
+    const response = await apiService.get('/api/system-config/');
     systemConfig = response.data;
     configLastFetch = now;
     return systemConfig;
