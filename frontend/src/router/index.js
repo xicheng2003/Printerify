@@ -6,7 +6,7 @@ import ProfileView from '../views/ProfileView.vue'
 import OAuthCallbackView from '@/views/OAuthCallbackView.vue'
 import ClosureNoticeView from '@/views/ClosureNoticeView.vue'
 import { useUserStore } from '@/stores/user'
-import apiService from '@/services/apiService'
+import axios from 'axios'
 
 // 引入新页面组件
 const router = createRouter({
@@ -132,7 +132,7 @@ async function getSystemConfig() {
   }
 
   try {
-    const response = await apiService.get('/api/system-config/');
+    const response = await axios.get('/api/system-config/');
     systemConfig = response.data;
     configLastFetch = now;
     return systemConfig;
