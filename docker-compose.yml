@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # 1. 数据库服务 (PostgreSQL)
+  db:
+    image: postgres:15
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  # 2. 缓存服务 (Redis)
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  # 3. 后端服务 (Django)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: always
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - static_volume:/app/staticfiles  # 共享静态文件给 Nginx
+      - media_volume:/app/media         # 共享上传文件
+    env_file:
+      - .env
+
+  # 4. 异步任务队列 (Celery Worker)
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: celery -A backend worker -l info
+    restart: always
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    volumes:
+      - media_volume:/app/media
+
+  # 5. 前端服务 (Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: always
+    ports:
+      - "8080:80"  # 对外暴露 8080 端口 (NPM 将转发到这里)
+    depends_on:
+      - backend
+    volumes:
+      - static_volume:/app/staticfiles  # 读取后端的静态文件
+      - media_volume:/app/media         # 读取上传的文件
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

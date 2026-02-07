@@ -1,0 +1,44 @@
+# 使用 Python 3.10
+FROM python:3.10-slim
+
+# 设置工作目录
+WORKDIR /app
+
+# 安装系统依赖
+# 重点：新增了 libpango, libharfbuzz, libopenjp2 等 WeasyPrint 和 OpenCV 需要的库
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    libgl1 \
+    libglib2.0-0 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libxcb1 \
+    git \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei \
+    xfonts-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY requirements.txt .
+
+# 安装 Python 依赖，并额外安装 gunicorn
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install gunicorn
+
+# 复制项目代码
+COPY . .
+
+# 创建静态文件目录
+RUN mkdir -p /app/staticfiles
+RUN mkdir -p /app/media
+
+# 暴露端口
+EXPOSE 8000
+
+# 启动命令 (增加了 --timeout 600)
+CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "600"]
