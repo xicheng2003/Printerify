@@ -28,7 +28,7 @@ services:
       - redis
     volumes:
       - static_volume:/app/staticfiles  # 共享静态文件给 Nginx
-      - media_volume:/app/media         # 共享上传文件
+      - ./media:/app/media     # 共享上传文件
     env_file:
       - .env
 
@@ -59,8 +59,7 @@ services:
       - backend
     volumes:
       - static_volume:/app/staticfiles  # 读取后端的静态文件
-      - media_volume:/app/media         # 读取上传的文件
-
+      - ./media:/app/media         # 读取上传的文件
 volumes:
   postgres_data:
   static_volume:
