@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 from decimal import Decimal
-from api.models import Order, BindingGroup, Document, User
+from api.models import Order, BindingGroup, Document, User, SystemConfig
 
 
 class OrderAPITest(TestCase):
@@ -39,6 +39,25 @@ class OrderAPITest(TestCase):
         # 由于文件上传的复杂性，这里只测试数据结构
         # 实际的文件上传测试需要更复杂的设置
         pass
+
+    def test_create_order_when_closed(self):
+        """测试暂停营业时创建订单"""
+        # 设置系统为关闭状态
+        config = SystemConfig.get_config()
+        config.is_open = False
+        config.closure_reason = "Test Closed"
+        config.save()
+
+        # 尝试创建订单 (提供有效数据以通过序列化验证)
+        response = self.client.post(reverse('order-list'), self.order_data, format='json')
+        
+        # 验证返回403 Forbidden
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("Test Closed", str(response.data))
+
+        # 恢复状态以免影响其他测试
+        config.is_open = True
+        config.save()
 
     def test_list_orders(self):
         """测试订单列表API"""

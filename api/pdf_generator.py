@@ -1,5 +1,8 @@
 from django.template.loader import render_to_string
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+except (ImportError, OSError):
+    HTML = None
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.contrib.staticfiles import finders
@@ -54,6 +57,9 @@ def generate_order_pdf(order):
         raise IOError(f"Failed to find static file: '{static_file_path}' (from URL: '{url}')")
 
     # 3. 创建 HTML 对象，这是关键一步
+    if HTML is None:
+        raise ImportError("WeasyPrint is not installed or system dependencies are missing.")
+    
     # 我们提供一个虚拟的 base_url 来让 WeasyPrint 正确处理所有链接
     # 'app://printerify' 是一个完全虚构的地址，仅用于满足 WeasyPrint 的内部逻辑
     html = HTML(string=html_string, base_url='app://printerify', url_fetcher=django_url_fetcher)

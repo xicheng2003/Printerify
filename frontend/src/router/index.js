@@ -152,16 +152,10 @@ router.beforeEach(async (to, from, next) => {
   const config = await getSystemConfig();
 
   // 如果已关闭营业，除了以下路由外，所有路由都重定向到关闭提示页
-  const allowedWhenClosed = ['closure-notice', 'oauth-callback'];
-  if (!config.is_open && !allowedWhenClosed.includes(to.name)) {
-    // 如果用户已登录且允许查看历史记录，可以访问个人资料页
-    const userStore = useUserStore();
-    if (config.allow_viewing_history && userStore.isAuthenticated && to.name === 'profile') {
-      // 允许访问
-    } else {
-      next({ name: 'closure-notice' });
-      return;
-    }
+  // 如果已关闭营业，仅拦截下单页面
+  if (!config.is_open && to.name === 'order') {
+    next({ name: 'closure-notice' });
+    return;
   }
 
   // 检查是否需要认证

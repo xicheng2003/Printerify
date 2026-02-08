@@ -20,3 +20,16 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock scrollTo
 window.scrollTo = vi.fn()
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(),
+}
+
+global.localStorage = localStorageMock
+window.localStorage = localStorageMock

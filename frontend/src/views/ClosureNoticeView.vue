@@ -1,68 +1,43 @@
 <template>
   <div class="closure-notice-container">
-    <!-- 主要内容 -->
-    <div class="closure-notice-wrapper">
-      <!-- 顶部系统维护提示 -->
-      <div class="maintenance-banner">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    <div class="content-wrapper">
+      <div class="icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
         </svg>
-        <span>SYSTEM MAINTENANCE</span>
+      </div>
+      
+      <h1 class="notice-title">暂停营业中</h1>
+      
+      <p class="notice-message">
+        {{ closureReason }}
+      </p>
+
+      <div v-if="reopeningDate" class="info-section">
+        <div class="info-item">
+          <span class="label">预计恢复时间</span>
+          <span class="value">{{ formatDate(reopeningDate) }} 09:00</span>
+        </div>
       </div>
 
-      <!-- 主要内容卡片 -->
-      <div class="content-card">
-        <!-- 大图标 -->
-        <div class="icon-wrapper">
-          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-          </svg>
-        </div>
+      <div v-if="noticeContent" class="additional-notice">
+        {{ noticeContent }}
+      </div>
 
-        <!-- 标题 -->
-        <h1 class="title">暂停营业</h1>
+      <div class="action-buttons">
+        <button @click="refreshStatus" class="btn-primary">
+          刷新状态
+        </button>
+        
+        <button @click="goHome" class="btn-secondary">
+          返回首页
+        </button>
 
-        <!-- 副标题/主要信息 -->
-        <p class="subtitle">{{ closureReason }}</p>
-
-        <!-- 重新营业时间（如果有） -->
-        <div v-if="reopeningDate" class="reopening-section">
-          <div class="reopening-label">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>预计恢复时间</span>
-          </div>
-          <p class="reopening-date">{{ formatDate(reopeningDate) }} 09:00</p>
-        </div>
-
-        <!-- 额外提示内容（如果有） -->
-        <div v-if="noticeContent" class="notice-section">
-          <p class="notice-text">{{ noticeContent }}</p>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div class="button-group">
-          <button @click="refreshStatus" class="btn btn-primary">
-            刷新状态
-          </button>
-
-          <button v-if="isAuthenticated && allowViewingHistory" @click="goToOrders" class="btn btn-secondary">
-            查看历史订单
-          </button>
-
-          <button @click="logout" class="btn btn-text">
-            退出登录
-          </button>
-        </div>
-
-        <!-- 底部提示 -->
-        <p class="footer-text">Printerify Service</p>
+        <button v-if="isAuthenticated && allowViewingHistory" @click="goToOrders" class="btn-secondary">
+          查看历史订单
+        </button>
       </div>
     </div>
   </div>
@@ -119,56 +94,162 @@ const refreshStatus = async () => {
       // 营业已恢复，跳转到首页
       router.push('/');
     } else {
-      // 仍然关闭，更新显示
+      // 仍然关闭，更新显示，并给予用户反馈
       if (response.data) {
         closureReason.value = response.data.closure_reason || closureReason.value;
         reopeningDate.value = response.data.reopening_date;
         noticeContent.value = response.data.notice_content || '';
         allowViewingHistory.value = response.data.allow_viewing_history;
       }
-      alert('仍在暂停营业中，请稍后再试。');
+      
+      // 添加一个简单的视觉反馈动画或其他提示更好，这里先用alert
+      // 考虑到整体风格，最好避免alert，但为了保持逻辑简单先保留
+      // 或者我们可以添加一个短暂的状态显示
+      const btn = document.querySelector('.btn-primary');
+      if(btn) {
+        const originalText = btn.innerText;
+        btn.innerText = '状态未变';
+        setTimeout(() => {
+          btn.innerText = originalText;
+        }, 2000);
+      }
     }
   } catch (error) {
     console.error('检查营业状态失败:', error);
-    alert('检查失败，请刷新页面重试。');
   }
 };
+
+const goHome = () => {
+  router.push('/');
+}
 
 // 查看历史订单
 const goToOrders = () => {
   router.push('/profile');
 };
-
-// 登出
-const logout = async () => {
-  try {
-    await userStore.logout();
-    router.push('/');
-  } catch (error) {
-    console.error('登出失败:', error);
-  }
-};
 </script>
 
 <style scoped>
 .closure-notice-container {
-  width: 100%;
-  min-height: 100vh;
-  background: #f9fafb;
+  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--color-background);
 }
 
-.closure-notice-wrapper {
+.content-wrapper {
+  max-width: 500px;
   width: 100%;
-  max-width: 480px;
-  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes fadeInUp {
+.icon-wrapper {
+  margin-bottom: 2rem;
+  color: var(--color-text-mute);
+  opacity: 0.5;
+}
+
+.notice-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.notice-message {
+  font-size: 1.1rem;
+  color: var(--color-text);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.info-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: var(--color-background-soft);
+  border-radius: 8px;
+  display: inline-block;
+  min-width: 200px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--color-text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.additional-notice {
+  margin-bottom: 2.5rem;
+  padding: 1rem;
+  background-color: var(--color-background-mute);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  padding: 0.75rem 2rem;
+  background-color: var(--color-heading);
+  color: var(--color-background);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-heading);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover {
+  background-color: transparent;
+  color: var(--color-heading);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 0.75rem 1rem;
+  background-color: transparent;
+  color: var(--color-text-mute);
+  border: none;
+  border-bottom: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  color: var(--color-heading);
+  border-bottom-color: var(--color-heading);
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -179,217 +260,18 @@ const logout = async () => {
   }
 }
 
-/* 顶部维护提示 */
-.maintenance-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #6b7280;
-  font-size: 13px;
-  margin-bottom: 32px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-/* 主要内容卡片 */
-.content-card {
-  background: white;
-  border-radius: 24px;
-  padding: 56px 40px;
-  text-align: center;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.02);
-}
-
-/* 大图标 */
-.icon-wrapper {
-  margin-bottom: 32px;
-  display: flex;
-  justify-content: center;
-}
-
-.icon-wrapper svg {
-  width: 80px;
-  height: 80px;
-  color: #111827;
-  opacity: 1;
-  stroke-width: 1px;
-}
-
-/* 标题 */
-.title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 16px;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-}
-
-/* 副标题/主要信息 */
-.subtitle {
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 40px;
-  line-height: 1.6;
-  font-weight: 400;
-}
-
-/* 重新营业时间部分 */
-.reopening-section {
-  background: #f9fafb;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 32px;
-  border: 1px solid #f3f4f6;
-}
-
-.reopening-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: #6b7280;
-  font-size: 12px;
-  margin-bottom: 8px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.reopening-label svg {
-  width: 14px;
-  height: 14px;
-  color: #111827;
-}
-
-.reopening-date {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-  font-feature-settings: "tnum";
-}
-
-/* 通知部分 */
-.notice-section {
-  margin-bottom: 32px;
-  padding: 16px;
-  background: #fffbeb;
-  border-radius: 12px;
-  border: 1px solid #fcd34d;
-}
-
-.notice-text {
-  color: #92400e;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* 按钮组 */
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.btn {
-  padding: 14px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  outline: none;
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background: #111827;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary:hover {
-  background: #000000;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
-
-.btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
-
-.btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-  color: #111827;
-}
-
-.btn-text {
-  background: transparent;
-  color: #9ca3af;
-  font-weight: 400;
-  padding: 8px 0;
-  font-size: 13px;
-}
-
-.btn-text:hover {
-  color: #6b7280;
-}
-
-/* 底部文本 */
-.footer-text {
-  font-size: 12px;
-  color: #9ca3af;
-  margin: 0;
-  padding-top: 24px;
-  border-top: 1px solid #f3f4f6;
-}
-
-/* 响应式设计 */
 @media (max-width: 640px) {
-  .closure-notice-container {
-    padding: 16px;
-    background: white;
+  .notice-title {
+    font-size: 1.75rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .content-card {
-    padding: 40px 24px;
-    box-shadow: none;
-    border: none;
-  }
-
-  .icon-wrapper svg {
-    width: 64px;
-    height: 64px;
-  }
-
-  .title {
-    font-size: 24px;
-    margin-bottom: 12px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-    margin-bottom: 32px;
-  }
-
-  .btn {
-    padding: 12px 20px;
+  .btn-primary, .btn-secondary {
+    width: 100%;
   }
 }
 </style>

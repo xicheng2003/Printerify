@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0008_merge_20251121_0105'),
+        ('api', '0006_alter_order_options_order_unique_active_pickup_code'),
     ]
 
     operations = [

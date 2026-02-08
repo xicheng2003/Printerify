@@ -19,5 +19,10 @@ export default defineConfig({
         proxyTimeout: 300000
       }
     }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js']
   }
 })

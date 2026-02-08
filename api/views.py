@@ -12,7 +12,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from .models import Order, User
+from .models import Order, User, SystemConfig
 from .serializers import OrderCreateSerializer, OrderDetailSerializer, UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 from .services import pricing
 from .services.pricing import PRICE_CONFIG # Import PRICE_CONFIG
@@ -367,6 +367,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         return self.queryset.none()
 
     def perform_create(self, serializer):
+        # 检查是否暂停营业
+        config = SystemConfig.get_config()
+        if not config.is_open:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied(detail=f"暂停营业中：{config.closure_reason}")
+
         # 如果用户已认证，将订单与用户关联
         if self.request.user.is_authenticated:
             serializer.save(user=self.request.user)
