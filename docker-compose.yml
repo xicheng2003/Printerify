@@ -45,7 +45,7 @@ services:
     env_file:
       - .env
     volumes:
-      - media_volume:/app/media
+      - ./media:/app/media
 
   # 5. 前端服务 (Nginx)
   frontend:

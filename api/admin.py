@@ -145,21 +145,41 @@ class OrderAdmin(ModelAdmin):
         
         self.message_user(request, f"{updated_count} 个订单已成功标记为“已完成”并触发了邮件通知。")
 
-    # 下载功能的代码保持不变
+    # 下载功能（已增加容错处理）
     @admin.action(description='下载选中订单的打印文件和详情PDF')
     def download_selected_files(self, request, queryset):
+        import logging
+        logger = logging.getLogger('api')
+
         zip_buffer = io.BytesIO()
+        missing_files = []
         with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED, False) as zip_file:
             for order in queryset:
                 folder_name = f"{order.pickup_code}_{order.phone_number[-4:] if order.phone_number else 'XXXX'}"
                 for group in order.groups.all():
                     for document in group.documents.all():
                         if document.file_path:
-                            file_name_in_zip = f"{folder_name}/打印_{document.original_filename}"
-                            zip_file.writestr(file_name_in_zip, document.file_path.read())
+                            try:
+                                file_name_in_zip = f"{folder_name}/打印_{document.original_filename}"
+                                zip_file.writestr(file_name_in_zip, document.file_path.read())
+                            except Exception as e:
+                                logger.warning(f"无法读取文件 {document.original_filename} (订单 {order.order_number}): {e}")
+                                missing_files.append(f"{order.order_number}/{document.original_filename}")
                 if order.order_summary_pdf:
-                    pdf_name_in_zip = f"{folder_name}/订单详情_{order.order_number}.pdf"
-                    zip_file.writestr(pdf_name_in_zip, order.order_summary_pdf.read())
+                    try:
+                        pdf_name_in_zip = f"{folder_name}/订单详情_{order.order_number}.pdf"
+                        zip_file.writestr(pdf_name_in_zip, order.order_summary_pdf.read())
+                    except Exception as e:
+                        logger.warning(f"无法读取订单摘要PDF (订单 {order.order_number}): {e}")
+                        missing_files.append(f"{order.order_number}/订单摘要PDF")
+        
+        if missing_files:
+            self.message_user(
+                request,
+                f"以下 {len(missing_files)} 个文件在服务器上未找到，已跳过：{', '.join(missing_files)}",
+                level='warning'
+            )
+
         zip_buffer.seek(0)
         response = HttpResponse(zip_buffer, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename="printerify_orders.zip"'
