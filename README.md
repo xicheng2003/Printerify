@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/printerify-logo.svg" alt="Printerify logo" width="128" height="128">
+</p>
+
 # Printerify-为每一次打印赋能
 
 [![zh-CN](https://img.shields.io/badge/language-中文-blue.svg)](README.md)
