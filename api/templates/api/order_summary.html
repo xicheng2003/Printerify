@@ -116,6 +116,16 @@
                                 </div>
                             </td>
                         </tr>
+                        {% if order.remark %}
+                        <tr>
+                            <td colspan="2" style="width: 100%;">
+                                <div class="info-item">
+                                    <div class="label">备注</div>
+                                    <div class="value" style="white-space: pre-wrap; word-break: break-all;">{{ order.remark }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
                     </table>
                 </td>
             </tr>
