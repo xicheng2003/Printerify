@@ -40,3 +40,4 @@ temp_uploads/
 *.log
 django.log
 temp_old_product_intro.vue
+.DS_Store
