@@ -12,12 +12,12 @@
   <!-- Wechat / QQ share specific itemprop -->
   <meta itemprop="name" content="Printerify - 自助打印">
   <meta itemprop="description" content="Printerify 为每一次打印赋能。支持多种文档格式，一键上传、快速打印，为您提供便捷高效的云端打印体验。">
-  <meta itemprop="image" content="/pwa-512x512.png">
+  <meta itemprop="image" content="https://print.morlight.top/pwa-512x512.png">
 
   <!-- Open Graph for social sharing -->
   <meta property="og:title" content="Printerify - 自助打印">
   <meta property="og:description" content="Printerify 为每一次打印赋能。支持多种文档格式，一键上传、快速打印，为您提供便捷高效的云端打印体验。">
-  <meta property="og:image" content="/pwa-512x512.png">
+  <meta property="og:image" content="https://print.morlight.top/pwa-512x512.png">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png">
@@ -27,6 +27,10 @@
 </head>
 
 <body>
+  <!-- 微信分享默认抓取的第一张符合要求的图片 -->
+  <div style="display:none;width:0;height:0;overflow:hidden;">
+    <img src="https://print.morlight.top/pwa-512x512.png" alt="分享图标">
+  </div>
   <div id="app"></div>
   <script type="module" src="/src/main.js"></script>
 </body>
